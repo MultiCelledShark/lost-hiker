@@ -1,0 +1,22 @@
+{
+  "events": [
+    {
+      "id": "herb_patch_mint",
+      "type": "forage",
+      "text": "Under damp leaves, a patch of mint releases a cool scent.",
+      "effects": { "inventory_add": ["mint"] }
+    },
+    {
+      "id": "wolf_encounter",
+      "type": "tame",
+      "text": "A red wolf watches from the ferns, ears forward.",
+      "checks": { "tame_bonus_wolf": 1 },
+      "effects": { "rapport_inc": { "glow_elk": 0, "red_wolf": 1 } }
+    },
+    {
+      "id": "forest_noise",
+      "type": "flavor",
+      "text": "Branches creak; something heavy moves just out of sight."
+    }
+  ]
+}

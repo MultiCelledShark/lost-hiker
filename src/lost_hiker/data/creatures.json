@@ -1,0 +1,14 @@
+{
+  "glow_elk": {
+    "name": "Glow Elk",
+    "tame_threshold": 3,
+    "tags": ["neutral", "forest"],
+    "rewards": { "escort": true, "carry_slots": 5 }
+  },
+  "red_wolf": {
+    "name": "Red Wolf",
+    "tame_threshold": 4,
+    "tags": ["hostile", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 }
+  }
+}
