@@ -1,0 +1,66 @@
+{
+  "schema_version": 2,
+  "day": 4,
+  "season_index": 0,
+  "season_day": 3,
+  "stage": "return",
+  "active_zone": "glade",
+  "character": {
+    "name": "Jeb",
+    "race_id": "wolfkin",
+    "tags": [
+      "biped",
+      "clawed",
+      "furred",
+      "keen-smell"
+    ],
+    "base_stats": {
+      "stamina_max": 4.0,
+      "stamina_wake_restore": 1.0,
+      "stamina_camp_restore": 3.0,
+      "explore_slots": 1.0,
+      "camp_meal_cost": 1.0,
+      "inventory_slots": 20.0
+    },
+    "race_modifiers": [
+      {
+        "add": {
+          "stamina_max": 5,
+          "inventory_slots": 10
+        }
+      },
+      {
+        "add": {
+          "tame_bonus_wolf": 1
+        }
+      },
+      {
+        "mul": {
+          "cold_penalty": 0.5
+        }
+      }
+    ],
+    "permanent_modifiers": []
+  },
+  "stamina": 9.0,
+  "inventory": [
+    "mint",
+    "mint",
+    "mint",
+    "mint",
+    "mint",
+    "mint"
+  ],
+  "meals": 3,
+  "rapport": {
+    "glow_elk": 0,
+    "red_wolf": 5
+  },
+  "timed_modifiers": [],
+  "recent_events": [
+    "herb_patch_mint",
+    "wolf_encounter",
+    "forest_noise"
+  ],
+  "zone_steps": {}
+}

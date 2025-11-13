@@ -1,0 +1,5 @@
+{
+  "mint":   { "name": "Soothing Mint Tea",  "modifiers": [ { "add": { "beast_calm": 1 } } ] },
+  "bramble":{ "name": "Bramble-Root Polish","modifiers": [ { "add": { "bramble_clear": 1 } } ] },
+  "dream":  { "name": "Dream Fern Infusion","modifiers": [ { "add": { "camp_bonus": 1 } } ] }
+}

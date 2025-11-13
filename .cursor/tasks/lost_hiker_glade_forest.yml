@@ -1,0 +1,129 @@
+name: "Lost Hiker Prototype - Glade & Forest (with Character Creation)"
+
+description: |
+  Build and refine a functional text prototype for the Glade and Forest zones with a
+  data-driven character creation system and a multi-step exploration loop.
+
+  The player can:
+    - Create a character (race + name; race influences stats/traits via modifiers)
+    - Navigate a main menu (New Game / Continue / Quit)
+    - Explore the Forest from the Glade using a multi-action day loop
+      (Wake → Explore (multi-step) → Camp/Return → End of Day)
+    - Manage stamina and inventory with decay
+    - Camp to restore stamina, see a summary (including rapport), and trigger events
+    - Forage herbs and brew teas for temporary modifiers
+    - Build rapport with at least one tameable creature (Glow Elk)
+    - Meditate at a Glade runestone (tutorial rune puzzle)
+
+goals:
+  - Character Creation (CC):
+      - Load races from data/races.json
+      - Let player choose race + name at New Game
+      - Persist choice in save file
+  - Modifiers pipeline:
+      - Implement get_stat() / active_modifiers() for race/gear/tea/season
+      - All stat reads must go through get_stat()
+  - Core game loop:
+      - Implement a **multi-step Forest exploration system**:
+        - Exploring the forest should allow multiple consecutive "explore" actions
+          within the same in-game day.
+        - The player should remain in the Forest after an explore action unless they
+          explicitly choose to Camp or Return to the Glade.
+        - A day should consist of several exploration actions (driven by stamina /
+          action points), not a single explore → instant day end.
+      - Implement stamina or action points per day (e.g., 3–5 explore actions per day)
+        that are consumed on exploration and restored by camping / day end.
+      - Only advance the in-game day when:
+        - The player Camps, or
+        - The player Returns to the Glade from the Forest, or
+        - The player collapses from exhaustion.
+  - UI/UX refinement:
+      - **Remove the rapport readout at the end of every message / step.**
+      - Provide rapport and other detailed status only:
+        - In the Camp summary (end-of-day / rest), and/or
+        - In a dedicated status/notebook view hook for future expansion.
+      - End-of-day / Camp summary should include, at minimum:
+        - Current day
+        - Stamina reset
+        - Inventory changes (herbs decayed, items gained/lost)
+        - Rapport changes (per creature)
+  - Persistence:
+      - JSON save/load with versioning and migration (default race="human" if missing)
+      - State persists across runs (race, day, inventory, rapport, etc.)
+  - Separation of concerns:
+      - Keep data vs logic clean (data/*.json; src/*.py)
+  - Text UI:
+      - Use curses when available
+      - Provide a non-curses stdin/stdout fallback
+
+deliverables:
+  - src/main.py                # entry point (menu: New Game / Continue / Quit)
+  - src/state.py               # save/load, versioning, migration
+  - src/character.py           # Character dataclass, get_stat(), active_modifiers()
+  - src/engine.py              # main gameplay loop, including multi-step exploration
+  - src/events.py              # event selection/execution
+  - data/races.json            # at least: human, wolfkin (example)
+  - data/events_forest.json    # forest event pool (forage, encounter, flavor)
+  - data/creatures.json        # glow_elk baseline, others as needed
+  - data/teas.json             # mint/bramble-root/dream-fern effects
+  - data/runestone_glade.json  # simple 3-guess rune puzzle definition
+  - save/save.json             # created/updated at runtime
+
+acceptance_criteria:
+  - On “New Game”, user selects a race from data/races.json and enters a name.
+  - Choosing “Explore Forest” keeps the player **inside the Forest** for multiple
+    exploration actions:
+      - After an explore step, the player is presented with options like:
+        - Continue exploring (if stamina > 0)
+        - Camp here
+        - Return to the Glade
+      - The day does NOT end after a single explore action.
+  - Stamina / action points:
+      - Exploring consumes stamina/action points.
+      - Stamina is restored by Camping or at end-of-day.
+      - Collapsing from exhaustion triggers a return to the Glade and day advancement.
+  - Day advancement:
+      - The in-game day only advances when:
+        - The player Camps, or
+        - The player Returns to the Glade, or
+        - The player collapses.
+  - Rapport readout:
+      - Rapport is **not** printed after every action / message.
+      - Rapport is summarized only in:
+        - Camp/end-of-day summaries, and/or
+        - A status/notebook hook (can be a stub for now).
+  - Player can complete at least 3 in-game days with multi-step exploration without crashes.
+  - Inventory and rapport persist across sessions.
+  - Season counter increments every 14 days (flavor text only).
+  - Migration:
+      - Loading a save without race_id inserts "human" and re-derives stats without
+        clobbering progression.
+  - Non-curses fallback:
+      - Running without curses still allows playing via stdin/stdout with the same
+        core behaviors.
+
+non_goals:
+  - Full combat; only simple reaction choices sufficient to drive exploration and risk.
+  - Full weather simulation; only a season day counter + flavor text.
+  - Full vore system; placeholders/hooks allowed but not required in this task.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Python 3.11+, standard library only for prototype.
+  - Data-first design: new content should be addable by editing JSON, not Python.
+  - Prefer pure functions for core logic; keep I/O at the edges.
+  - Deterministic randomness option via environment seed for testing.
+
+test_plan:
+  - Unit tests for get_stat() composition (add/mul, tags, race effects).
+  - Functional test: start New Game, explore Forest multiple times in a single day,
+    Camp, and verify:
+      - Day advanced by 1
+      - Stamina reset
+      - Rapport and inventory updated as expected
+  - Verify rapport is not spammed after each action; appears only in Camp summary.
+  - Load/save test: quit mid-run and continue; exploration state (day, inventory, rapport)
+    is preserved.
+  - Migration test: load a v1-style save missing race_id → defaults to "human" cleanly.
