@@ -1,0 +1,140 @@
+name: "Lost Hiker - Exploration Phase 3 (Look/Examine & Creature Sync)"
+
+description: |
+  Enhance the text adventure feel of Lost Hiker by:
+    - Adding context-aware 'look at [thing]' and 'examine [thing]' support.
+    - Making scene descriptions more varied.
+    - Ensuring the Giant Centipede is properly represented as a creature and
+      wired through the existing encounter framework.
+
+  This task assumes:
+    - Core day loop and Forest exploration loop are working.
+    - The command parser (look/move/camp/return/status) is already in place.
+    - Glade + Forest zones are playable with typed commands.
+
+goals:
+  - Scene examinables:
+      - Extend the event/scene data model (e.g. in data/events_forest.json or a
+        dedicated scenes file) to allow each scene/event to define a list of
+        examinable objects, e.g.:
+          - objects: [{ id, names [synonyms], examine_text }]
+      - The current event / scene in the Forest should know which examinable
+        objects are present.
+      - The Glade should also support at least a couple of examinables
+        (e.g. the charred tree, the campfire, the portal scar).
+  - Look/Examine with nouns:
+      - Extend the command parser to support:
+          - "look", "look at X", "examine X", "inspect X"
+      - Behavior:
+          - "look" with no argument:
+              - Shows the current scene description (Glade, Forest, etc.).
+          - "look at X" / "examine X":
+              - Attempts to resolve X against current scene objects:
+                  - match by any of their `names` (case-insensitive).
+                  - if found → print that object's examine_text.
+                  - if not found → print a simple failure line
+                    (e.g. "You don't see that here.").
+      - Ensure this works both in Glade and Forest, and does not break existing
+        basic "look" behavior.
+  - More varied descriptions:
+      - Allow scenes/events to define multiple possible description strings,
+        for example:
+          - "descriptions": [ "...", "..." ]
+      - When the player uses bare "look" in a scene, pick a description in a
+        deterministic but slightly varied way, e.g.:
+          - random choice with a seeded RNG, or
+          - cycle through descriptions.
+      - At minimum, implement this for:
+          - Glade main description.
+          - A couple of Forest events/scenes (edge vs deeper).
+  - Giant Centipede creature sync:
+      - Ensure any existing Forest event that invokes or hints at a Giant
+        Centipede uses a proper creature reference, such as:
+          - "creature_id": "giant_centipede"
+      - Add/verify an entry for "giant_centipede" in data/creatures.json with:
+          - name
+          - tags (e.g. ["forest", "predator", "burrower"])
+          - base encounter weight (low at edge, higher in deep Forest)
+          - tame_threshold (can be very high / effectively untamable for now)
+          - flags/notes for future combat/vore systems (no logic in this task).
+      - Update the encounter selection logic so:
+          - Centipede only appears at mid/deep depths, not at the very edge.
+      - Ensure resolve_encounter(...) handles Giant Centipede gracefully, even
+        if it only prints flavor and maybe a simple "you back away safely" for now.
+  - Clean integration:
+      - Do not rewrite the existing command system or day loop.
+      - Build on top of the current engine:
+          - The "look"/"examine" nouns should route through the new scene object
+            resolver.
+      - Make sure invalid targets ("look at dragon" when you’re in the Glade)
+        are handled cleanly, without crashes.
+
+deliverables:
+  - src/commands.py (or equivalent)
+      - Updated parser to support:
+          - "look at X" / "examine X" / "inspect X"
+      - A clean way to distinguish:
+          - bare 'look' vs 'look at [noun]'.
+  - src/engine.py (or appropriate scene/state module)
+      - Functions for:
+          - get_current_scene(state) -> scene/event object.
+          - describe_scene(scene) -> string (picks from multiple descriptions).
+          - examine_object(scene, noun) -> string or failure message.
+      - Wiring so that 'look' and 'look at X' commands call these functions.
+  - src/events.py (or scene helpers)
+      - Scene/event representation updated to support:
+          - "descriptions": [ ... ]
+          - "objects": [ { id, names, examine_text } ]
+      - Helpers to fetch the current scene’s examinable objects.
+  - data/events_forest.json
+      - Updated events with:
+          - `descriptions` arrays where appropriate.
+          - `objects` lists where needed to support look-at behavior.
+          - Any Giant Centipede-related events using `creature_id`.
+  - data/creatures.json
+      - Confirmed or added "giant_centipede" creature as described.
+
+acceptance_criteria:
+  - In the Glade:
+      - Typing "look" shows a description of the Glade.
+      - Typing "look at tree" or "examine tree" (for the charred tree) shows
+        a specific examine text.
+      - Typing "look at X" for something that isn't present gives a clear,
+        non-crashing response.
+  - In the Forest:
+      - Typing "look" shows a scene description that can vary between calls.
+      - At least one Forest scene has examinable objects ("log", "moss", etc.)
+        and "look at log" / "examine moss" works as expected.
+  - Giant Centipede:
+      - If the Giant Centipede is referenced in any Forest event, it is defined
+        in data/creatures.json and referenced via creature_id.
+      - Encountering it routes through resolve_encounter(...) and does not crash.
+      - It only appears at appropriate depths (mid/deep), not at edge depth.
+  - Command robustness:
+      - Invalid look targets and malformed commands do not crash the game.
+      - Core commands (move/camp/return/status) continue to work as before.
+
+non_goals:
+  - Implementing Echo or other story NPCs.
+  - Implementing brewing/tea systems.
+  - Implementing combat or vore mechanics.
+  - Adding new zones.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep the scene/examinable data model simple and JSON-friendly.
+  - Do not entangle parser logic with zone-specific logic; use helpers and
+    scene/zone lookups instead.
+  - Prefer deterministic but varied descriptions over pure randomness; keep
+    behavior testable.
+
+test_plan:
+  - Play from New Game into the Glade and Forest using only typed commands.
+  - Use "look" repeatedly in Glade and Forest to see varied descriptions.
+  - Use "look at X" / "examine X" on known objects in both Glade and Forest.
+  - Trigger at least one Giant Centipede-related event and confirm:
+      - It behaves like a normal encounter.
+      - No crashes occur.
+  - Try "look at X" where X does not exist and confirm it fails gracefully.

@@ -5,7 +5,8 @@
     "modifiers": [
       { "add": { "stamina_max": 4, "inventory_slots": 10 } }
     ],
-    "flavor": { "camp": ["You warm your hands by the fire."] }
+    "flavor": { "camp": ["You warm your hands by the fire."] },
+    "summary": "An adaptable hiker whose stubborn hope and trail savvy survive even portal fire."
   },
   "wolfkin": {
     "name": "Wolfkin",
@@ -15,6 +16,7 @@
       { "add": { "tame_bonus_wolf": 1 } },
       { "mul": { "cold_penalty": 0.5 } }
     ],
-    "flavor": { "camp": ["You shake out your fur by the fire."] }
+    "flavor": { "camp": ["You shake out your fur by the fire."] },
+    "summary": "Nose full of forest scents and muscles coiled to sprint, a wolfkin is never far from the wild."
   }
 }

@@ -5,6 +5,12 @@
     "tags": ["neutral", "forest"],
     "rewards": { "escort": true, "carry_slots": 5 }
   },
+  "giant_centipede": {
+    "name": "Giant Centipede",
+    "tame_threshold": 0,
+    "tags": ["hazard", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 }
+  },
   "red_wolf": {
     "name": "Red Wolf",
     "tame_threshold": 4,

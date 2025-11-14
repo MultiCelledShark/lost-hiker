@@ -29,6 +29,20 @@ The world is divided into interconnected zones, each with unique terrain, season
 
 - **Glade**: The safe central hub, nestled deeper west in the forest. Seasonal visuals shift dramatically: snow-dusted bare trees in winter, blooming canopies in spring, verdant lushness in summer, and golden foliage in fall.
 - **Forest Path/Forest**: South from the Glade; initial trips require 10-15 actions (shortening to 5-7 on second, direct access thereafter). Brambles block the western mountain route until cleared with an axe; a winding stream leads to Dock 1.
+- **Forest Exploration Loop (Prototype)**: Each in-game day, the player has stamina_max exploration steps.
+  Each step in the Forest:
+    Triggers one event (forage, encounter, hazard, or flavor).
+    Costs 1 stamina (unless modified).
+    Ends with a choice:
+    Continue deeper into the forest
+    Make camp here (end day + summary)
+    Return to the Glade (end day + summary)
+  Depth:
+    Track a simple depth counter per day (0 = edge, 1–2 = mid, 3+ = deep).
+    Event odds change with depth (safer near edge, more predators deeper).
+  End of day:
+    Day only advances on Camp/Return/Collapse.
+    Camp summary shows: day, stamina reset, inventory changes, rapport changes.
 - **Mountain Path/Peak Temple**: West from the Glade, initially bramble-blocked. Follow the stream to foothills and Waterfall 1 (pickaxe needed for rockslides). Culminates at the elder dragon's peak temple.
 - **Plains**: North/east from the Glade; buffer of 2-8 actions initially, then direct. Expansive treks (20-30 actions max) to Dock 2 across open grasslands.
 - **Lake**: Vast saltwater sea north of the Glade, with the island town at its heart. Access via Dock 1 (south shore, stream-unlocked, 1 action slot) or Dock 2 (east shore, Plains-unlocked, 1 slot). Risky swims possible with a stash pack (1 slot, prone to gulps); winter allows ice traversal with sleds.
