@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 
 from .character import Character, TimedModifier
 
-CURRENT_VERSION = 2
+CURRENT_VERSION = 3
 SEASONS = ("spring", "summer", "fall", "winter")
 
 
@@ -31,6 +31,14 @@ class GameState:
     timed_modifiers: List[TimedModifier] = field(default_factory=list)
     recent_events: List[str] = field(default_factory=list)
     zone_steps: Dict[str, int] = field(default_factory=dict)
+    zone_depths: Dict[str, int] = field(default_factory=dict)
+    vore_enabled: bool = False
+    player_as_pred_enabled: bool = False
+    radio_version: int = 1
+    pending_radio_upgrade: bool = False
+    pending_radio_return_day: Optional[int] = None
+    pending_brews: List[str] = field(default_factory=list)
+    pending_stamina_floor: float = 0.0
 
     def current_season(self) -> str:
         return SEASONS[self.season_index % len(SEASONS)]
@@ -86,6 +94,14 @@ class GameState:
             timed_modifiers=timed_mods,
             recent_events=list(data.get("recent_events", [])),
             zone_steps=dict(data.get("zone_steps", {})),
+            zone_depths=dict(data.get("zone_depths", {})),
+            vore_enabled=bool(data.get("vore_enabled", False)),
+            player_as_pred_enabled=bool(data.get("player_as_pred_enabled", False)),
+            radio_version=int(data.get("radio_version", 1)),
+            pending_radio_upgrade=bool(data.get("pending_radio_upgrade", False)),
+            pending_radio_return_day=data.get("pending_radio_return_day"),
+            pending_brews=list(data.get("pending_brews", [])),
+            pending_stamina_floor=float(data.get("pending_stamina_floor", 0.0)),
         )
 
 
@@ -117,6 +133,9 @@ class GameStateRepository:
             timed_modifiers=state.timed_modifiers,
             current_day=state.day,
         )
+        state.stage = "intro"
+        state.active_zone = "charred_tree_interior"
+        state.zone_depths["charred_tree_interior"] = 0
         return state
 
     def _migrate(self, data: Dict[str, object]) -> Dict[str, object]:
@@ -134,4 +153,12 @@ class GameStateRepository:
             data.setdefault("recent_events", [])
         data.setdefault("active_zone", "glade")
         data.setdefault("zone_steps", {})
+        data.setdefault("zone_depths", {})
+        data.setdefault("vore_enabled", False)
+        data.setdefault("player_as_pred_enabled", False)
+        data.setdefault("radio_version", 1)
+        data.setdefault("pending_radio_upgrade", False)
+        data.setdefault("pending_radio_return_day", None)
+        data.setdefault("pending_brews", [])
+        data.setdefault("pending_stamina_floor", 0.0)
         return data

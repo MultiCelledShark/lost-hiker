@@ -55,6 +55,35 @@ goals:
   - Text UI:
       - Use curses when available
       - Provide a non-curses stdin/stdout fallback
+  - Forest exploration depth:
+      - Track a per-day `depth` value when exploring the forest.
+      - Increment depth each time the player chooses to "continue exploring".
+      - Use depth bands (e.g. 0-9 = edge, 9-24 = mid, 24+ = deep).
+      - Add flavor text for each depth band.
+  - Event weighting by depth:
+      - Near the edge: higher chance of herb/harvest/flavor events, lower chance of predators.
+      - Deeper: higher chance of predator/rare events, lower chance of pure flavor.
+      - Implement this via simple weights in events_forest.json or in the event picker.
+  - Event variety:
+      - Ensure at least:
+        - 2–3 forage events (mint, bramble, dream fern)
+        - 2 encounter events (Glow Elk, Red Wolf)
+        - 2 flavor-only events (no state change)
+      - Avoid firing the exact same event twice in a row unless options are exhausted.
+  - Camp summary:
+      - Remove rapport printing from step-level messages.
+      - Add a clear camp/end-of-day summary that includes:
+        - Day number
+        - Remaining/next-day stamina
+        - Rapport changes (per creature)
+        - Inventory gains/losses (at least herbs & key items)
+  - Notebook hook (stub for later):
+      - Add a "View status/notebook" option in the Glade or Camp menu
+        that shows current:
+          - Day
+          - Race + name
+          - Key rapport values
+        No need for full lore yet; just a status screen.
 
 deliverables:
   - src/main.py                # entry point (menu: New Game / Continue / Quit)

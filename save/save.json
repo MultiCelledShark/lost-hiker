@@ -1,10 +1,10 @@
 {
-  "schema_version": 2,
-  "day": 4,
+  "schema_version": 3,
+  "day": 3,
   "season_index": 0,
-  "season_day": 3,
-  "stage": "return",
-  "active_zone": "glade",
+  "season_day": 2,
+  "stage": "camp",
+  "active_zone": "forest",
   "character": {
     "name": "Jeb",
     "race_id": "wolfkin",
@@ -42,25 +42,51 @@
     ],
     "permanent_modifiers": []
   },
-  "stamina": 9.0,
+  "stamina": 5.0,
   "inventory": [
-    "mint",
-    "mint",
-    "mint",
-    "mint",
-    "mint",
-    "mint"
+    "dried berries",
+    "birch tinder",
+    "dried berries",
+    "birch tinder",
+    "dried berries",
+    "birch tinder"
   ],
   "meals": 3,
   "rapport": {
-    "glow_elk": 0,
-    "red_wolf": 5
+    "red_wolf": 1
   },
-  "timed_modifiers": [],
-  "recent_events": [
-    "herb_patch_mint",
-    "wolf_encounter",
-    "forest_noise"
+  "timed_modifiers": [
+    {
+      "source": "brew:mint_tea:2",
+      "modifiers": [
+        {
+          "add": {
+            "beast_calm": 1
+          }
+        }
+      ],
+      "expires_on_day": 3
+    }
   ],
-  "zone_steps": {}
+  "recent_events": [
+    "wolf_encounter",
+    "stream_crossing",
+    "mossy_log_cache"
+  ],
+  "zone_steps": {
+    "forest": 12
+  },
+  "zone_depths": {
+    "charred_tree_interior": 0,
+    "forest": 12
+  },
+  "vore_enabled": true,
+  "player_as_pred_enabled": true,
+  "radio_version": 1,
+  "pending_radio_upgrade": false,
+  "pending_radio_return_day": null,
+  "pending_brews": [
+    "mint_tea"
+  ],
+  "pending_stamina_floor": 6
 }

@@ -1,5 +1,29 @@
 {
-  "mint":   { "name": "Soothing Mint Tea",  "modifiers": [ { "add": { "beast_calm": 1 } } ] },
-  "bramble":{ "name": "Bramble-Root Polish","modifiers": [ { "add": { "bramble_clear": 1 } } ] },
-  "dream":  { "name": "Dream Fern Infusion","modifiers": [ { "add": { "camp_bonus": 1 } } ] }
+  "mint_tea": {
+    "name": "Soothing Mint Tea",
+    "requires": ["mint"],
+    "duration_days": 1,
+    "description": "Steeps the mint you gathered into a calming tea. Echo claims the aroma softens predator tempers.",
+    "modifiers": [
+      { "add": { "beast_calm": 1 } }
+    ]
+  },
+  "brambleroot_decoction": {
+    "name": "Brambleroot Decoction",
+    "requires": ["bramble root"],
+    "duration_days": 2,
+    "description": "A bitter brew that leaves your tools slick, helping hack through bramble snarls.",
+    "modifiers": [
+      { "add": { "bramble_clear": 1 } }
+    ]
+  },
+  "dream_fern_infusion": {
+    "name": "Dream Fern Infusion",
+    "requires": ["dream fern"],
+    "duration_days": 1,
+    "description": "A twilight-toned tea that leaves your mind limber for late watches and vivid dreams.",
+    "modifiers": [
+      { "add": { "camp_bonus": 1 } }
+    ]
+  }
 }

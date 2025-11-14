@@ -1,0 +1,271 @@
+name: "Lost Hiker - Echo NPC, Tea Brewing, and Radio Upgrade"
+
+description: |
+  Add the game's first real NPC (Echo), implement a minimal brewing system, and
+  integrate the HT radio as the primary communication channel for non-verbal
+  creatures. Echo initially communicates through impressionistic radio output,
+  and after a special one-time "tuning" event (where she swallows and returns
+  the radio), the radio upgrades and her dialogue becomes clearer and more
+  sentence-like.
+
+  Brewing should allow the player to convert herbs into simple teas at camp
+  that apply temporary modifiers for the next day. Echo should comment on teas
+  via the radio when appropriate.
+
+goals:
+  - Echo NPC in the Glade:
+      - Add a new NPC entity "Echo" with:
+          - A fixed presence in the Glade once the player exits the charred
+            tree interior.
+          - Examinable description via "look at echo" / "examine echo".
+          - A "talk to echo" command that uses the radio system to display
+            Echo's "voice".
+      - Early Echo communication (radio v1):
+          - Before the radio is upgraded, Echo's messages should be short,
+            impressionistic radio lines (emotions, sensations, brief phrases),
+            not full fluent dialogue.
+          - Example: "[RADIO] A warm, curious pulse brushes your thoughts."
+      - Dialog variation:
+          - Echo's responses should change slightly based on:
+              - Day number, and/or
+              - Deepest forest depth reached.
+          - Include at least a few different "moods" (curious, approving,
+            concerned).
+
+      - Rapport:
+          - Add a rapport tracker for Echo in game state and save file.
+          - Talking to Echo at least once per day increases rapport by a small
+            amount (e.g., +1), capped per day.
+          - Echo may comment differently once rapport passes certain thresholds.
+
+      - Optional vore toggle behavior:
+          - If settings.vore_enabled == true:
+              - Echo may offer a safe, comfort-only coil-rest scene (purely
+                flavor; no mechanics).
+          - If vore_enabled == false:
+              - Echo offers a SFW comfort alternative (e.g. coiling around a
+                nearby tree, letting the player rest against her).
+
+  - HT Radio integration (v1 baseline):
+      - Add a dedicated module for radio behavior (e.g., src/radio.py) with:
+          - A standard function to output radio messages with a prefix, e.g.
+            "[RADIO] ..."
+          - A way to represent different "tones" or "emotions" for Echo
+            (e.g., tags like "greeting", "curious", "warning").
+      - All Echo communication should go through this radio module instead of
+        direct print/echo to the main UI.
+      - Add a simple "ping" command:
+          - Command: "ping"
+          - Behavior:
+              - At the Glade, produces a small radio response from Echo
+                (e.g., she acknowledges the ping via radio text).
+              - If Echo is "present" in the Glade, the ping confirms her
+                awareness without moving her physically.
+
+  - Radio upgrade event (Echo tuning the radio):
+      - Introduce a one-time story event where Echo "tunes" the HT radio:
+          - Precondition:
+              - Echo rapport >= some small threshold (e.g. 3), and
+              - Occurs at the Glade after talking to Echo and/or shortly before
+                or after camping.
+          - Event flow:
+              - Echo reacts to a spark or glitch in the radio.
+              - Through the radio and descriptions, it becomes clear she wants
+                to take the radio.
+              - Player consent is implied via dialog choice or simple confirmation.
+              - Vore ON:
+                  - Echo swallows the radio fully (flavor only, no player POV
+                    internals required here).
+              - Vore OFF:
+                  - Echo takes the radio gently into her mouth/throat pouch
+                    without full swallow flavor.
+              - The player ends the day / sleeps.
+          - Next morning:
+              - Echo is in the Glade again.
+              - The radio lies near her, returned and "different".
+              - A state flag like state.radio_version = 2 is set.
+
+      - Radio v2 behavior:
+          - After the upgrade:
+              - Echo's messages via radio become more coherent, full-sentence
+                dialogue, while still going through the [RADIO] channel.
+              - The radio module should be able to branch behavior based on
+                version (v1 vs v2) so future creatures can also benefit.
+          - Add a field in save/state to track radio_version (1 = default,
+            2 = Echo-tuned).
+          - Existing behavior should fall back safely to v1 if the upgrade has
+            not yet occurred.
+
+  - Brewing system (minimal teas):
+      - Add a new "brew" command available at camp:
+          - Recognize "brew" and "brew tea".
+          - Only available in camp context (not in Glade or Forest mid-explore).
+      - Add data/teas.json defining at least three prototype teas:
+          - "mint_tea":
+              - Cost: 1x mint herb.
+              - Effect: +1 stamina_max or +1 starting stamina next day.
+          - "brambleroot_decoction":
+              - Cost: 1x brambleroot.
+              - Effect: reduce stamina cost of the first exploration step next
+                day (or grant 1 "free" explore action).
+          - "dream_fern_infusion":
+              - Cost: 1x dream_fern.
+              - Effect: mark a simple "intuition" flag for next day that makes
+                the first 1–2 events slightly safer (can be modeled as
+                a bias toward forage/flavor instead of hazards).
+      - Brewing flow:
+          - At camp, "brew" shows a list of teas the player can make based on
+            herbs currently in inventory.
+          - Selecting a tea:
+              - Consumes the required herbs.
+              - Adds a "next day modifier" entry in the game state.
+          - At the start of the next day:
+              - Apply these modifiers (stamina changes, event bias flags).
+              - Clear the used modifiers after they apply.
+
+      - Echo + tea integration:
+          - If the player brews a tea and visits the Glade:
+              - Echo may comment on the scent via radio, especially if
+                rapport is high.
+          - These comments can be simple flavor hooks and do not need complex
+            logic.
+
+  - Integration and save data:
+      - Update save/state structures to include:
+          - Echo rapport value.
+          - radio_version (default 1, upgraded 2).
+          - Any "next day" tea modifiers (cleared after use).
+      - Ensure:
+          - Older saves (without these fields) load with safe defaults:
+              - Echo rapport = 0
+              - radio_version = 1
+              - No pending modifiers
+      - Ensure:
+          - Core exploration loop, encounter skeleton, and existing commands
+            remain functional.
+
+deliverables:
+  - src/npc/echo.py (or an appropriate NPC module):
+      - Echo NPC representation:
+          - Metadata (name, id).
+          - Examine text.
+          - Dialog functions that:
+              - Query state.radio_version to decide whether to use v1
+                impressionistic messages or v2 higher-clarity dialogue.
+              - Adjust output slightly based on rapport and/or day/depth.
+
+  - src/radio.py:
+      - Functions to:
+          - radio_message(text: str) -> prints with "[RADIO]" prefix.
+          - radio_echo_message(tag/context, version, state) -> chooses flavor
+            lines from predefined sets based on radio_version and dialog state.
+          - handle_ping(state) -> basic ping interaction in Glade.
+      - The implementation should be simple but extensible so other creatures
+        can use it later.
+
+  - src/engine.py:
+      - Hook Echo into Glade location/scene.
+      - Add command handling for:
+          - "talk echo", "talk to echo"
+          - Integration with radio for Echo communication.
+      - Implement the one-time radio upgrade event logic:
+          - Checking preconditions (rapport, location).
+          - Running the event sequence.
+          - Updating radio_version to 2 the next morning.
+
+      - Add camp brewing integration:
+          - At camp, "brew" command triggers tea selection and effects.
+          - Next-day modifier application hooked into day-start logic.
+
+  - src/commands.py:
+      - Add parsing for:
+          - "talk echo", "talk to echo"
+          - "brew", "brew tea"
+          - "ping" (for basic radio ping behavior).
+
+  - src/brewing.py (or equivalent helper):
+      - Functions for:
+          - Loading teas from data/teas.json.
+          - Determining available teas based on inventory.
+          - Applying chosen tea's next-day effect to state.
+
+  - data/teas.json:
+      - Definitions for:
+          - "mint_tea"
+          - "brambleroot_decoction"
+          - "dream_fern_infusion"
+
+  - Glade scene data (JSON or in-code structure, depending on current design):
+      - Ensure Echo is listed as an examinable object.
+      - Provide text for "look at echo" / "examine echo".
+
+acceptance_criteria:
+  - Echo:
+      - Appears in the Glade after the player exits the charred tree interior.
+      - "look at echo" shows a consistent description.
+      - Before the radio upgrade:
+          - "talk to echo" shows impressionistic, emotion-driven radio messages.
+      - After the radio upgrade:
+          - "talk to echo" shows clearer, fuller dialogue via "[RADIO]" output.
+      - Talking to Echo once per day increases her rapport, which is persisted.
+
+  - HT Radio:
+      - "[RADIO]" prefix is consistently used for radio output.
+      - "ping" at the Glade triggers a small Echo-related radio response.
+      - A one-time upgrade event:
+          - Triggers when rapport is high enough.
+          - Shows Echo taking the radio (vore vs non-vore flavor based on settings).
+          - On the next morning:
+              - radio_version is set to 2.
+              - Echo dialogue clearly changes style.
+
+  - Brewing:
+      - At camp, "brew" or "brew tea" shows teas available based on inventory.
+      - Brewing consumes the right herbs.
+      - Next day, tea effects apply as described:
+          - mint_tea: stamina effect.
+          - brambleroot_decoction: first-step stamina discount.
+          - dream_fern_infusion: safer-early-events bias.
+      - After effects are applied, modifiers are cleared.
+
+  - Integration & stability:
+      - Existing exploration, encounter skeleton, and other systems continue to work.
+      - Saves from before this feature:
+          - Load without error.
+          - Assume radio_version = 1, Echo rapport = 0.
+      - No crashes from:
+          - Talking to Echo before/after upgrade.
+          - Brewing with/without ingredients.
+
+non_goals:
+  - Implementing fast travel (Kirin, teleport tea, etc.).
+  - Implementing advanced combat or vore mechanics.
+  - Adding additional NPCs beyond Echo.
+  - Complex quest systems or long dialog trees.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep Echo's dialog concise but flavorful; avoid massive monologues.
+  - Keep radio logic centralized in src/radio.py for easy reuse.
+  - Keep brewing simple and data-driven (JSON-based recipes).
+  - Do not modify the core exploration and day loop structure.
+
+test_plan:
+  - Start a new game, reach the Glade:
+      - Confirm Echo appears and can be examined.
+      - Confirm "talk to echo" uses radio-based messages (v1 style).
+  - Use "ping" at the Glade and confirm a small Echo-related radio response.
+  - Play several days, talking to Echo daily:
+      - Confirm rapport increases and persists across save/load.
+  - Trigger radio upgrade event:
+      - Confirm the swallow/throat storage event plays correctly depending on vore toggle.
+      - Confirm next morning radio_version = 2 and Echo now speaks in clearer
+        sentences via the radio.
+  - Test brewing:
+      - For each tea, verify:
+          - Ingredient consumption.
+          - Correct next-day effect.
+      - Confirm Echo occasionally comments on brewed teas via radio flavor lines.
+  - Load an old save and ensure no crashes, with sensible defaults applied.

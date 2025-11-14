@@ -3,20 +3,144 @@
     {
       "id": "herb_patch_mint",
       "type": "forage",
+      "category": "forage",
       "text": "Under damp leaves, a patch of mint releases a cool scent.",
-      "effects": { "inventory_add": ["mint"] }
+      "effects": { "inventory_add": ["mint"] },
+      "base_weight": 1.4,
+      "depth_weight": -0.2,
+      "min_depth": 0,
+      "max_depth": 9
     },
     {
-      "id": "wolf_encounter",
-      "type": "tame",
-      "text": "A red wolf watches from the ferns, ears forward.",
-      "checks": { "tame_bonus_wolf": 1 },
-      "effects": { "rapport_inc": { "glow_elk": 0, "red_wolf": 1 } }
+      "id": "mossy_log_cache",
+      "type": "forage",
+      "category": "forage",
+      "text": "A moss-soft log hides a leather pouch packed with dried berries.",
+      "effects": { "inventory_add": ["dried berries", "birch tinder"] },
+      "base_weight": 0.9,
+      "depth_weight": 0.15,
+      "min_depth": 4,
+      "max_depth": 16
+    },
+    {
+      "id": "stream_crossing",
+      "type": "flavor",
+      "category": "hazard",
+      "text": "A stream braids across the trail; slick stepping stones test your balance.",
+      "base_weight": 1.0,
+      "depth_weight": 0.2,
+      "min_depth": 2,
+      "max_depth": 18
     },
     {
       "id": "forest_noise",
       "type": "flavor",
-      "text": "Branches creak; something heavy moves just out of sight."
+      "category": "flavor",
+      "text": "Branches creak; something heavy moves just out of sight.",
+      "base_weight": 1.1,
+      "depth_weight": 0.1,
+      "min_depth": 0
+    },
+    {
+      "id": "ancient_runic_stump",
+      "type": "flavor",
+      "category": "flavor",
+      "text": "A storm-split stump is carved with weathered runes that shimmer faintly.",
+      "base_weight": 0.7,
+      "depth_weight": 0.2,
+      "min_depth": 10,
+      "max_depth": 22
+    },
+    {
+      "id": "wolf_encounter",
+      "type": "encounter",
+      "category": "encounter",
+      "text": "A red wolf watches from the ferns, ears forward.",
+      "effects": {
+        "creature_id": "red_wolf",
+        "rapport_inc": { "red_wolf": 1 },
+        "encounter_text": "You kneel slowly; the wolf huffs once before slipping away through the brush."
+      },
+      "base_weight": 0.8,
+      "depth_weight": 0.35,
+      "min_depth": 6,
+      "max_depth": 28
+    },
+    {
+      "id": "glow_elk_sighting",
+      "type": "encounter",
+      "category": "boon",
+      "text": "Bioluminescent antlers drift between birches—an elusive glow elk.",
+      "effects": {
+        "creature_id": "glow_elk",
+        "rapport_inc": { "glow_elk": 2 },
+        "encounter_text": "Warm light halos you as the glow elk brushes past, leaving motes that cling to your sleeves."
+      },
+      "base_weight": 0.6,
+      "depth_weight": 0.3,
+      "min_depth": 12,
+      "max_depth": 30
+    },
+    {
+      "id": "giant_centipede_tracks",
+      "type": "encounter",
+      "category": "hazard",
+      "text": "Segmented drag marks coil through the loam—the giant centipede prowls nearby.",
+      "effects": {
+        "creature_id": "giant_centipede",
+        "encounter_text": "You freeze as a dull emerald carapace ripples across the trail, the beast vanishing beneath roots."
+      },
+      "base_weight": 0.4,
+      "depth_weight": 0.45,
+      "min_depth": 18
+    },
+    {
+      "id": "hidden_herbalist_cache",
+      "type": "tea",
+      "category": "boon",
+      "text": "A hidden satchel holds vials labeled with the wizard's spidery hand.",
+      "effects": {
+        "duration_days": 2,
+        "modifiers": [
+          { "add": { "stamina_max": 1.0 } },
+          { "add": { "stamina_wake_restore": 0.5 } }
+        ]
+      },
+      "base_weight": 0.3,
+      "depth_weight": 0.4,
+      "min_depth": 12,
+      "max_depth": 26
+    },
+    {
+      "id": "wolf_pack_shadow",
+      "type": "encounter",
+      "category": "encounter",
+      "text": "Multiple sets of pawprints flank the path; the pack is running parallel.",
+      "effects": {
+        "creature_id": "red_wolf",
+        "encounter_text": "Eyes glimmer between trunks, but a low bark calls the pack away before they press in."
+      },
+      "base_weight": 0.5,
+      "depth_weight": 0.4,
+      "min_depth": 9
+    },
+    {
+      "id": "root_chasm",
+      "type": "flavor",
+      "category": "hazard",
+      "text": "A yawning fissure splits the earth, roots hanging like ribs over a lightless drop.",
+      "base_weight": 0.35,
+      "depth_weight": 0.45,
+      "min_depth": 20
+    },
+    {
+      "id": "whispering_hollow",
+      "type": "flavor",
+      "category": "flavor",
+      "text": "Distant chanting rides the wind, as if the forest itself murmured warnings in an unknown tongue.",
+      "base_weight": 0.4,
+      "depth_weight": 0.5,
+      "min_depth": 25
     }
   ]
 }

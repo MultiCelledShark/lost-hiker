@@ -1,0 +1,175 @@
+name: "Lost Hiker - Exploration Phase 2 (Command Input + Forest Expansion)"
+
+description: |
+  Evolve Lost Hiker from a menu-driven prototype into a text-command-driven
+  exploration game, while preserving the existing Glade + Forest day loop.
+
+  This task assumes:
+    - The core day loop (Wake → Explore → Camp/Return → End of Day) is working.
+    - Character creation, save/load, and basic Forest exploration already function.
+    - Curses UI + stdin/stdout fallback are already implemented.
+
+  Phase 2 focuses on:
+    - Adding a simple, robust command parser for text input (e.g. "look",
+      "examine", "move north", "camp", "return", "status").
+    - Routing typed commands to the existing core actions (explore, camp, return).
+    - Making Forest exploration richer via depth-aware events (with your updated
+      depth bands: edge 0–9, mid 9–24, deep 24+).
+    - Laying groundwork for future systems (combat, vore, Echo, brewing) without
+      implementing them yet.
+
+goals:
+  - Command parser:
+      - Implement a central command parser that:
+          - Accepts a free-text input line from the player.
+          - Normalizes case and whitespace.
+          - Splits input into verb + optional arguments.
+          - Supports synonyms and aliases (e.g. "look", "l", "examine", "inspect").
+      - Define a minimal supported verb set for this phase:
+          - "look" / "l" / "examine" / "inspect"
+          - "move" / "go" + optional direction (e.g. "move north")
+          - "camp"
+          - "return" / "retreat" / "back"
+          - "status" / "notebook"
+          - "help" / "?" (to show available commands in current context)
+      - The parser should not know zone logic; it should map to internal action
+        enums/functions that the engine understands.
+  - Context-aware command handling:
+      - Implement a layer that routes parsed commands based on current context:
+          - In the Glade:
+              - "look" describes the Glade.
+              - "move forest" or "move south" (or "explore") starts Forest exploration.
+              - "status" opens the status/notebook view.
+          - In the Forest:
+              - "look" describes current Forest state (including depth).
+              - "move" / "continue" consumes a Forest exploration step.
+              - "camp" sets camp, triggers end-of-day summary.
+              - "return" exits to Glade and ends the day.
+              - "status" opens status/notebook.
+          - At Camp (summary screen):
+              - "continue" / "next" advances to the next day.
+              - "status" still works as read-only.
+      - Where menus previously existed (e.g. numbered choices), keep them as
+        a fallback if desired, but prioritize command input.
+  - Depth-aware Forest events (with updated bands):
+      - Ensure Forest exploration tracks a per-day depth counter.
+      - Apply your updated bands:
+          - edge: depth 0–9
+          - mid: depth 10–24
+          - deep: depth 25+
+      - Modify event selection to:
+          - Favor forage/flavor events at edge.
+          - Mix forage + encounters in mid.
+          - Favor encounters/hazards in deep.
+      - This should be done via simple weighting logic, ideally data-driven
+        (e.g. weights stored in data/events_forest.json or derived from fields).
+  - Event categories (future-proofing):
+      - Ensure each Forest event in data/events_forest.json has a `category`
+        field, for example:
+          - "forage"
+          - "encounter"
+          - "flavor"
+          - "hazard"
+      - Update event selection logic to use `category` where appropriate.
+      - Do NOT implement combat or vore yet; just make sure encounter events
+        route through a common handler (e.g. resolve_encounter(...)) that can
+        be extended in later tasks.
+  - Status / notebook view:
+      - Implement a simple "status" / "notebook" command that:
+          - Works in Glade and Forest (and optionally at camp).
+          - Displays:
+              - Day number
+              - Player name + race
+              - Current zone and depth (if in Forest)
+              - Key rapport values (where applicable)
+          - Does NOT print excessive detail after every step; status is on-demand.
+
+deliverables:
+  - src/main.py
+      - Updated input loop to support free-text command entry via curses and
+        stdin/stdout fallback.
+      - Routing of input lines through the new command parser.
+  - src/commands.py (or equivalent)
+      - Command parsing utilities:
+          - normalize_input(line) -> (verb, args)
+          - command_aliases map (e.g. "l" -> "look", "examine" -> "look").
+      - Functions or enums representing high-level actions the engine can handle.
+  - src/engine.py
+      - Context-aware handlers that:
+          - Interpret parsed commands depending on game state (Glade, Forest, Camp).
+          - Preserve the existing day loop structure.
+          - Call into Forest exploration logic for movement/deeper exploration.
+      - Forest exploration logic updated to:
+          - Track depth.
+          - Use depth bands (edge/mid/deep) for event weighting.
+  - src/events.py
+      - Event selection using `category` and depth-aware weighting.
+      - A stubbed `resolve_encounter(state, event)` that currently just:
+          - Describes the encounter,
+          - Offers simple flavor choices or automatically continues,
+          - Does not implement combat or vore yet.
+  - src/status.py (optional but encouraged)
+      - Helper for rendering the status/notebook view.
+  - data/events_forest.json
+      - Updated with:
+          - `category` for each event.
+          - Optional weight hints, if needed.
+          - Enough variety to demonstrate depth changes:
+              - multiple forage
+              - multiple encounter
+              - multiple flavor
+              - at least one hazard stub.
+
+acceptance_criteria:
+  - Command input:
+      - Player can type "look" at the Glade and see a description without crashing.
+      - Player can type "move forest" / "explore" at the Glade to begin Forest exploration.
+      - In the Forest, "look" shows current depth and general scene flavor.
+      - In the Forest, "move" / "continue" performs another exploration step
+        and consumes stamina/depth as before.
+      - "camp" in the Forest triggers camp summary and day advancement.
+      - "return" in the Forest sends the player back to the Glade and advances the day.
+      - "status" works in Glade and Forest and shows the basic status block.
+  - Menus:
+      - Existing menu flows (for New Game / Continue) still work.
+      - Numeric menu choices and buttons are either:
+          - Still available as a fallback, or
+          - Cleanly replaced by text commands where appropriate.
+  - Depth & events:
+      - Depth increases as the player continues exploring in a single day.
+      - Event mix feels different at edge vs mid vs deep, as per weighting rules.
+      - No crashes when exploring deep into the Forest.
+  - Clean behavior:
+      - Invalid commands (e.g. "eat tree") are handled with a simple message like
+        "You can't do that right now." and do not crash the game.
+      - The game loop remains stable for at least 5 in-game days of Forest exploration.
+
+non_goals:
+  - Implementing combat mechanics.
+  - Implementing vore mechanics or toggles in this phase.
+  - Adding new zones beyond Glade + Forest.
+  - Complex quest systems or NPC interactions (Echo, brewing, etc.) — those can be
+    added in a later phase after the command system is stable.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Do not rewrite the entire engine; build the command system on top of the
+    existing working loop.
+  - Keep the parser simple and readable; no need for full natural language parsing.
+  - Prefer explicit verb maps over clever but opaque regexes.
+  - Ensure the stdin/stdout fallback still works cleanly with command input.
+
+test_plan:
+  - Start a New Game:
+      - Use only typed commands to move from Glade → Forest → Camp → next day.
+      - Verify that "look", "move", "camp", "return", and "status" all behave as expected.
+  - Explore for a full day:
+      - Use "move" repeatedly to push depth into edge/mid/deep bands and observe
+        event mix changes.
+  - Input robustness:
+      - Try mixed-case commands ("Look", "MOVE forest").
+      - Try an invalid command; confirm the game recovers and prompts again.
+  - Multi-day test:
+      - Play for at least 5 in-game days, using only typed commands, without crashes.
