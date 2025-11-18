@@ -1,0 +1,376 @@
+name: "Lost Hiker - Forest Expansion Phase 1 (Creatures + Landmarks)"
+
+description: |
+  Flesh out the Forest zone as a proper beta-playground by expanding the
+  creature library and landmark set, and wiring them into the existing
+  exploration, encounter, season, depth, and vore systems.
+
+  Scope:
+    - Add a first-wave Forest bestiary (predators + forageables) with data,
+      encounters, drops, and basic behaviors.
+    - Implement and hook up the 14-strong landmark set for the Forest valley,
+      mountain edge, and cave-mouth areas.
+    - Ensure creatures spawn both at landmarks and as random encounters
+      between them, influenced by depth, season, time of day, and forest
+      stability.
+    - Add Naiad and will-o'-wisp appearances at water landmarks, gated by
+      runestone stabilization.
+    - Integrate predator dens as rare fallback bag-recovery locations in
+      near-fail scenarios.
+
+goals:
+  - Creatures: Forest bestiary Phase 1
+      - Implement the following creatures in the Forest data files
+        (e.g. data/creatures_forest.json or equivalent) with:
+          - name, type (forageable vs predator),
+          - depth preferences,
+          - seasonal and time-of-day preferences,
+          - drops (food + crafting components),
+          - basic temperament/behavior tags (curious, skittish, territorial,
+            mystical, etc.).
+      - Forageables (non-predators, food sources):
+          - Squirrel
+          - Rabbit
+          - Forest Grouse
+          - Glow-Moth Cloud
+          - Burrow-Chanter Shroomling
+          - River Mussels
+          - All forageables must:
+              - drop at least one edible item (meat, caps, mussel flesh, etc.)
+              - drop at least one minor crafting ingredient (fur, feathers,
+                spore puff, glow dust, nacre chips, etc.).
+      - Predators (all can swallow the player in non-lethal ways, when vore
+        is enabled and gating conditions are met):
+          - Coyote
+          - Red Fox
+          - Timber Wolf
+          - Brown Bear
+          - Moss-Treader (mystic deer-like)
+          - Verdant Broodmother (giant verdant snake, smaller than Echo)
+          - Cave-Lurker Panther
+          - Glow-Elk (magical apex herbivore/predator)
+          - For each predator:
+              - define:
+                  - a default threat profile,
+                  - how likely it is to appear at different depths and seasons,
+                  - any special flags for mystical behavior (e.g. leyline-tuned,
+                    den-using, transport-capable).
+              - ensure that:
+                  - non-vore outcomes still exist (threat, strain, retreat).
+                  - vore-based swallow outcomes, if triggered, reuse existing
+                    SHELTERED/TRANSPORTED mechanics without adding new
+                    belly-interaction systems yet.
+
+  - Landmarks: 14 Forest locations
+      - Implement the following Forest landmarks in landmark data
+        (e.g. data/landmarks_forest.json or equivalent) with:
+          - id, name, flavor text,
+          - depth band (shallow/mid/deep/mountain-edge/cave-mouth),
+          - associated resources,
+          - associated encounter biases (which creatures are more likely here),
+          - any special mechanics hooks (puzzles, meditation, etc.).
+      - Landmarks to implement:
+          - Charred Tree Glade (already exists; keep as reference point)
+          - Whispering Birch Circle
+          - Old Creek Bend
+          - Forgotten Trail Ruins
+          - Fallen Giant (Tree)
+          - Verdant Hollow
+          - Sunken Spring
+          - Echoing Ridge
+          - Stone Step Clearing
+          - Bear's Den Overlook
+          - Leyline Verge
+          - Mossfall Sink
+          - Rootcrack Grotto
+          - Hollow Echo Cavern Mouth
+      - For each landmark, ensure:
+          - there is at least one meaningful resource or mechanic:
+              - Whispering Birch Circle:
+                  - spawns chaga mushrooms (for teas),
+                  - supports meditation or sit-and-listen actions that provide
+                    a small forest_memory bonus.
+              - Old Creek Bend:
+                  - clay, sand, and river mussel gathering,
+                  - drift debris mini-loot and forageable spawns (rabbits,
+                    grouse).
+              - Forgotten Trail Ruins:
+                  - broken trail sign puzzle that, when solved, gives a
+                    temporary wayfinding/pathfinding bonus.
+              - Fallen Giant:
+                  - Verdant Broodmother territory,
+                  - climbing the log reveals directional hints to other
+                    landmarks.
+              - Verdant Hollow:
+                  - Rootbeast spawn,
+                  - herb patch revealed after calming Rootbeast.
+              - Sunken Spring:
+                  - water refill point,
+                  - will-o'-wisp spawn at night,
+                  - Naiad NPC appearance once at least one runestone is
+                    stabilized (and occasionally at other water-linked
+                    landmarks later).
+              - Echoing Ridge:
+                  - sound illusions / replay of past steps as flavor,
+                  - Leyline Owl and fox encounter bias.
+              - Stone Step Clearing:
+                  - stone gathering for repairs/crafting,
+                  - Timber Wolf territory,
+                  - leyline "heartbeat" flavor.
+              - Bear's Den Overlook:
+                  - Brown Bear encounter bias,
+                  - honeycomb/hive resource,
+                  - seasonal danger shifts.
+              - Leyline Verge:
+                  - glowing moss resonance patterns,
+                  - Moss-Treader and Glow-Elk rare spawns,
+                  - resonance herb spawning.
+              - Mossfall Sink:
+                  - Verdant Serpent nesting,
+                  - sinkhole and echo test,
+                  - damp herb cluster.
+              - Rootcrack Grotto:
+                  - narrow crawl entry,
+                  - Cave-Lurker Panther den,
+                  - small treasure/human artifact spawns.
+              - Hollow Echo Cavern Mouth:
+                  - main cave-mouth landmark,
+                  - thermal drafts flavor,
+                  - occasional Glow-Elk observation event,
+                  - future Act II entry point (no travel yet).
+
+  - Encounter integration: between landmarks and at landmarks
+      - Ensure all new creatures appear both:
+          - as general exploration encounters between landmarks, and
+          - as higher-weight encounters at their associated landmarks.
+      - Update Forest encounter tables (e.g. data/encounters_forest.json or
+        equivalent) so that:
+          - depth (shallow/mid/deep/mountain-edge/cave-mouth),
+          - season,
+          - time-of-day,
+          - forest stability (runestone progress) all influence:
+              - which creatures are more common,
+              - encounter tone (more threats in unstable forest, more mystic
+                guidance once stabilized).
+      - Examples:
+          - Glow-Moth Cloud:
+              - night-heavy, near water, more common in early summer.
+          - Coyote and Fox:
+              - shallow forest, dusk/night weighted.
+          - Timber Wolf and Bear:
+              - mid/deep/mountain-edge, more active in lean seasons.
+          - Moss-Treader:
+              - rare omen-like encounters at leyline-aligned landmarks.
+          - Verdant Broodmother:
+              - spawns near Fallen Giant + certain leyline-distortion spots.
+          - Cave-Lurker Panther:
+              - night-only, near Rootcrack Grotto / cave mouths.
+          - Glow-Elk:
+              - ultra-rare, strongly tied to runestone stability and leyline
+                health.
+
+  - Naiad NPC & will-o'-wisp:
+      - Implement Naiad as an NPC:
+          - initial appearance at Sunken Spring once at least one runestone
+            is repaired/stabilized.
+          - Possible behavior:
+              - offers lore about the Forest's water and ley-lines,
+              - hints at runestone importance,
+              - may provide a tea recipe or water-related buff.
+          - Later (optional in this task, but at least stub hooks):
+              - Naiad can rarely appear at other water-linked landmarks like
+                Old Creek Bend, certain cave pools, etc.
+      - Implement will-o'-wisp as a special encounter at Sunken Spring at
+        night:
+          - can be a simple flavor event with minor mechanical effect
+            (e.g. small forest_memory or pathfinding tweak, or a clue about
+             nearby landmarks).
+          - Treat them as a Forest anomaly, not as a creature with drops in
+            this phase.
+
+  - Predator dens & bag recovery hook:
+      - For predators with dens (coyote, wolf, bear, panther, possibly fox):
+          - define den-associated landmarks or hidden "den nodes" linked to:
+              - Bear's Den Overlook,
+              - Rootcrack Grotto,
+              - shallow burrow areas for coyote/fox,
+              - etc.
+      - Near-fail scenario behavior:
+          - When a predator encounter would:
+              - steal the player's bag or forcibly relocate them,
+              - there should be a rare branch where:
+                  - the predator retreats to a den carrying the bag.
+          - The den location should:
+              - become discoverable later,
+              - act as a potential bag recovery spot.
+      - Implement this as:
+          - simple state flags and hooks for now:
+              - e.g. state.lost_bag_predator_id,
+                    state.lost_bag_den_location_id
+          - The full bag-recovery flow can be fleshed out in later tasks, but
+            this task should:
+              - define the data hooks,
+              - ensure dens exist,
+              - and ensure it's possible to find these dens again via
+                encounter/landmark logic.
+
+  - Vore/combat integration (non-invasive):
+      - Use the existing vore and combat systems:
+          - predators should:
+              - still use non-vore threat outcomes by default,
+              - optionally trigger swallow outcomes where appropriate (when
+                vore is enabled and gating conditions are met), using
+                SHELTERED/TRANSPORTED from encounter_outcomes.
+      - Do NOT:
+          - implement new belly-interaction minigames in this task.
+          - expand combat depth beyond what's already in place.
+      - Ensure:
+          - new creatures are defined so they can be extended later with more
+            detailed combat/vore behavior without needing data rewrites.
+
+deliverables:
+  - data/creatures_forest.json (or equivalent):
+      - Definitions for all forageables and predators listed above, with:
+          - stats,
+          - depth/season/time-of-day preferences,
+          - drops,
+          - temperament tags.
+
+  - data/landmarks_forest.json (or equivalent):
+      - Definitions for all 14 landmarks with:
+          - names, descriptions,
+          - depth band,
+          - resource definitions (chaga, mussels, herbs, etc.),
+          - encounter biases per landmark,
+          - any puzzle/mechanic flags.
+
+  - data/encounters_forest.json (or equivalent):
+      - Encounter entries for:
+          - random forest exploration,
+          - landmark-specific encounter overrides or weighted tables,
+          - Naiad and will-o'-wisp events at Sunken Spring,
+          - predator den-related outcomes for near-fail branches.
+      - Include:
+          - basic threat vs. non-threat encounter variants where needed.
+
+  - src/forest_encounters.py / src/exploration.py / src/engine.py:
+      - Integrate:
+          - new creatures and landmarks into the exploration loop and
+            encounter selection.
+      - Ensure:
+          - between-landmark exploration draws from depth/season/time-of-day
+            weighted tables that now include the new bestiary.
+          - landmarks register correctly for pathfinding/forest_memory.
+
+  - NPC & anomaly code:
+      - src/npc_naiad.py or equivalent:
+          - basic Naiad behaviors, dialogue hooks, and runestone-gated
+            appearance logic.
+      - src/events.py or equivalent:
+          - will-o'-wisp event(s) and any other small Forest anomaly events
+            needed to support the new landmarks.
+
+  - Save/load:
+      - Ensure:
+          - new landmark/creature data integrates cleanly with existing saves.
+      - For any new state flags (lost_bag_predator_id, lost_bag_den_location,
+        etc.):
+          - add them to save data with safe defaults.
+
+acceptance_criteria:
+  - New creatures:
+      - All listed forageables and predators are:
+          - present in the data files,
+          - can be encountered in the Forest,
+          - appear at appropriate depths, times of day, and seasons,
+          - have reasonable drops that include both food and materials
+            (for forageables) or thematic drops (for predators).
+      - The Forest no longer feels like it only has 2–3 creatures; a new
+        run exposes several different animal types in the first few in-game
+        weeks.
+
+  - Landmarks:
+      - All 14 landmarks are reachable and distinct in description and
+        function.
+      - Each landmark has:
+          - at least one resource or mechanic attached (not just flavor),
+          - clear creature biases,
+          - at least one small hook for future quests or puzzles.
+
+  - Naiad & will-o’-wisp:
+      - After stabilizing at least one runestone:
+          - Naiad can appear at Sunken Spring and interact with the player.
+      - At night at Sunken Spring:
+          - will-o'-wisp encounters can occur and function without crashes.
+
+  - Encounters:
+      - Exploring between landmarks now surfaces:
+          - a variety of forageable and predator encounters, influenced by:
+              - depth,
+              - season,
+              - time-of-day,
+              - forest stability.
+      - Standing at specific landmarks and exploring around them yields:
+          - appropriately themed encounters (e.g. Broodmother near Fallen
+            Giant, wolves near Stone Step Clearing, bear near Bear’s Den).
+
+  - Dens & bag-recovery hooks:
+      - Predator dens exist in data and are conceptually reachable.
+      - When relevant predator attacks are nearly catastrophic:
+          - state hooks for lost bag + den location can be set (even if full
+            retrieval gameplay is reserved for later tasks).
+
+  - Stability:
+      - No crashes due to missing data when exploring, encountering creatures,
+        visiting landmarks, meeting Naiad, or triggering anomalies.
+      - Old saves remain playable; new content appears as the player explores.
+
+non_goals:
+  - Do NOT:
+      - Implement full belly-interaction systems or detailed combat AI.
+      - Implement the full cave system or the Town zone.
+      - Implement full questlines for Naiad or other future NPCs beyond
+        introductory behavior.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep creature and landmark definitions data-driven in JSON where possible.
+  - Avoid hardcoding specific creature IDs all over the code; use helper
+    functions or lookup tables.
+  - Ensure encounter selection remains understandable and extendable:
+      - separate concerns: depth, season, time-of-day, forest stability.
+
+test_plan:
+  - New run:
+      - Explore shallow → mid → deep forest; confirm:
+          - multiple forageables and predators appear,
+          - landmarks show up with distinct resources and creatures.
+      - Visit:
+          - Whispering Birch Circle:
+              - confirm chaga spawns and meditation hook.
+          - Old Creek Bend:
+              - confirm clay/sand/mussel gathering.
+          - Fallen Giant:
+              - confirm Verdant Broodmother encounters.
+          - Sunken Spring:
+              - confirm water refill; after first runestone repair, confirm
+                Naiad can appear; at night, confirm will-o'-wisp events.
+      - Visit predator-associated landmarks:
+          - Stone Step Clearing → wolf,
+          - Bear’s Den Overlook → bear,
+          - Rootcrack Grotto → panther.
+      - Confirm Glow-Elk and Moss-Treader can be seen as rare, mystic
+        encounters.
+
+  - Existing saves:
+      - Load a mid-forest save:
+          - ensure no crashes,
+          - ensure new creatures and landmarks integrate into ongoing runs.
+
+  - Regression:
+      - Confirm:
+          - Echo interactions, Kirin travel, runestone repairs, hunger,
+            stamina, seasons, exploration loop, and curses UI all remain
+            functional with the new content in place.

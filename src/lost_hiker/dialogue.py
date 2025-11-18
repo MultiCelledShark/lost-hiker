@@ -91,21 +91,66 @@ class DialogueCatalog:
                 self._by_npc[node.npc_id] = []
             self._by_npc[node.npc_id].append(node)
 
-    def get_node(self, node_id: str) -> Optional[DialogueNode]:
-        """Get a dialogue node by ID."""
+    def get_node(self, node_id: str, state: Optional[GameState] = None) -> Optional[DialogueNode]:
+        """
+        Get a dialogue node by ID.
+        
+        For certain nodes (like astrin_brewing), checks for race-specific variants first.
+        """
+        # Check for race-specific variants for certain nodes
+        if state and node_id == "astrin_brewing":
+            race_id = state.character.race_id
+            race_variant_id = f"{node_id}_{race_id}"
+            race_node = self._by_id.get(race_variant_id)
+            if race_node and check_node_conditions(race_node, state, "astrin"):
+                return race_node
+        
         return self._by_id.get(node_id)
 
-    def get_starting_node(self, npc_id: str) -> Optional[DialogueNode]:
-        """Get the starting node for an NPC (node with id 'start' or first node)."""
+    def get_starting_node(self, npc_id: str, state: Optional[GameState] = None) -> Optional[DialogueNode]:
+        """
+        Get the starting node for an NPC (node with id 'start' or first node).
+        
+        For Echo, also checks for race-aware greeting nodes that match the player's race.
+        """
         npc_nodes = self._by_npc.get(npc_id, [])
         if not npc_nodes:
             return None
+        
+        # For Echo, check for race-aware greeting nodes first
+        if npc_id == "echo" and state:
+            race_id = state.character.race_id
+            race_greeting_id = f"echo_race_greeting_{race_id}"
+            race_node = self._by_id.get(race_greeting_id)
+            if race_node and check_node_conditions(race_node, state, npc_id):
+                return race_node
+        
         # Look for a node with id ending in "_start" or just "start"
+        # First, try race-aware start nodes (e.g., "astrin_glade_start_elf")
+        if state:
+            race_id = state.character.race_id
+            race_start_ids = [
+                f"{npc_id}_glade_start_{race_id}",
+                f"{npc_id}_start_{race_id}",
+                f"start_{race_id}",
+            ]
+            for race_start_id in race_start_ids:
+                race_node = self._by_id.get(race_start_id)
+                if race_node and check_node_conditions(race_node, state, npc_id):
+                    return race_node
+        
+        # Look for regular start nodes
         for node in npc_nodes:
-            if node.node_id.endswith("_start") or node.node_id == "start":
+            if (node.node_id.endswith("_start") or node.node_id == "start") and (
+                not state or check_node_conditions(node, state, npc_id)
+            ):
                 return node
-        # Fall back to first node
-        return npc_nodes[0]
+        # Fall back to first node that passes conditions (if checking)
+        if state:
+            for node in npc_nodes:
+                if check_node_conditions(node, state, npc_id):
+                    return node
+        return npc_nodes[0] if npc_nodes else None
 
 
 def check_condition(
@@ -137,13 +182,26 @@ def check_condition(
 
     elif condition_key == "require_flag":
         flag_name = str(condition_value)
+        # Check both npc_flags and npc_state
         npc_flags = state.npc_flags.get(npc_id, {})
-        return bool(npc_flags.get(flag_name, False))
+        if flag_name in npc_flags:
+            return bool(npc_flags.get(flag_name, False))
+        # Also check npc_state for Wave 1 NPC flags
+        if flag_name in state.npc_state:
+            return bool(state.npc_state.get(flag_name, False))
+        return False
 
     elif condition_key == "require_not_flag":
         flag_name = str(condition_value)
+        # Check both npc_flags and npc_state
         npc_flags = state.npc_flags.get(npc_id, {})
-        return not bool(npc_flags.get(flag_name, False))
+        if flag_name in npc_flags:
+            return not bool(npc_flags.get(flag_name, False))
+        # Also check npc_state for Wave 1 NPC flags
+        if flag_name in state.npc_state:
+            return not bool(state.npc_state.get(flag_name, False))
+        # If flag doesn't exist, require_not_flag is True
+        return True
 
     elif condition_key == "require_race":
         required_races = condition_value
@@ -153,14 +211,61 @@ def check_condition(
 
     elif condition_key == "runestone_progress":
         # Check runestone repair progress
+        from .forest_act1 import init_forest_act1_state, is_forest_act1_complete
+        init_forest_act1_state(state)
         progress_type = str(condition_value).lower()
         if progress_type == "none":
             return state.act1_repaired_runestones == 0
         elif progress_type == "some":
             return 1 <= state.act1_repaired_runestones < 3
         elif progress_type == "act1_complete":
-            return state.act1_forest_stabilized or state.act1_repaired_runestones >= 3
+            return is_forest_act1_complete(state)
         return False
+
+    elif condition_key == "has_items":
+        # Check if player has required items in inventory
+        # Supports both simple list and dict with quantities
+        from collections import Counter
+        inventory_counts = Counter(state.inventory)
+        
+        if isinstance(condition_value, dict):
+            # Dict format: {"item": quantity, ...}
+            for item, qty in condition_value.items():
+                if inventory_counts.get(item, 0) < qty:
+                    return False
+            return True
+        else:
+            # List format: ["item1", "item2", ...] - checks for at least 1 of each
+            required_items = condition_value
+            if isinstance(required_items, str):
+                required_items = [required_items]
+            elif not isinstance(required_items, list):
+                return False
+            # Check if all required items are in inventory
+            inventory_set = set(state.inventory)
+            return all(item in inventory_set for item in required_items)
+
+    elif condition_key == "require_state":
+        # Check npc_state values
+        if not isinstance(condition_value, dict):
+            return False
+        npc_state = state.npc_state
+        for state_key, state_value in condition_value.items():
+            if state_key not in npc_state:
+                return False
+            if npc_state[state_key] != state_value:
+                return False
+        return True
+
+    elif condition_key == "time_of_day":
+        # Check current time of day
+        required_time = str(condition_value)
+        return state.time_of_day == required_time
+
+    elif condition_key == "require_radio_version":
+        # Check if radio version meets requirement (for Echo dialogue)
+        required_version = int(condition_value)
+        return state.radio_version >= required_version
 
     return False
 
@@ -204,6 +309,31 @@ def apply_option_effects(
     option: DialogueOption, state: GameState, npc_id: str
 ) -> None:
     """Apply the effects of choosing a dialogue option."""
+    # Handle micro-quest completions that require items
+    # Check if this option completes a quest that needs items
+    if option.conditions and "has_items" in option.conditions:
+        from collections import Counter
+        required_items = option.conditions["has_items"]
+        inventory_counts = Counter(state.inventory)
+        
+        if isinstance(required_items, dict):
+            # Dict format: {"item": quantity, ...}
+            for item, qty in required_items.items():
+                for _ in range(qty):
+                    if item in state.inventory:
+                        state.inventory.remove(item)
+        else:
+            # List format: ["item1", "item2", ...] - remove one of each
+            if isinstance(required_items, str):
+                required_items = [required_items]
+            for item in required_items:
+                if item in state.inventory:
+                    state.inventory.remove(item)
+    
+    # Handle Astrin rescue - move her to Glade
+    if npc_id == "astrin" and option.set_flags.get("astrin_status") == "found":
+        state.npc_state["astrin_status"] = "at_glade"
+    
     # Apply rapport change
     if option.rapport_delta != 0:
         change_rapport(state, npc_id, option.rapport_delta)
@@ -213,7 +343,33 @@ def apply_option_effects(
         if npc_id not in state.npc_flags:
             state.npc_flags[npc_id] = {}
         for flag_name, flag_value in option.set_flags.items():
-            state.npc_flags[npc_id][flag_name] = bool(flag_value)
+            # Handle npc_state flags
+            if flag_name in ("hermit_met", "naiad_met", "druid_met", "fisher_met",
+                            "hermit_explained_runestones", "naiad_share_recipe",
+                            "druid_shroomling_quest_started", "druid_shroomling_quest_completed",
+                            "fisher_mussel_quest_started", "fisher_mussel_quest_completed",
+                            "astrin_tea_unlocked", "echo_first_repair_acknowledged",
+                            "echo_astrin_acknowledged", "echo_race_greeting_shown",
+                            "hermit_trinket_quest_started", "hermit_trinket_quest_completed",
+                            "hermit_sketch_given", "naiad_blessing_quest_started",
+                            "naiad_blessing_quest_completed", "druid_night_ritual_available",
+                            "fisher_mussel_mastery_learned", "fisher_trap_quest_started",
+                            "fisher_trap_quest_completed", "astrin_request_quest_started",
+                            "astrin_request_quest_completed"):
+                state.npc_state[flag_name] = bool(flag_value)
+                # Apply buffs when quests are completed
+                if flag_name == "hermit_sketch_given" and flag_value:
+                    from .micro_quests import apply_hermit_sketch_buff
+                    apply_hermit_sketch_buff(state)
+                elif flag_name == "fisher_mussel_mastery_learned" and flag_value:
+                    from .micro_quests import apply_fisher_mussel_mastery
+                    apply_fisher_mussel_mastery(state)
+            # Handle astrin_status specially
+            elif flag_name == "astrin_status":
+                state.npc_state["astrin_status"] = str(flag_value)
+            else:
+                # Regular npc_flags
+                state.npc_flags[npc_id][flag_name] = bool(flag_value)
             # Special handling for Echo radio connection hint
             if npc_id == "echo" and flag_name == "echo_radio_connection_hint_shown" and flag_value:
                 state.echo_radio_connection_hint_shown = True
@@ -235,9 +391,9 @@ def start_dialogue(
         A DialogueSession if dialogue can start, None otherwise
     """
     if starting_node_id:
-        node = dialogue_catalog.get_node(starting_node_id)
+        node = dialogue_catalog.get_node(starting_node_id, state)
     else:
-        node = dialogue_catalog.get_starting_node(npc_id)
+        node = dialogue_catalog.get_starting_node(npc_id, state)
     
     if not node:
         return None
@@ -269,7 +425,7 @@ def step_dialogue(
         - is_ended: True if dialogue has ended
         - npc_text: The NPC's text for the current node (None if ended)
     """
-    current_node = session.dialogue_catalog.get_node(session.current_node_id)
+    current_node = session.dialogue_catalog.get_node(session.current_node_id, state)
     if not current_node:
         return True, None
     
@@ -292,7 +448,7 @@ def step_dialogue(
     if chosen_option.next_node_id == "END":
         return True, None
     
-    next_node = session.dialogue_catalog.get_node(chosen_option.next_node_id)
+    next_node = session.dialogue_catalog.get_node(chosen_option.next_node_id, state)
     if not next_node:
         return True, None
     
@@ -306,9 +462,9 @@ def step_dialogue(
     return False, next_node.text
 
 
-def get_current_dialogue_text(session: DialogueSession) -> str:
+def get_current_dialogue_text(session: DialogueSession, state: GameState) -> str:
     """Get the NPC text for the current dialogue node."""
-    node = session.dialogue_catalog.get_node(session.current_node_id)
+    node = session.dialogue_catalog.get_node(session.current_node_id, state)
     if not node:
         return ""
     return node.text
@@ -318,7 +474,7 @@ def get_current_dialogue_options(
     session: DialogueSession, state: GameState
 ) -> List[str]:
     """Get the available option texts for the current dialogue node."""
-    node = session.dialogue_catalog.get_node(session.current_node_id)
+    node = session.dialogue_catalog.get_node(session.current_node_id, state)
     if not node:
         return []
     available = get_available_options(node, state, session.npc_id)

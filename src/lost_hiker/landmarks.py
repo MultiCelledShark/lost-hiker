@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
@@ -27,6 +27,7 @@ class Landmark:
     short_description: str
     long_description: str
     features: Dict[str, bool]
+    encounter_biases: Dict[str, float] = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, data: Dict[str, object]) -> "Landmark":
@@ -39,6 +40,13 @@ class Landmark:
         features = data.get("features", {})
         if not isinstance(features, dict):
             features = {}
+        encounter_biases = data.get("encounter_biases", {})
+        if not isinstance(encounter_biases, dict):
+            encounter_biases = {}
+        # Convert encounter_biases values to float
+        encounter_biases_float = {
+            str(k): float(v) for k, v in encounter_biases.items()
+        }
         return cls(
             landmark_id=str(data.get("id", "")),
             name=str(data.get("name", "")),
@@ -48,6 +56,7 @@ class Landmark:
             short_description=str(data.get("short_description", "")),
             long_description=str(data.get("long_description", "")),
             features={k: bool(v) for k, v in features.items()},
+            encounter_biases=encounter_biases_float,
         )
 
     def is_available_at_depth(self, depth: int) -> bool:

@@ -1,0 +1,185 @@
+name: "Lost Hiker – Forest Forageables Expansion (Fauna + Magical Ecology)"
+
+description: |
+  Expand the Forest's forageable roster with additional small fauna (fish,
+  insects, small mammals) and magical/ecological gatherables. The goal is
+  to:
+    - support the hunger/food economy,
+    - feed into tea brewing, rituals, and runestone repair,
+    - enrich Astrin, Naiad, Druid, and Fisherman interactions,
+    - make different landmarks and biomes feel distinct and rewarding.
+
+  This task is content-only: no new systems, only new data entries and
+  small integration with existing foraging and crafting hooks.
+
+goals:
+  - Add new aquatic forageables (fish/crustaceans):
+      - Creek Darter:
+          - small, fast fish in shallow creeks and side-pools,
+          - 1 meal of food,
+          - may provide minor crafting item (delicate scales).
+      - Stoneback Trout:
+          - larger, slower river fish, more common at deeper pools,
+          - 2–3 meals of food,
+          - synergizes with Lizard-Folk Fisherman quests.
+      - Silt Crab:
+          - small crab in muddy banks,
+          - 1 meal of meat plus chitin scrap for future crafting.
+
+  - Add new insects/grubs:
+      - Barkgrub:
+          - common larva in rotting logs and stumps,
+          - low-value but reliable food,
+          - better cooked than raw.
+      - Glow-Tail Larva:
+          - larval form of Glow-Moths,
+          - faintly luminous,
+          - poor food, but high-value ingredient for Astrin/Druid teas.
+      - Moss-Eater Beetle:
+          - slow beetle near mossy logs and boulders,
+          - 1 meal of food,
+          - yields "moss resin" or similar crafting ingredient.
+
+  - Add new small ground forageable mammal:
+      - Tangle-Mice:
+          - small mice with vine-like tails,
+          - found near dense underbrush and tangle-rooted areas,
+          - caught in small groups (2–4),
+          - each provides 1 meal and occasional "tanglefiber" for basic snares.
+
+  - Add core magical/ecological forageables (Wave 1 set):
+      - Burrow-Puff Spores:
+          - puffball fungi near cave-mouths and rotting logs,
+          - raw: mild nausea or debuff,
+          - cooked/processed: calming or aggression-reducing teas,
+          - Druid and cave lore tie-in.
+      - Ember-Root Bulbs:
+          - warm, glowing root bulbs near ley-line fractures,
+          - used for stamina/heat teas and in runestone repair mixes.
+      - Wisp-Petal Blossoms:
+          - tiny shimmering petals found where wisps gather at night,
+          - used to boost Forest Memory or clarity teas,
+          - Naiad and Astrin can both reference them.
+      - Dreammilk Moss:
+          - pale glowing moss on logs/stone,
+          - boiled: soothing sleep / recovery tea,
+          - raw: mild sleepiness debuff.
+      - Heartmore Shoot:
+          - rare red-tipped shoots that boost stamina recovery,
+          - high-tier herb for Astrin,
+          - sometimes found near runestones.
+      - Starlace Fungus:
+          - small fungi appearing only at night under clear skies,
+          - used for navigation clarity teas,
+          - Druid night rituals can mention/consume them.
+      - Veilgrass Tufts:
+          - soft gray grass near mystical landmarks,
+          - burned as incense or used in calming teas/rituals,
+          - flavor text: "forest hush" effect.
+      - Glow-Sap Resin Nodules:
+          - sap nodules on trees frequented by Glow-Elk and other
+            mystical fauna,
+          - used for early snare/trap crafting and runestone cement mixes,
+          - burns bright when needed as a light source.
+
+  - Forage table integration:
+      - Update Forest foraging tables so:
+          - different landmarks and depths have distinct foraging profiles.
+          - creek/river landmarks:
+              - higher chance for Creek Darter, Stoneback Trout, Silt Crab,
+                plus Mud-Veil Leech/Loom-Jaw scenery.
+          - cave-mouth and rocky landmarks:
+              - Burrow-Puff Spores, Barkgrub, Glow-Tail Larva, Starlace Fungus.
+          - mystical landmarks (Birch Circle, Sunken Spring, etc.):
+              - Wisp-Petal Blossoms, Veilgrass Tufts, Dreammilk Moss,
+                Glow-Sap Resin.
+          - generic forest floor:
+              - Barkgrub, Moss-Eater Beetle, Tangle-Mice, mushrooms.
+
+  - NPC integration hooks (lightweight):
+      - Astrin:
+          - treat Heartmore Shoot, Dreammilk Moss, Glow-Tail Larva,
+            Starlace Fungus, Veilgrass Tufts as high-interest ingredients.
+      - Naiad:
+          - care about fish (Creek Darter, Stoneback Trout), Silt Crab,
+            Wisp-Petal Blossoms, Ember-Root Bulbs.
+      - Druid:
+          - care about Burrow-Puff Spores, Starlace Fungus, Glow-Sap Resin,
+            Dreammilk Moss.
+      - Fisherman:
+          - explicitly reference Creek Darter and Stoneback Trout in
+            dialogue/quests as appropriate.
+
+deliverables:
+  - data/forageables_forest.json (or equivalent):
+      - entries for:
+          - Creek Darter
+          - Stoneback Trout
+          - Silt Crab
+          - Barkgrub
+          - Glow-Tail Larva
+          - Moss-Eater Beetle
+          - Tangle-Mice
+          - Burrow-Puff Spores
+          - Ember-Root Bulbs
+          - Wisp-Petal Blossoms
+          - Dreammilk Moss
+          - Heartmore Shoot
+          - Starlace Fungus
+          - Veilgrass Tufts
+          - Glow-Sap Resin Nodules
+      - each with:
+          - id, name, description,
+          - biome/depth/time-of-day/season tags,
+          - food value (meals),
+          - whether it’s safe raw or requires cooking,
+          - any crafting/tea tags (e.g. herb_calming, nav_clarity, runestone_mix).
+  - data/foraging_forest.json (or equivalent):
+      - updated foraging tables tying landmark/biome to spawn chances
+        for the new forageables.
+  - data/dialogue_npcs_forest.json:
+      - minor updates so Astrin, Naiad, Druid, and Fisherman can mention
+        or react to the new forageables where it enhances micro-quests.
+
+acceptance_criteria:
+  - Foraging at:
+      - generic forest landmarks yields a mix of small animals, grubs,
+        and a few magical plants.
+      - creek/river landmarks yields fish/crabs plus some magical herbs.
+      - mystical landmarks yields a higher proportion of magical plants.
+      - cave-mouth-adjacent spots yield more fungi/spores.
+  - Hunger system:
+      - has more gradations of food quality:
+          - low-value but common (Barkgrub, Moss-Eater Beetle),
+          - medium (rabbit, fish),
+          - high-value or hybrid (Stoneback Trout, Ember-Root tea).
+  - NPCs:
+      - can recognize a subset of these forageables in their micro-quests
+        or dialogue without complex new systems.
+  - No new mechanics required; everything plugs into existing foraging
+    and item handling systems.
+
+non_goals:
+  - No new cooking UI or complex alchemy system.
+  - No new quest systems beyond the existing micro-quest flags.
+  - No Act II-specific forageables.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep forageables data-driven and consistent.
+  - Tag items clearly for future crafting/tea systems.
+
+test_plan:
+  - Start a new run and:
+      - forage in shallow forest,
+      - forage at creek landmarks,
+      - forage near cave-mouths,
+      - visit mystical landmarks at day and night.
+  - Verify that:
+      - the new forageables appear in logical places,
+      - food values feel reasonable relative to hunger/stamina needs,
+      - magical items are uncommon but not impossible to find,
+      - Astrin/Naiad/Druid/Fisherman references to these items make sense.
+  - Confirm no crashes from missing ids or invalid foraging tables.

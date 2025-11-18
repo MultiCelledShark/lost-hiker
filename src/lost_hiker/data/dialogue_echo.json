@@ -190,6 +190,11 @@
       "text": "[RADIO] The forest pulses with wrongness. Fractured runestones. Distorted ley-lines. But also… life. Growth. Hope. The static carries both warnings and comfort.",
       "options": [
         {
+          "text": "What are runestones?",
+          "next_node_id": "echo_runestone_explanation",
+          "rapport_delta": 0
+        },
+        {
           "text": "Can I help fix the runestones?",
           "next_node_id": "echo_runestone_guidance",
           "rapport_delta": 0
@@ -241,6 +246,11 @@
       "text": "[RADIO] The forest speaks through me. Fractured runestones cry out for mending. Distorted ley-lines pulse wrong. But I also sense growth, hope, and the steady rhythm of your presence. Together, we can help the forest remember itself.",
       "options": [
         {
+          "text": "What are runestones?",
+          "next_node_id": "echo_runestone_explanation",
+          "rapport_delta": 0
+        },
+        {
           "text": "I'll do what I can.",
           "next_node_id": "END",
           "rapport_delta": 0
@@ -270,6 +280,23 @@
       ]
     },
     {
+      "id": "echo_runestone_explanation",
+      "npc_id": "echo",
+      "text": "[RADIO] Runestones anchor the forest's ley-lines—the magical pathways that let the land remember itself. When they fracture, the forest forgets. Paths become unstable. The land grows hostile. But if you repair them, the forest remembers. The paths stabilize. The way forward opens.",
+      "options": [
+        {
+          "text": "How do I repair them?",
+          "next_node_id": "echo_runestone_guidance",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I understand. I'll help.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
       "id": "echo_runestone_guidance",
       "npc_id": "echo",
       "text": "[RADIO] Yes. Gather clay, sand, ash. Make mortar. Use the radio to tune resonance. Meditate with tea to realign the pulse. I will guide you when you find the fractured stones.",
@@ -281,6 +308,616 @@
         },
         {
           "text": "I'll remember that.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_act1_complete",
+      "npc_id": "echo",
+      "text": "[RADIO] The forest feels steadier. You've done something important. The ley-lines pulse with restored rhythm. The paths remember themselves. The way forward is clearer now—toward civilization, toward answers. You've earned this.",
+      "conditions": {
+        "runestone_progress": "act1_complete"
+      },
+      "options": [
+        {
+          "text": "Thank you for your guidance.",
+          "next_node_id": "END",
+          "rapport_delta": 2
+        },
+        {
+          "text": "What's next?",
+          "next_node_id": "echo_act1_next",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "echo_act1_next",
+      "npc_id": "echo",
+      "text": "[RADIO] The paths to the old road should be easier to find now. Beyond the forest lies a town by the lake. Others there might help you find your way home. But be careful—the journey is still dangerous, and the town has its own mysteries.",
+      "options": [
+        {
+          "text": "I'll be careful. Thank you.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I'll remember that.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_first_runestone_repaired",
+      "npc_id": "echo",
+      "text": "[RADIO] A pulse of approval. The first stone mends. The forest's memory stirs. You've taken the first step toward healing. The ley-lines respond, and the Glade feels steadier already.",
+      "conditions": {
+        "runestone_progress": "some",
+        "require_not_flag": "echo_first_repair_acknowledged"
+      },
+      "options": [
+        {
+          "text": "I'll keep working on the others.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_first_repair_acknowledged": true
+          }
+        },
+        {
+          "text": "The forest feels different now.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_first_repair_acknowledged": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_astrin_acknowledgment",
+      "npc_id": "echo",
+      "text": "[RADIO] A new presence at the Glade. The half-dryad herbalist. Her resonance is gentle, plant-touched. She belongs here. The Glade welcomes her, and so do I. It's good to have another voice, another presence. The forest grows richer with each being who finds their place.",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        },
+        "require_not_flag": "echo_astrin_acknowledged"
+      },
+      "options": [
+        {
+          "text": "I'm glad she's safe here.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_astrin_acknowledged": true
+          }
+        },
+        {
+          "text": "She can help with herbs and teas.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "echo_astrin_acknowledged": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_glade_awareness",
+      "npc_id": "echo",
+      "text": "[RADIO] The Glade is home. Safe. Stable. A place where the forest remembers itself. You've made it so, and others are drawn here—the herbalist, the wanderers. The Glade grows, and the forest grows stronger with it.",
+      "conditions": {
+        "require_flag": "echo_first_repair_acknowledged"
+      },
+      "options": [
+        {
+          "text": "I'm glad this place is safe.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "The Glade feels like home.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "echo_checkin",
+      "npc_id": "echo",
+      "text": "[RADIO] You seem tired. Rough day? The forest can be harsh, but you're safe here. Rest. Recover. I'll watch over you.",
+      "conditions": {
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "Thank you, Echo. I needed that.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I'll rest here for a while.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_favor",
+      "npc_id": "echo",
+      "text": "[RADIO] I found something while you were away. Small things—berries, herbs. I thought you might need them. Take them, please.",
+      "conditions": {
+        "min_rapport_tier": "friendly"
+      },
+      "options": [
+        {
+          "text": "Thank you, Echo. That's very kind.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "You didn't have to do that.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "echo_blue_fireflies",
+      "npc_id": "echo",
+      "text": "[RADIO] Look... the fireflies. They're all moving together, pulsing in unison. It's rare—a sign of harmony. The forest remembers itself tonight.",
+      "options": [
+        {
+          "text": "It's beautiful.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "The forest feels peaceful tonight.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "echo_race_greeting_human",
+      "npc_id": "echo",
+      "text": "[RADIO] Two-legs with no fur or scales… you look so breakable. Yet you persist. I admire that.",
+      "conditions": {
+        "require_race": "human",
+        "min_rapport_tier": "neutral",
+        "require_not_flag": "echo_race_greeting_shown"
+      },
+      "options": [
+        {
+          "text": "I try my best.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        },
+        {
+          "text": "Thank you.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_race_greeting_wolf_kin",
+      "npc_id": "echo",
+      "text": "[RADIO] You smell like kin, but your paws are all wrong. Don't worry — I won't mistake you for dinner.",
+      "conditions": {
+        "require_race": "wolf_kin",
+        "min_rapport_tier": "neutral",
+        "require_not_flag": "echo_race_greeting_shown"
+      },
+      "options": [
+        {
+          "text": "I appreciate that.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        },
+        {
+          "text": "Good to know.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_race_greeting_cow_kin",
+      "npc_id": "echo",
+      "text": "[RADIO] Warm scent, steady heart. Easy to track, hard to forget. Relax — I tease.",
+      "conditions": {
+        "require_race": "cow_kin",
+        "min_rapport_tier": "neutral",
+        "require_not_flag": "echo_race_greeting_shown"
+      },
+      "options": [
+        {
+          "text": "I'll try to relax.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        },
+        {
+          "text": "I'm glad you find me memorable.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_race_greeting_elf",
+      "npc_id": "echo",
+      "text": "[RADIO] You hear the forest differently. When you go quiet, I can almost hear it with you.",
+      "conditions": {
+        "require_race": "elf",
+        "min_rapport_tier": "neutral",
+        "require_not_flag": "echo_race_greeting_shown"
+      },
+      "options": [
+        {
+          "text": "The forest speaks to you too?",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        },
+        {
+          "text": "I'm glad you notice.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_race_greeting_dwarf",
+      "npc_id": "echo",
+      "text": "[RADIO] Stone sits in your bones. When you step, the earth answers. Comforting.",
+      "conditions": {
+        "require_race": "dwarf",
+        "min_rapport_tier": "neutral",
+        "require_not_flag": "echo_race_greeting_shown"
+      },
+      "options": [
+        {
+          "text": "The earth and I understand each other.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        },
+        {
+          "text": "I'm glad it's comforting.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_race_greeting_lizard_folk",
+      "npc_id": "echo",
+      "text": "[RADIO] Your scales hold heat well. If you grow cold, tell me. I can coil tighter.",
+      "conditions": {
+        "require_race": "lizard_folk",
+        "min_rapport_tier": "neutral",
+        "require_not_flag": "echo_race_greeting_shown"
+      },
+      "options": [
+        {
+          "text": "Thank you, I'll remember that.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        },
+        {
+          "text": "I appreciate the offer.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_race_greeting_deer_kin",
+      "npc_id": "echo",
+      "text": "[RADIO] Your scent is old, tangled in roots and riverbeds. Predators hesitate around you. I do not.",
+      "conditions": {
+        "require_race": "deer_kin",
+        "min_rapport_tier": "neutral",
+        "require_not_flag": "echo_race_greeting_shown"
+      },
+      "options": [
+        {
+          "text": "I'm glad you don't hesitate.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        },
+        {
+          "text": "That's... interesting.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_race_greeting_fox_kin",
+      "npc_id": "echo",
+      "text": "[RADIO] You move like trouble on soft paws. I expect mischief. Try not to keep me guessing.",
+      "conditions": {
+        "require_race": "fox_kin",
+        "min_rapport_tier": "neutral",
+        "require_not_flag": "echo_race_greeting_shown"
+      },
+      "options": [
+        {
+          "text": "I'll try to be predictable.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        },
+        {
+          "text": "No promises.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_race_greeting_gryphon_folk",
+      "npc_id": "echo",
+      "text": "[RADIO] Feathers and confidence. You remind me of cliff winds. I like that.",
+      "conditions": {
+        "require_race": "gryphon_folk",
+        "min_rapport_tier": "neutral",
+        "require_not_flag": "echo_race_greeting_shown"
+      },
+      "options": [
+        {
+          "text": "Cliff winds are powerful.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        },
+        {
+          "text": "I'm glad you like it.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_race_greeting_dragonborn",
+      "npc_id": "echo",
+      "text": "[RADIO] There's a quiet fire inside you. Not hunger, not malice… something older. I'll watch it with interest.",
+      "conditions": {
+        "require_race": "dragonborn",
+        "min_rapport_tier": "neutral",
+        "require_not_flag": "echo_race_greeting_shown"
+      },
+      "options": [
+        {
+          "text": "I hope it's a good fire.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        },
+        {
+          "text": "I'll try not to disappoint.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "echo_race_greeting_shown": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_race_human",
+      "npc_id": "echo",
+      "text": "[RADIO] Your heartbeat is steady, human. No magic, no wildness—just stubborn persistence. I respect that.",
+      "conditions": {
+        "require_race": "human",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "Thank you.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_race_wolf_kin",
+      "npc_id": "echo",
+      "text": "[RADIO] Your scent carries the wild, but your thoughts are sharp. A good combination.",
+      "conditions": {
+        "require_race": "wolf_kin",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I try to stay sharp.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_race_cow_kin",
+      "npc_id": "echo",
+      "text": "[RADIO] Your presence is calming, cow-kin. The forest settles when you're near.",
+      "conditions": {
+        "require_race": "cow_kin",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I'm glad I can help.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_race_elf",
+      "npc_id": "echo",
+      "text": "[RADIO] The forest's song resonates differently through you, elf. You hear layers I cannot.",
+      "conditions": {
+        "require_race": "elf",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The forest has many voices.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_race_dwarf",
+      "npc_id": "echo",
+      "text": "[RADIO] Your footsteps echo through stone, dwarf. The earth remembers your passage.",
+      "conditions": {
+        "require_race": "dwarf",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The earth and I are old friends.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_race_lizard_folk",
+      "npc_id": "echo",
+      "text": "[RADIO] Your scales catch the light even in darkness, lizard-folk. A steady, watchful presence.",
+      "conditions": {
+        "require_race": "lizard_folk",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I try to stay alert.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_race_deer_kin",
+      "npc_id": "echo",
+      "text": "[RADIO] Your movements are graceful, deer-kin. The forest recognizes you as kin.",
+      "conditions": {
+        "require_race": "deer_kin",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The forest feels like home.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_race_fox_kin",
+      "npc_id": "echo",
+      "text": "[RADIO] Quick thoughts, quick movements, fox-kin. You keep the forest on its toes.",
+      "conditions": {
+        "require_race": "fox_kin",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I try to keep things interesting.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_race_gryphon_folk",
+      "npc_id": "echo",
+      "text": "[RADIO] The wind speaks to you, gryphon-folk. I can feel it in your resonance.",
+      "conditions": {
+        "require_race": "gryphon_folk",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The wind is a constant companion.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_race_dragonborn",
+      "npc_id": "echo",
+      "text": "[RADIO] Ancient power simmers in you, dragonborn. Not threatening—just… present. I find it fascinating.",
+      "conditions": {
+        "require_race": "dragonborn",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I'm still learning about it myself.",
           "next_node_id": "END",
           "rapport_delta": 0
         }

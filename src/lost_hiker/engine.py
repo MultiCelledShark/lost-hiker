@@ -85,6 +85,7 @@ from .echo import (
     boop_echo,
 )
 from .rapport import get_rapport
+from .tea_flavor import enhance_tea_description
 from .encounter_outcomes import (
     EncounterOutcome,
     OutcomeContext,
@@ -152,6 +153,14 @@ class Engine:
 
     def run(self) -> None:
         """Run until the player chooses to exit."""
+        # Initialize forest_act1 state on game start
+        from .forest_act1 import init_forest_act1_state
+        init_forest_act1_state(self.state)
+        
+        # Resolve belly state on load (Phase 1: safe resolution)
+        from .belly_interaction import resolve_belly_on_load
+        resolve_belly_on_load(self.state, ui=self.ui)
+        
         while self.state.stage == "intro":
             self._intro_sequence()
         keep_playing = True
@@ -181,6 +190,13 @@ class Engine:
         self._day_start_inventory = list(self.state.inventory)
         self._day_start_rapport = dict(self.state.rapport)
         self._wake_phase()
+        
+        # Check for belly state first (suspends normal exploration)
+        from .belly_interaction import is_belly_active
+        if is_belly_active(self.state):
+            self._belly_phase()
+            return
+        
         active_zone = self.state.active_zone or "glade"
         if active_zone == "glade":
             self._glade_phase()
@@ -301,6 +317,18 @@ class Engine:
             timed_modifiers=self.state.timed_modifiers,
             current_day=self.state.day,
         )
+        
+        # Check for Act I completion narrative when entering Glade
+        from .forest_act1 import should_show_completion_narrative
+        if should_show_completion_narrative(self.state):
+            self.ui.echo(
+                "\nAs you return to the Glade, you feel a shift in the air—a sense of calm, of stability. "
+                "The forest's pulse feels steadier, the ley-lines humming with restored rhythm. "
+                "You've done something important. The way forward feels clearer now.\n"
+            )
+            from .forest_act1 import mark_completion_acknowledged
+            mark_completion_acknowledged(self.state)
+        
         self._set_scene_highlights(zone_id="glade", depth=0, extras=())
         glade_commands = "move, look, ping, brew, camp, status, bag, help"
         if is_echo_present_at_glade(self.state):
@@ -327,34 +355,94 @@ class Engine:
             # outcome == "stay": loop continues
 
     def _belly_phase(self) -> None:
-        """Handle being inside Echo's belly with interactive menu."""
+        """Handle belly interaction loop (Phase 1: Non-lethal Shelter/Struggle Loop)."""
+        from .belly_interaction import is_belly_active, handle_belly_action, exit_belly_state
+        
+        if not is_belly_active(self.state):
+            # Belly state was cleared, exit
+            return
+        
         self.state.stage = "belly"
-        self.state.active_zone = "echo_belly"
+        belly = self.state.belly_state
+        creature_id = belly["creature_id"]
+        mode = belly["mode"]
+        
+        # Set zone based on mode
+        if mode == "echo":
+            self.state.active_zone = "echo_belly"
+        else:
+            # For predators, keep current zone but mark as in belly
+            # The zone will be updated when released
+            pass
+        
         stamina_max = self.state.character.get_stat(
             "stamina_max",
             timed_modifiers=self.state.timed_modifiers,
             current_day=self.state.day,
         )
-        self._set_scene_highlights(zone_id="echo_belly", depth=0, extras=())
-        self.ui.echo(
-            "You're inside Echo's belly—warm, dark, and safe. "
-            "Commands: speak to echo, rub, rest, request release, status, bag, help.\n"
-        )
+        
+        # Show initial prompt
+        creature_data = self.creatures.get(creature_id, {})
+        creature_name = creature_data.get("name", creature_id.replace("_", " ").title())
+        
+        if mode == "echo":
+            self._set_scene_highlights(zone_id="echo_belly", depth=0, extras=())
+            self.ui.echo(
+                "You're inside Echo's belly—warm, dark, and safe. "
+                "Commands: soothe, struggle, relax, call, status, bag, help.\n"
+            )
+        else:
+            self.ui.echo(
+                f"You're inside the {creature_name}'s belly. "
+                "Commands: soothe, struggle, relax, call, status, bag, help.\n"
+            )
+        
         while True:
-            self._set_scene_highlights(zone_id="echo_belly", depth=0, extras=None)
-            # Check if still in belly (might have been released)
-            if self.state.active_zone != "echo_belly" or not self.state.belly_state:
+            # Check if still in belly
+            if not is_belly_active(self.state):
                 return
+            
+            if mode == "echo":
+                self._set_scene_highlights(zone_id="echo_belly", depth=0, extras=None)
+            
             command = self._prompt_command("Belly command")
             if command is None:
-                self._report_invalid_command("echo_belly")
+                self._report_invalid_command("belly")
                 continue
-            outcome = self._dispatch_belly_command(
-                command=command, stamina_max=stamina_max
+            
+            # Handle standard commands (status, bag, help)
+            verb = command.verb
+            if verb == "status":
+                self._show_notebook(zone_id="belly", stamina_max=stamina_max)
+                continue
+            elif verb == "bag":
+                self._show_field_bag()
+                continue
+            elif verb == "help":
+                self._print_belly_help(mode, creature_name)
+                continue
+            elif verb == "check sky":
+                self.ui.echo("You can't see the sky from in here.\n")
+                continue
+            
+            # Handle belly-specific actions
+            action = verb  # soothe, struggle, relax, call
+            if action not in ("soothe", "struggle", "relax", "call"):
+                self.ui.echo("Unknown action. Try: soothe, struggle, relax, or call.\n")
+                continue
+            
+            # Process action
+            should_exit = handle_belly_action(
+                self.state,
+                action=action,
+                ui=self.ui,
+                creatures=self.creatures,
             )
-            if outcome == "leave":
+            
+            if should_exit:
+                # Belly interaction ended
                 return
-            # outcome == "stay": loop continues
+            # Continue loop
 
     def _intro_sequence(self) -> None:
         zone_id = "charred_tree_interior"
@@ -589,60 +677,29 @@ class Engine:
         self._report_invalid_command("glade")
         return "stay"
 
-    def _dispatch_belly_command(self, *, command: Command, stamina_max: float) -> str:
-        """Handle commands while inside Echo's belly."""
-        verb = command.verb
-        args = command.args
-        
-        if verb == "look":
-            self.ui.echo(
-                "You're surrounded by warm, soft darkness. "
-                "Echo's presence is everywhere—gentle, protective, safe. "
-                "The rhythmic pulse of her breathing is steady and calming.\n"
-            )
-            return "stay"
-        if verb == "speak to echo" or verb == "talk echo" or verb == "talk to echo":
-            self._handle_echo_dialogue()
-            return "stay"
-        if verb == "rub":
-            self._handle_rub_echo_belly()
-            return "stay"
-        if verb == "rest":
-            self._handle_rest_in_echo_belly(stamina_max)
-            return "stay"
-        if verb == "request release":
-            from .echo_vore import request_echo_release
-            released = request_echo_release(self.state, self.ui)
-            if released:
-                return "leave"
-            return "stay"
-        if verb == "status":
-            self._show_notebook(zone_id="echo_belly", stamina_max=stamina_max)
-            return "stay"
-        if verb == "bag":
-            self._show_field_bag()
-            return "stay"
-        if verb == "check sky":
-            from .sky import get_sky_description
-            description = get_sky_description(self.state)
-            self.ui.echo(f"{description}\n")
-            return "stay"
-        if verb == "help":
+    def _print_belly_help(self, mode: str, creature_name: str) -> None:
+        """Print help text for belly interaction commands."""
+        if mode == "echo":
             lines = [
-                "speak to echo — talk to Echo via radio",
-                "rub — gently rub Echo's belly walls",
-                "rest — rest safely in Echo's belly (fully restores stamina)",
-                "request release — ask Echo to release you",
+                "soothe — Echo is already calm (flavor only)",
+                "struggle — Try to get out (Echo will gently hold you)",
+                "relax — Rest safely and wake at Glade (recommended)",
+                "call — Contact Echo via radio (flavor only)",
                 "status — review notebook",
                 "bag — check supplies",
-                "check sky — (you can't see the sky from in here)",
             ]
-            self.ui.echo(
-                "Commands:\n" + "\n".join(f"  {line}" for line in lines) + "\n"
-            )
-            return "stay"
-        self._report_invalid_command("echo_belly")
-        return "stay"
+        else:
+            lines = [
+                "soothe — Try to calm the creature and get released nearby",
+                "struggle — Attempt to force an early release (costs stamina)",
+                "relax — Accept being carried (transport to nearby location)",
+                "call — Contact Echo via HT radio (if available)",
+                "status — review notebook",
+                "bag — check supplies",
+            ]
+        self.ui.echo(
+            "Commands:\n" + "\n".join(f"  {line}" for line in lines) + "\n"
+        )
 
     def _handle_rub_echo_belly(self) -> None:
         """Handle rubbing Echo's belly walls."""
@@ -820,12 +877,13 @@ class Engine:
                 self._show_landmarks()
                 return "stay"
             if verb in {"talk", "speak", "chat"}:
-                # Check if there's an NPC at this landmark
-                npcs_at_landmark = self.npc_catalog.get_npcs_at_landmark(current_landmark.landmark_id)
-                if npcs_at_landmark:
+                # Check if there's an NPC at this landmark using appearance logic
+                from .npc_appearance import get_present_npcs
+                present_npcs = get_present_npcs(self.npc_catalog, self.state, current_landmark.landmark_id)
+                if present_npcs:
                     # If there's exactly one NPC, talk to them
-                    if len(npcs_at_landmark) == 1:
-                        npc = npcs_at_landmark[0]
+                    if len(present_npcs) == 1:
+                        npc = present_npcs[0]
                         self._handle_dialogue(npc)
                         return "stay"
                     else:
@@ -833,7 +891,7 @@ class Engine:
                         target = self._normalize_target(args)
                         if target:
                             # Try to match NPC by name
-                            for npc in npcs_at_landmark:
+                            for npc in present_npcs:
                                 if target.lower() in npc.name.lower():
                                     self._handle_dialogue(npc)
                                     return "stay"
@@ -841,9 +899,9 @@ class Engine:
                             return "stay"
                         else:
                             # List NPCs
-                            npc_names = [npc.name for npc in npcs_at_landmark]
+                            npc_names = [npc.name for npc in present_npcs]
                             choice = self.ui.menu("Who do you want to talk to?", npc_names)
-                            for npc in npcs_at_landmark:
+                            for npc in present_npcs:
                                 if npc.name == choice:
                                     self._handle_dialogue(npc)
                                     return "stay"
@@ -1129,15 +1187,16 @@ class Engine:
             return False
         
         # Base encounter chance (modest, so exploration is still main loop)
-        base_chance = 0.12  # 12% base chance
+        # Tuned for balance: shallow safer, mid tense, deep dangerous
+        base_chance = 0.10  # 10% base chance (reduced from 12%)
         
         # Modify by depth (more encounters at mid/deep depths)
         if depth <= 9:
-            depth_multiplier = 0.7  # Edge: lower chance
+            depth_multiplier = 0.5  # Edge: much lower chance (safer)
         elif depth <= 24:
-            depth_multiplier = 1.2  # Mid: higher chance
+            depth_multiplier = 1.3  # Mid: higher chance (main tension zone)
         else:
-            depth_multiplier = 1.5  # Deep: highest chance
+            depth_multiplier = 1.6  # Deep: highest chance (dangerous)
         
         # Modify by season (more wildlife in spring/fall)
         season = self.state.get_season_name()
@@ -1165,21 +1224,153 @@ class Engine:
         if random.random() > final_chance:
             return False
         
+        # Get time of day
+        from .time_of_day import get_time_of_day
+        time_of_day_enum = get_time_of_day(self.state)
+        time_of_day_str = time_of_day_enum.value
+        
+        # Get forest stability modifier
+        from .forest_act1 import get_threat_encounter_modifier
+        stability_modifier = get_threat_encounter_modifier(self.state)
+        
+        # Determine depth band for creature preferences
+        if depth <= 9:
+            depth_band = "shallow"
+        elif depth <= 24:
+            depth_band = "mid"
+        elif depth <= 30:
+            depth_band = "deep"
+        elif depth <= 35:
+            depth_band = "mountain_edge"
+        else:
+            depth_band = "cave_mouth"
+        
+        # Get landmark biases if at a landmark
+        landmark_biases = {}
+        if self.state.current_landmark and self.landmarks:
+            landmark = self.landmarks.get(self.state.current_landmark)
+            if landmark and hasattr(landmark, 'encounter_biases'):
+                landmark_biases = landmark.encounter_biases
+        
         # Select a creature to encounter from creatures.json
         # Get all creatures that have forest tag
         available_creatures = []
         threat_capable = []
+        creature_weights = []
+        
         for creature_id, creature_data in self.creatures.items():
             tags = creature_data.get("tags", [])
             if "forest" in tags:
+                # Check biome restrictions (creek, cave-mouth, night-only)
+                # Creek creatures only appear at creek/river landmarks
+                if "creek" in tags:
+                    if not self.state.current_landmark:
+                        # Skip creek creatures when not at a water landmark
+                        # Could check landmark type, but for now skip if no landmark
+                        continue
+                    # TODO: Could add landmark type checking here for more precise control
+                
+                # Cave-mouth creatures prefer cave_mouth depth band
+                if "cave-mouth" in tags and depth_band != "cave_mouth":
+                    # Still allow, but reduce weight significantly
+                    pass  # Will be handled by depth_preferences
+                
+                # Night-only creatures must be at night
+                if "night-only" in tags:
+                    if time_of_day_str not in ("Night", "Dusk"):
+                        continue  # Skip entirely if not night/dusk
+                
+                # Night-biased creatures get reduced weight during day
+                if "night-biased" in tags:
+                    if time_of_day_str == "Day":
+                        # Reduce weight but don't exclude
+                        pass  # Will be handled by time_of_day_preferences
+                
                 available_creatures.append(creature_id)
                 if creature_data.get("can_threaten", False):
                     threat_capable.append(creature_id)
+                
+                # Calculate weight based on preferences
+                weight = 1.0
+                
+                # Depth preference
+                depth_prefs = creature_data.get("depth_preferences", {})
+                if depth_band in depth_prefs:
+                    weight *= depth_prefs[depth_band]
+                
+                # Season preference
+                season_prefs = creature_data.get("season_preferences", {})
+                if season in season_prefs:
+                    weight *= season_prefs[season]
+                
+                # Time-of-day preference
+                time_prefs = creature_data.get("time_of_day_preferences", {})
+                if time_of_day_str in time_prefs:
+                    weight *= time_prefs[time_of_day_str]
+                
+                # Biome restrictions - apply additional penalties
+                if "creek" in tags:
+                    # Boost creek creatures at water landmarks, reduce elsewhere
+                    if self.state.current_landmark:
+                        # Assume water landmarks have certain IDs or could check landmark type
+                        # For now, boost weight slightly
+                        weight *= 1.2
+                    else:
+                        weight *= 0.3  # Much less likely away from water
+                
+                if "cave-mouth" in tags and depth_band != "cave_mouth":
+                    weight *= 0.2  # Much less likely outside cave-mouth
+                
+                # Rapport modifier
+                rapport = self.state.rapport.get(creature_id, 0)
+                weight *= (1.0 + (rapport * 0.2))
+                
+                # Landmark bias (if at a landmark that biases this creature)
+                if self.state.current_landmark:
+                    # Check if this landmark has a bias for this creature
+                    # This would need to be loaded from landmark data
+                    # For now, we'll use a simple check
+                    landmark_bias = landmark_biases.get(creature_id, 1.0)
+                    weight *= landmark_bias
+                
+                # Forest stability affects mystical creatures more
+                # Tuned: Moss-Treader and Glow-Elk slightly more common after stabilization
+                if "mystical" in tags or "leyline-tuned" in tags:
+                    # Special handling for Kirin: rare early Act I, more reliable post-stabilization
+                    if creature_id == "kirin":
+                        from .forest_act1 import get_forest_act1_progress_summary
+                        summary = get_forest_act1_progress_summary(self.state)
+                        # Kirin is very rare before Act I completion
+                        if not self.state.act1_forest_stabilized or self.state.act1_repaired_runestones < 3:
+                            weight *= 0.05  # 5% of base weight - very rare early
+                        elif "Stabilized" in summary["status"] or "Complete" in summary["status"]:
+                            weight *= 2.5  # Much more common after stabilization
+                        elif "Stabilizing" in summary["status"]:
+                            weight *= 1.2  # Slightly more common as stabilizing
+                        else:
+                            weight *= 0.1  # Still rare if not yet stabilizing
+                        
+                        # Bias toward appearing near major landmarks/glades
+                        if self.state.current_landmark or zone_id == "glade":
+                            weight *= 1.5  # More likely at landmarks
+                    else:
+                        # Other mystical creatures
+                        from .forest_act1 import get_forest_act1_progress_summary
+                        summary = get_forest_act1_progress_summary(self.state)
+                        if "Stabilized" in summary["status"] or "Complete" in summary["status"]:
+                            weight *= 1.7  # Increased from 1.5 to 1.7
+                        elif "Stabilizing" in summary["status"]:
+                            weight *= 1.3  # Increased from 1.2 to 1.3
+                        else:
+                            weight *= 0.6  # Reduced from 0.7 to 0.6 (rarer before stabilization)
+                
+                creature_weights.append(weight)
         
         # Determine if we should prefer threat encounters
         # More likely at mid/deep depths, when hungry, low stamina, or in certain seasons
+        # Tuned: shallow forest should rarely have threats
         prefer_threat = False
-        if depth >= 8:
+        if depth >= 10:  # Only prefer threats at mid-depth or deeper
             # Check hunger (days without meal)
             if self.state.days_without_meal >= 2:
                 prefer_threat = True
@@ -1190,18 +1381,20 @@ class Engine:
             if season in ("fall", "winter"):
                 prefer_threat = True
         
-        # Weight creatures - if preferring threat, weight threat-capable creatures higher
-        creature_weights = []
-        for creature_id in available_creatures:
-            rapport = self.state.rapport.get(creature_id, 0)
-            weight = 1.0 + (rapport * 0.2)
+        # Adjust weights for threat preference
+        for i, creature_id in enumerate(available_creatures):
             # Boost threat-capable creatures if we're preferring threats
             if prefer_threat and creature_id in threat_capable:
-                weight *= 2.0
+                creature_weights[i] *= 2.0
             # Reduce threat-capable creatures if we're not preferring threats and rapport is high
-            elif not prefer_threat and creature_id in threat_capable and rapport >= 2:
-                weight *= 0.3
-            creature_weights.append(weight)
+            elif not prefer_threat and creature_id in threat_capable:
+                rapport = self.state.rapport.get(creature_id, 0)
+                if rapport >= 2:
+                    creature_weights[i] *= 0.3
+            
+            # Apply forest stability modifier to threat encounters
+            if creature_id in threat_capable:
+                creature_weights[i] *= stability_modifier
         
         if not available_creatures:
             return False
@@ -1334,37 +1527,44 @@ class Engine:
         # Check for vore outcomes
         if outcome.text == "VORE_SWALLOWED":
             # Handle predator vore outcome (non-lethal shelter)
-            from .encounter_outcomes import EncounterOutcome as EncounterOutcomeEnum, OutcomeContext
-            self.ui.echo(
-                "\nYou freeze, submitting to the wolf's dominance. Its jaws open wide—not to tear, but to claim. "
-                "You're pulled into darkness, warmth, and a crushing pressure that's somehow not suffocating. "
-                "The world shifts around you as you're carried through the forest, helpless but safe.\n"
-            )
-            self.ui.echo(
-                "When awareness returns, you find yourself lying in a dim den, the wolf nowhere in sight. "
-                "You're bruised and shaken, but alive. The encounter resolved in a way you didn't expect— "
-                "non-lethal, but definitely memorable.\n"
-            )
+            from .vore import is_vore_enabled
+            from .belly_interaction import enter_belly_state
             
-            # Use SHELTERED outcome to move player and apply rest effects
-            context = OutcomeContext(
-                source_id=encounter.creature_id,
-                was_safe_shelter=True,
-                metadata={"vore": True, "predator_id": encounter.creature_id},
-            )
-            from .encounter_outcomes import resolve_encounter_outcome
-            resolve_encounter_outcome(
-                self.state,
-                EncounterOutcomeEnum.SHELTERED,
-                context=context,
-                ui=self.ui,
-            )
-            # Move player to a den-like location (use current location but mark as sheltered)
-            # The SHELTERED outcome already handles this
-            
-            # Apply outcome effects (stamina, condition, rapport)
-            self.encounter_engine.apply_outcome(self.state, encounter, outcome)
-            return
+            # Only enter belly state if vore is enabled
+            if is_vore_enabled(self.state):
+                # Enter belly interaction state
+                creature_data = self.creatures.get(encounter.creature_id, {})
+                creature_name = creature_data.get("name", encounter.creature_id.replace("_", " ").title())
+                
+                self.ui.echo(
+                    f"\nYou freeze, submitting to the {creature_name}'s dominance. "
+                    "Its jaws open wide—not to tear, but to claim. "
+                    "You're pulled into darkness, warmth, and a crushing pressure "
+                    "that's somehow not suffocating.\n"
+                )
+                
+                enter_belly_state(
+                    self.state,
+                    creature_id=encounter.creature_id,
+                    mode="predator",
+                    ui=self.ui,
+                )
+                
+                # Apply outcome effects (stamina, condition, rapport) before entering belly
+                self.encounter_engine.apply_outcome(self.state, encounter, outcome)
+                
+                # Belly interaction loop will handle the rest
+                return
+            else:
+                # Vore disabled: use alternate non-swallow outcome
+                # Fall through to normal encounter handling or use a different outcome
+                self.ui.echo(
+                    "\nThe creature lunges, but you manage to evade its grasp. "
+                    "You retreat, shaken but unharmed.\n"
+                )
+                # Apply outcome effects
+                self.encounter_engine.apply_outcome(self.state, encounter, outcome)
+                return
         
         if encounter.encounter_type == "threat" and outcome.threat_resolution:
             self._resolve_threat_encounter(
@@ -1765,7 +1965,13 @@ class Engine:
             # It's a tea - add as persistent item to inventory
             self.state.inventory.append(tea_id)
             if description:
-                self.ui.echo(f"You brew {name}. {description}\n")
+                # Enhance description with race-aware flavor
+                enhanced_description = enhance_tea_description(
+                    description,
+                    tea_id,
+                    self.state.character.race_id,
+                )
+                self.ui.echo(f"You brew {name}. {enhanced_description}\n")
             else:
                 self.ui.echo(f"You brew {name}.\n")
         else:
@@ -1880,17 +2086,28 @@ class Engine:
         # Initialize runestone state if this landmark has one
         if landmark.features.get("has_runestone"):
             initialize_runestone_state(self.state, landmark.landmark_id, self.runestone_defs)
+            was_first = not self.state.runestone_states.get(landmark.landmark_id, {}).get("is_discovered", False)
             mark_runestone_discovered(self.state, landmark.landmark_id, self.runestone_defs)
+            
+            # Show first runestone tip if this is the first discovery
+            if was_first:
+                from .forest_act1 import should_show_first_runestone_tip
+                if should_show_first_runestone_tip(self.state):
+                    self.ui.echo(
+                        "\nYou sense this stone is part of a damaged pattern; Echo or the hermit might know more.\n"
+                    )
         
         self.ui.echo(f"\n{landmark.short_description}\n")
         
-        # Check for NPCs at this landmark
-        npcs_at_landmark = self.npc_catalog.get_npcs_at_landmark(landmark.landmark_id)
-        if npcs_at_landmark or landmark.features.get("has_npc"):
+        # Check for NPCs at this landmark using appearance logic
+        from .npc_appearance import get_present_npcs, get_npc_presence_description
+        present_npcs = get_present_npcs(self.npc_catalog, self.state, landmark.landmark_id)
+        if present_npcs or landmark.features.get("has_npc"):
             # Add NPC description
-            if npcs_at_landmark:
-                for npc in npcs_at_landmark:
-                    self.ui.echo(f"{npc.description}\n")
+            if present_npcs:
+                for npc in present_npcs:
+                    desc = get_npc_presence_description(npc, landmark.landmark_id)
+                    self.ui.echo(f"{desc}\n")
             elif landmark.features.get("has_npc"):
                 npc_id = landmark.features.get("npc_id")
                 if npc_id:
@@ -2044,6 +2261,58 @@ class Engine:
                     )
                     return True
         
+        # Check for exit blockers
+        if landmark.features.get("is_exit_blocker", False):
+            exit_direction = landmark.features.get("exit_direction", "")
+            # Check if player is examining exit-related terms
+            exit_terms = {
+                "plains": {"plains", "pass", "north", "exit", "way", "path", "route", "out"},
+                "mountain": {"mountain", "route", "west", "exit", "way", "path", "trail", "switchback", "out"},
+                "riverside": {"river", "road", "crossing", "bridge", "east", "exit", "way", "path", "out"},
+                "cave": {"cave", "cavern", "entrance", "descent", "down", "exit", "way", "path", "out"}
+            }
+            
+            relevant_terms = exit_terms.get(exit_direction, set())
+            if any(term in target_lower for term in relevant_terms) or target_lower in {"exit", "way", "path", "route", "out"}:
+                # Show blocker description
+                if landmark.landmark_id == "plains_pass":
+                    self.ui.echo(
+                        "The path north toward the plains is completely blocked. Fallen oaks lie across the trail, "
+                        "their massive trunks tangled with gnarled roots that have erupted from the disturbed earth. "
+                        "The ground is unstable here, with deep fissures running through the soil. The forest's distortions "
+                        "have made this route impassable—the roots writhe and shift, and the debris seems to move when "
+                        "you're not looking directly at it. There's no safe way through without the forest's pulse being restored.\n"
+                    )
+                elif landmark.landmark_id == "mountain_route":
+                    self.ui.echo(
+                        "The switchback trail that should climb toward the mountains is buried under a massive rockslide. "
+                        "Boulders the size of small houses block the trail, and loose scree covers what little of the path "
+                        "remains visible. The slide looks recent—fresh scars mark the mountainside above. The way forward "
+                        "is completely impassable. Without proper tools and a stable path, attempting to climb over would be suicidal.\n"
+                    )
+                elif landmark.landmark_id == "riverside_road":
+                    self.ui.echo(
+                        "The old road follows the curve of a wide, fast-moving river, but the crossing point has been "
+                        "completely washed out. The banks are eroded and unstable, with deep gouges where floodwaters have "
+                        "torn away the earth. The river itself runs swift and dangerous here, its current pulling at anything "
+                        "that enters. The old bridge is gone—only a few broken pilings remain. Without a stable crossing and "
+                        "proper gear, the river is impassable.\n"
+                    )
+                elif landmark.landmark_id == "hollow_echo_cavern_mouth":
+                    self.ui.echo(
+                        "The cave entrance opens into darkness, descending steeply into the earth. The walls are slick with "
+                        "moisture, and the floor drops away into shadow. Without rope, proper lighting, or climbing gear, "
+                        "attempting to descend would be incredibly dangerous. The cave seems to echo with distant sounds—water "
+                        "dripping, something shifting in the dark. This route might lead somewhere important, but it's not safe "
+                        "to explore without the right equipment and preparation.\n"
+                    )
+                else:
+                    # Generic exit blocker message
+                    self.ui.echo(
+                        f"The way {exit_direction} is blocked. You cannot proceed in this direction.\n"
+                    )
+                return True
+        
         # Check for sand/clay
         if landmark.features.get("has_creek"):
             if target_lower in {"sand", "sandy", "sand bank"}:
@@ -2109,8 +2378,11 @@ class Engine:
             # Check if target matches food type
             food_keywords = {
                 "creek_forage": ["watercress", "tuber", "food", "forage", "creek"],
+                "creek_aquatic": ["fish", "crab", "food", "forage", "creek", "water"],
                 "edible_fungus": ["fungus", "mushroom", "food", "forage"],
                 "night_mushrooms": ["mushroom", "night", "food", "forage"],
+                "cave_forage": ["spore", "fungus", "grub", "food", "forage", "cave"],
+                "mystical_herbs": ["herb", "moss", "blossom", "grass", "resin", "food", "forage", "magical"],
             }
             
             if food_type in food_keywords:
@@ -2125,13 +2397,45 @@ class Engine:
                         self.ui.echo("Your bag is full. You'll need to make space first.\n")
                         return True
                     
-                    # Add appropriate food item
-                    food_items = {
-                        "creek_forage": random.choice(["watercress", "creek_tuber"]),
-                        "edible_fungus": "edible_fungus",
-                        "night_mushrooms": "night_mushroom",
-                    }
-                    food_item = food_items.get(food_type, "edible_mushroom")
+                    # Add appropriate food item based on landmark type and tags
+                    food_item = None
+                    
+                    if food_type == "creek_forage":
+                        # Creek landmarks can yield watercress, tubers, or aquatic creatures
+                        if landmark.features.get("has_creek", False):
+                            choices = ["watercress", "creek_tuber", "creek_darter", "silt_crab"]
+                            food_item = random.choice(choices)
+                        else:
+                            food_item = random.choice(["watercress", "creek_tuber"])
+                    elif food_type == "creek_aquatic":
+                        # Specifically aquatic creatures at creek/river landmarks
+                        choices = ["creek_darter", "stoneback_trout", "silt_crab"]
+                        weights = [0.5, 0.2, 0.3]  # Darter more common, trout rarer
+                        food_item = random.choices(choices, weights=weights, k=1)[0]
+                    elif food_type == "edible_fungus":
+                        food_item = "edible_fungus"
+                    elif food_type == "night_mushrooms":
+                        food_item = "night_mushroom"
+                    elif food_type == "cave_forage":
+                        # Cave-mouth landmarks yield spores, grubs, and fungi
+                        choices = ["burrow_puff_spores", "barkgrub", "glow_tail_larva"]
+                        food_item = random.choice(choices)
+                    elif food_type == "mystical_herbs":
+                        # Mystical landmarks yield magical plants and fungi
+                        # Only if runestones repaired
+                        if self.state.act1_repaired_runestones >= 1:
+                            choices = [
+                                "wisp_petal_blossom", "dreammilk_moss", "veilgrass_tuft",
+                                "glow_sap_resin_nodule", "starlace_fungus"
+                            ]
+                            food_item = random.choice(choices)
+                        else:
+                            # Fallback to common items if no runestones repaired yet
+                            food_item = "edible_mushroom"
+                    
+                    if food_item is None:
+                        food_item = "edible_mushroom"
+                    
                     self.state.inventory.append(food_item)
                     
                     # Mark as gathered today
@@ -2142,8 +2446,11 @@ class Engine:
                     # Provide flavor text
                     messages = {
                         "creek_forage": "You gather some fresh watercress and a small tuber from the creek's edge.",
+                        "creek_aquatic": "You catch some aquatic creatures from the water.",
                         "edible_fungus": "You carefully harvest some edible fungus from the hollow trunk.",
                         "night_mushrooms": "You find a few night mushrooms growing in the moss around the lanterns.",
+                        "cave_forage": "You gather spores, grubs, and fungi from near the cave entrance.",
+                        "mystical_herbs": "You carefully gather magical herbs and plants from this mystical place.",
                     }
                     self.ui.echo(f"{messages.get(food_type, 'You gather some food.')}\n")
                     return True
@@ -2227,10 +2534,20 @@ class Engine:
                     "and the paths feel clearer. Two runestones restored.\n"
                 )
             elif repaired_count >= 3:
+                # Check if this is the moment of completion
+                from .forest_act1 import is_forest_act1_complete, should_show_completion_narrative
+                was_complete = is_forest_act1_complete(self.state)
                 self.ui.echo(
                     "\nThe forest's pulse stabilizes completely. The magical grid hums with restored power, "
                     "and you sense the land is grateful. The forest is stabilized. Act I complete.\n"
                 )
+                # Show completion message if this is the first time
+                if should_show_completion_narrative(self.state):
+                    self.ui.echo(
+                        "\nThe Forest steadies around you. The worst distortions have faded.\n"
+                    )
+                    from .forest_act1 import mark_completion_acknowledged
+                    mark_completion_acknowledged(self.state)
 
     def _print_landmark_help(self, landmark: Landmark) -> None:
         """Print help text for landmark context."""
@@ -2248,18 +2565,30 @@ class Engine:
             "help — show this help",
         ]
         # Check if there's an NPC at this landmark
-        npcs_at_landmark = self.npc_catalog.get_npcs_at_landmark(landmark.landmark_id)
-        if npcs_at_landmark or landmark.features.get("has_npc"):
+        from .npc_appearance import get_present_npcs
+        present_npcs = get_present_npcs(self.npc_catalog, self.state, landmark.landmark_id)
+        if present_npcs or landmark.features.get("has_npc"):
             lines.insert(-1, "talk — speak with someone here")
         self.ui.echo("Commands:\n" + "\n".join(f"  {line}" for line in lines) + "\n")
     
     def _handle_dialogue(self, npc: "NPC") -> None:
         """Handle dialogue with an NPC."""
         from .npcs import NPC
+        from .forest_act1 import should_show_completion_narrative
         
         # Determine starting node based on whether intro is done
         npc_flags = self.state.npc_flags.get(npc.npc_id, {})
-        if npc_flags.get("forest_hermit_intro_done", False):
+        
+        # Check if Act I is complete and show completion dialogue if not yet acknowledged
+        starting_node_id = None
+        if npc.npc_id == "forest_hermit" and should_show_completion_narrative(self.state):
+            starting_node_id = "forest_hermit_act1_complete"
+            session = start_dialogue(self.state, npc.npc_id, self.dialogue_catalog, starting_node_id)
+            # If completion node doesn't exist or conditions aren't met, fall back to revisit
+            if not session and npc_flags.get("forest_hermit_intro_done", False):
+                starting_node_id = "forest_hermit_revisit"
+                session = start_dialogue(self.state, npc.npc_id, self.dialogue_catalog, starting_node_id)
+        elif npc_flags.get("forest_hermit_intro_done", False):
             # Use revisit node if available, otherwise use start
             starting_node_id = "forest_hermit_revisit"
             session = start_dialogue(self.state, npc.npc_id, self.dialogue_catalog, starting_node_id)
@@ -2279,7 +2608,7 @@ class Engine:
         
         # Run dialogue loop
         while True:
-            npc_text = get_current_dialogue_text(session)
+            npc_text = get_current_dialogue_text(session, self.state)
             if not npc_text:
                 break
             
@@ -2299,6 +2628,11 @@ class Engine:
             if next_text:
                 # Continue to next node
                 continue
+        
+        # Mark completion narrative as acknowledged if we just saw it
+        if starting_node_id in ("echo_act1_complete", "forest_hermit_act1_complete"):
+            from .forest_act1 import mark_completion_acknowledged
+            mark_completion_acknowledged(self.state)
         
         self.ui.echo(f"\nYou finish your conversation with {npc.name}.\n")
 
@@ -2333,8 +2667,14 @@ class Engine:
 
     def _handle_echo_dialogue(self) -> None:
         """Handle dialogue with Echo using the dialogue system."""
+        # Check if Act I is complete and show completion dialogue if not yet acknowledged
+        from .forest_act1 import should_show_completion_narrative
+        starting_node_id = None
+        if should_show_completion_narrative(self.state):
+            starting_node_id = "echo_act1_complete"
+        
         # Start dialogue with Echo
-        session = start_dialogue(self.state, "echo", self.dialogue_catalog)
+        session = start_dialogue(self.state, "echo", self.dialogue_catalog, starting_node_id)
         
         if not session:
             # Fallback if no dialogue is available
@@ -2343,9 +2683,30 @@ class Engine:
         
         # Run dialogue loop
         while True:
-            npc_text = get_current_dialogue_text(session)
+            npc_text = get_current_dialogue_text(session, self.state)
             if not npc_text:
                 break
+            
+            # Check if radio version is too low for full sentences
+            # Before v2, Echo should only speak in impressionistic fragments
+            if self.state.radio_version < 2 and npc_text.startswith("[RADIO]"):
+                # Check if this looks like a full sentence (has multiple periods or is very long)
+                # Impressionistic fragments are short and use ellipses or single fragments
+                text_body = npc_text[7:].strip()  # Remove "[RADIO]" prefix
+                # Count sentence-ending punctuation
+                sentence_endings = text_body.count('.') + text_body.count('!') + text_body.count('?')
+                # If it has multiple sentences or is very long, it's probably a full sentence
+                if sentence_endings > 1 or (len(text_body) > 100 and sentence_endings > 0):
+                    # Show fallback impressionistic message instead
+                    import random
+                    impressions = [
+                        "[RADIO] Warm static. Curious pulse.",
+                        "[RADIO] A rush of forest scents through the static.",
+                        "[RADIO] Orange static blooms. Gratitude. Warmth.",
+                        "[RADIO] Blue pulse thrums. Emotions without words.",
+                        "[RADIO] Static crackles. Sun-hot warmth. Distant hissing.",
+                    ]
+                    npc_text = random.choice(impressions)
             
             self.ui.echo(f"\n{npc_text}\n")
             
@@ -2363,6 +2724,11 @@ class Engine:
             if next_text:
                 # Continue to next node
                 continue
+        
+        # Mark completion narrative as acknowledged if we just saw it
+        if starting_node_id == "echo_act1_complete":
+            from .forest_act1 import mark_completion_acknowledged
+            mark_completion_acknowledged(self.state)
         
         self.ui.echo("\nYou finish your conversation with Echo.\n")
 
@@ -2504,6 +2870,20 @@ class Engine:
         advance_time_of_day(self.state, steps=1)
         self.ui.echo("You make camp and rest by the fire.\n")
         
+        # Check for Blue Fireflies event (Spring night at Glade)
+        if zone_id == "glade":
+            from .micro_quests import check_blue_fireflies_event, trigger_blue_fireflies_event
+            if check_blue_fireflies_event(self.state):
+                trigger_blue_fireflies_event(self.state, self.ui)
+        
+        # Check for Echo check-in or favor events at Glade
+        if zone_id == "glade":
+            from .micro_quests import check_echo_checkin, trigger_echo_checkin, check_echo_favor, trigger_echo_favor
+            if check_echo_checkin(self.state):
+                trigger_echo_checkin(self.state, self.ui)
+            elif check_echo_favor(self.state):
+                trigger_echo_favor(self.state, self.ui)
+        
         # Check for Kirin intro at landmark with high stability
         current_landmark = self._get_current_landmark()
         if current_landmark and can_trigger_kirin_intro(self.state):
@@ -2630,6 +3010,19 @@ class Engine:
                     self.ui.echo(f"Camp actions: {get_camp_actions()}.\n")
                     continue
             if verb in {"sleep", "rest"}:
+                # Check for Act I completion narrative before sleeping
+                from .forest_act1 import should_show_completion_narrative
+                if should_show_completion_narrative(self.state):
+                    self.ui.echo(
+                        "\nAs you settle in for the night, a dream comes to you—vivid and clear. "
+                        "You see the forest's ley-lines pulsing with restored rhythm, paths remembering themselves, "
+                        "the land growing calmer. The fractured runestones you've mended glow with steady light, "
+                        "anchoring the magical grid. You wake with a sense of accomplishment, knowing the forest "
+                        "has stabilized. The way forward feels clearer now.\n"
+                    )
+                    from .forest_act1 import mark_completion_acknowledged
+                    mark_completion_acknowledged(self.state)
+                
                 # Advance time significantly when sleeping (sleep advances to next day)
                 from .time_of_day import advance_time_of_day
                 # Advance to Night, then the new_day() call will reset to Dawn
@@ -2661,7 +3054,7 @@ class Engine:
             if landmark:
                 self._enter_landmark(landmark, zone_id=zone_id)
                 # Apply stamina cost modifier
-                base_cost = 1.0
+                base_cost = 0.9  # Reduced from 1.0 to allow ~10% more exploration
                 modifier = get_stamina_cost_modifier(self.state, depth)
                 self.state.stamina = max(0.0, self.state.stamina - base_cost * modifier)
                 return
@@ -2723,12 +3116,34 @@ class Engine:
                     if event.event_type == "encounter":
                         encounter_text = self._resolve_encounter(event)
                         summary = summary.rstrip("\n") + "\n" + encounter_text
+                    
+                    # Add optional race-aware exploration flavor (for non-encounter events)
+                    if event.event_type != "encounter":
+                        try:
+                            from .race_flavor import get_exploration_flavor
+                            from .main import resolve_paths
+                            import json
+                            data_dir, _ = resolve_paths()
+                            races_path = data_dir / "races.json"
+                            if races_path.exists():
+                                with races_path.open("r", encoding="utf-8") as handle:
+                                    races_data = json.load(handle)
+                                    race_flavor = get_exploration_flavor(
+                                        self.state.character.race_id, races_data
+                                    )
+                                    if race_flavor:
+                                        summary = summary.rstrip("\n") + f"\n{race_flavor}"
+                        except Exception:
+                            # If race flavor fails, continue without it
+                            pass
+                    
                     if not summary.endswith("\n"):
                         summary = summary + "\n"
                     self.ui.echo(summary)
         
         # Apply stamina cost with modifier
-        base_cost = 1.0
+        # Tuned: base cost reduced slightly to allow more exploration per day
+        base_cost = 0.9  # Reduced from 1.0 to allow ~10% more exploration
         modifier = get_stamina_cost_modifier(self.state, depth)
         self.state.stamina = max(0.0, self.state.stamina - base_cost * modifier)
         
@@ -2945,25 +3360,12 @@ class Engine:
             lines.append(f"Trail markers: {persistent_steps}")
         
         # Act I quest progress
-        if self.state.act1_quest_stage > 0:
-            quest_stages = {
-                0: "Unaware",
-                1: "Discovered runestones",
-                2: "Repairing the forest",
-                3: "Forest stabilized",
-            }
-            stage_name = quest_stages.get(self.state.act1_quest_stage, "Unknown")
-            lines.append(f"\nAct I Quest: {stage_name}")
-            if self.state.act1_total_runestones > 0:
-                lines.append(
-                    f"  Runestones: {self.state.act1_repaired_runestones}/{self.state.act1_total_runestones} repaired"
-                )
-            else:
-                lines.append(
-                    f"  Runestones: {self.state.act1_repaired_runestones} repaired"
-                )
-            if self.state.act1_repaired_runestones > 0:
-                lines.append("  The forest feels more stable with each repair.")
+        from .forest_act1 import get_forest_act1_progress_summary, init_forest_act1_state
+        init_forest_act1_state(self.state)
+        summary = get_forest_act1_progress_summary(self.state)
+        lines.append(f"\nForest Ley-Lines: {summary['status']}")
+        if summary['status'] != "Stabilized":
+            lines.append(f"  {summary['progress']}")
         
         if self.state.rapport:
             lines.append("\nRapport:")
@@ -3163,7 +3565,13 @@ class Engine:
         description = tea_data.get("description", "")
         
         if description:
-            self.ui.echo(f"You drink {tea_name}. {description}\n")
+            # Enhance description with race-aware flavor
+            enhanced_description = enhance_tea_description(
+                description,
+                item_name_lower,
+                self.state.character.race_id,
+            )
+            self.ui.echo(f"You drink {tea_name}. {enhanced_description}\n")
         else:
             self.ui.echo(f"You drink {tea_name}.\n")
         
@@ -3226,10 +3634,11 @@ class Engine:
         import random
         
         # Base chance increases with interest level
+        # Tuned: Kirin should be rare early, more common as Act I progresses
         base_chance = {
-            1: 0.05,  # 5% chance after first repair
-            2: 0.08,  # 8% chance after second repair
-            3: 0.10,  # 10% chance after third repair
+            1: 0.03,  # 3% chance after first repair (rare, like a rumor)
+            2: 0.06,  # 6% chance after second repair (still uncommon)
+            3: 0.12,  # 12% chance after third repair (more noticeable)
         }.get(self.state.kirin_interest_level, 0.0)
         
         if base_chance == 0.0:

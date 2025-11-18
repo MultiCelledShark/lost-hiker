@@ -33,5 +33,32 @@
     "duration_days": 0,
     "description": "You mix the clay, sand, and ash in the gold pan, working them into a thick, gritty paste. The mortar feels rough but serviceable—strong enough to bind stone fragments together.",
     "modifiers": []
+  },
+  "water_clarity_tea": {
+    "name": "Water-Clarity Tea",
+    "requires": ["chaga_mushroom", "mussel", "glow_dust"],
+    "duration_days": 2,
+    "description": "A tea brewed with chaga, mussels, and glow-dust. The Naiad's recipe brings clarity to your mind, helping you see through the forest's distortions and remember paths more clearly.",
+    "modifiers": [
+      { "add": { "forest_memory": 1.0 } }
+    ]
+  },
+  "focus_clarity_tea": {
+    "name": "Focus/Clarity Tea",
+    "requires": ["spore_puff", "chaga_mushroom"],
+    "duration_days": 2,
+    "description": "The Druid's recipe combines spore puff and chaga to sharpen your focus. Useful for examining landmarks and working with runestones.",
+    "modifiers": [
+      { "add": { "forest_memory": 1.0 } }
+    ]
+  },
+  "dreamleaf_tea": {
+    "name": "Dreamleaf Tea",
+    "requires": ["glow_dust", "mint"],
+    "duration_days": 1,
+    "description": "Astrin's special blend of glow-dust and calming herbs. When drunk before resting at the Glade, it brings deeper rest and comfort.",
+    "modifiers": [
+      { "add": { "camp_bonus": 1 } }
+    ]
   }
 }

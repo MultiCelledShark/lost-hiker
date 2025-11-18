@@ -18,7 +18,9 @@ def get_stamina_cost_modifier(state: GameState, depth: int) -> float:
     Returns:
         Multiplier for stamina costs (1.0 = normal, <1.0 = reduced cost)
     """
-    repaired = state.act1_repaired_runestones
+    from .forest_act1 import init_forest_act1_state
+    init_forest_act1_state(state)
+    repaired = state.forest_act1.get("runestones_repaired", 0) if state.forest_act1 else state.act1_repaired_runestones
     
     # Base modifier: no change at 0 repairs
     if repaired == 0:
@@ -62,7 +64,9 @@ def get_event_category_weights(state: GameState, depth_band: str) -> Dict[str, f
     Returns:
         Dictionary of category weights (will be merged with base weights)
     """
-    repaired = state.act1_repaired_runestones
+    from .forest_act1 import init_forest_act1_state, get_threat_encounter_modifier
+    init_forest_act1_state(state)
+    repaired = state.forest_act1.get("runestones_repaired", 0) if state.forest_act1 else state.act1_repaired_runestones
     
     # Base weights (no modification)
     if repaired == 0:
@@ -129,7 +133,9 @@ def get_max_reliable_depth(state: GameState) -> int:
     Returns:
         Maximum reliable depth (deeper depths still possible but rare)
     """
-    repaired = state.act1_repaired_runestones
+    from .forest_act1 import init_forest_act1_state
+    init_forest_act1_state(state)
+    repaired = state.forest_act1.get("runestones_repaired", 0) if state.forest_act1 else state.act1_repaired_runestones
     
     if repaired == 0:
         # Very limited deep-depth access

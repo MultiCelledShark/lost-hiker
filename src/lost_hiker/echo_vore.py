@@ -129,13 +129,15 @@ def trigger_echo_belly_shelter(
     """
     Trigger Echo belly shelter outcome.
     
-    Moves the player to the belly area where they can interact with Echo.
+    Uses the new belly interaction system (Phase 1).
     
     Args:
         state: Current game state
         ui: UI interface for displaying messages
         entry_method: How the player entered ("hug" or "boop")
     """
+    from .belly_interaction import enter_belly_state
+    
     # Show swallow description
     swallow_text = (
         "Echo's coils wrap around you in a warm, protective embrace. "
@@ -146,27 +148,22 @@ def trigger_echo_belly_shelter(
     )
     ui.echo(swallow_text)
     
-    # Set belly state with entry method tracking
-    state.belly_state = {
-        "predator_id": ECHO_ID,
-        "mode": "shelter",
-        "entry_method": entry_method,  # Track how player got here
-        "entry_day": state.day,  # Track what day they entered
-    }
+    # Enter belly state using the new system
+    enter_belly_state(
+        state,
+        creature_id=ECHO_ID,
+        mode="echo",
+        ui=ui,
+    )
     
-    # Set sheltered flag (for "check sky" compatibility)
-    state.is_sheltered = True
+    # Store entry method and day for compatibility with old code
+    if state.belly_state:
+        state.belly_state["entry_method"] = entry_method
+        state.belly_state["entry_day"] = state.day
     
     # Move player to belly zone
     state.active_zone = "echo_belly"
     state.current_landmark = None
-    
-    # Show initial belly description
-    ui.echo(
-        "\nYou find yourself in a warm, dark space. "
-        "Echo's presence surrounds you—gentle, protective, safe. "
-        "The rhythmic pulse of her breathing is steady and calming.\n"
-    )
 
 
 def calculate_release_probability(state: GameState) -> float:

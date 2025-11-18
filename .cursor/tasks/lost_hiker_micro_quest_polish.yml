@@ -1,0 +1,281 @@
+name: "Lost Hiker – Micro-Quest Polish Pass (NPC Loops + Blue Fireflies)"
+
+description: |
+  Polish and deepen the existing Wave 1 NPCs and Glade experience by adding
+  small, state-flag-driven micro-quests and repeatable interaction loops.
+  Also add a rare, atmospheric Spring night event in the Glade with Echo
+  (and Astrin, if present) called the “Blue Fireflies” event.
+
+  This is a density pass, not a new-system pass:
+    - No new quest UI.
+    - No new major mechanics.
+    - No physical stats.
+    - All quests are short, flag-driven, and resolved via dialogue + items.
+
+  Goals:
+    - Make every Wave 1 NPC feel meaningfully useful and revisitable.
+    - Add light survival-appropriate rewards (recipes, small buffs).
+    - Add one rare, seasonal Glade event to make the Forest feel alive.
+
+goals:
+  - Echo: rapport + comfort micro-interactions
+      - Add a simple “check-in” interaction that occasionally appears when
+        the player is at the Glade and Echo is present, especially at the
+        end of a rough day (e.g. low stamina or recent threat encounters).
+          - Reward: small stamina/morale bump or rapport increase.
+      - Add a small “Echo’s favor” event:
+          - Occasionally when returning to the Glade (with sufficient rapport),
+            Echo has “found” a small resource (e.g. berries, herbs) and offers
+            them to the player.
+          - This should be low-frequency so it feels like a treat, not an
+            economy.
+      - Vore interaction (no new mechanics):
+          - For the Blue Fireflies event (see global section), if vore is ON,
+            Echo can offer to let the player (and Astrin, if present) rest
+            inside her for the night using existing SHELTERED/encounter outcome
+            logic. Do NOT implement new belly minigames.
+
+  - Hermit: small lore + item micro-quest
+      - Extend Hermit’s dialogue with:
+          - A simple fetch-style micro-quest:
+              - He mentions a wooden trinket or token he dropped near a specific
+                landmark (pick a nearby, reasonable one).
+              - When the player finds and returns it:
+                  - Reward:
+                      - either a small calming/insight recipe,
+                      - or a modest forest_memory-style buff for a few days.
+          - A “forest sketch” reward:
+              - After at least one runestone is repaired and the player has
+                talked to the Hermit again, he gives a crude mental “map”
+                tip, represented as:
+                  - a temporary +1 forest_memory bonus lasting a few days
+                    (implemented however best fits existing systems).
+
+  - Naiad: water blessing micro-quest
+      - Expand Naiad’s functionality at Sunken Spring:
+          - Micro-quest:
+              - She requests:
+                  - 1 chaga mushroom,
+                  - 2 river mussels,
+                  - 1 glow-dust from Glow-Moth encounters.
+              - When the player brings these:
+                  - Reward:
+                      - a “Water-Clarity Tea” recipe that slightly improves
+                        examine/look effectiveness or forest_memory for a
+                        short duration.
+                      - A bit of additional lore about how water and ley-lines
+                        respond to the runestone repairs.
+          - Optional light weekly effect:
+              - Once per in-game week, she can “bless” a water refill
+                (if your current systems make this easy), giving the next
+                sleep a small stamina or clarity bump.
+              - Keep this very small; it’s flavor and a minor perk.
+
+  - Druid: surface shroom investigation
+      - Expand the Druid interactions:
+          - Micro-quest:
+              - He asks the player to bring:
+                  - 1 Burrow-Chanter spore puff,
+                  - 1 chaga mushroom.
+              - On completion:
+                  - Reward:
+                      - a “Focus/Clarity Tea” recipe that improves examine/look
+                        actions (or similar subtle buff).
+                  - Dialogue explicitly calls out:
+                      - “Shroomlings should not be on the surface; something
+                         below has changed.”
+          - Night-time ritual:
+              - If the player visits Whispering Birch Circle at night after
+                at least one runestone repair:
+                  - Add a small, optional scene where the Druid “listens to
+                    the forest” and comments on its progress.
+                  - Reward can be a one-night-only +1 forest_memory bonus.
+
+  - Lizard-Folk Fisherman: food economy + tool micro-quest
+      - Enhance the Fisherman’s interactions at Old Creek Bend:
+          - Mussel mastery:
+              - After completing his initial mussel fetch quest, he can teach
+                a “better shucking” technique.
+              - Implementation:
+                  - for a few days after learning it, mussel gathering yields
+                    +1 food unit per gather event (or equivalent).
+          - Broken trap micro-quest:
+              - He mentions a fish trap washed further downstream/upstream
+                (pick another water-linked landmark).
+              - When the player finds and returns it:
+                  - Reward:
+                      - a simple survival tool blueprint (e.g. basic spear,
+                        hook, or trap) OR a slightly improved foraging yield
+                        at creek-side landmarks for a short time.
+
+  - Astrin (half-dryad herbalist): Glade anchor
+      - Make Astrin feel like a real resident and herbal expert:
+          - Daily herb identification:
+              - Once per in-game day, if the player has an “unidentified” herb
+                or fungus item, Astrin can identify it and add its proper id
+                to the inventory and/or codex.
+                (If there is no unidentified concept, just flavor this as
+                clarifying what known items can be used for.)
+          - Herbal request micro-quest:
+              - She asks for:
+                  - 3 glow-dust units,
+                  - 2 “calming” herbs (pick from existing herb IDs).
+              - On completion:
+                  - Reward:
+                      - a “Dreamleaf Tea” recipe (or similar), which makes
+                        Glade camping slightly better for stamina/rapport.
+          - Glade comfort bonus:
+              - If Astrin is living at the Glade and the player drinks one of
+                her teas before resting there:
+                  - apply a small extra stamina recovery or a rapport bump
+                    with Echo (and possibly Astrin) for that night.
+              - Keep this modest; it’s a flavor reward to encourage using
+                the Glade as a base.
+
+  - Blue Fireflies Event (Spring, Glade, rare)
+      - Implement a rare Spring night event at the Glade:
+          - Trigger conditions:
+              - Season == Spring,
+              - Time-of-day == Night (when resting/camping at the Glade),
+              - Random chance per qualifying night (around 2–5%).
+          - Event:
+              - Show a short descriptive scene of synchronous blue fireflies
+                drifting into the Glade and pulsing in unison.
+              - Echo reacts with quiet wonder.
+              - If Astrin is at the Glade (astrin_status == "at_glade"):
+                  - she also reacts, with a line that fits her half-dryad
+                    nature.
+          - Optional minor reward:
+              - a small forest_memory, rapport, or stamina bump is acceptable
+                but not required.
+          - Vore tie-in (using existing mechanics only):
+              - If vore is enabled:
+                  - After the scene, Echo can offer to let the player rest
+                    inside her for the night, using existing SHELTERED-style
+                    logic.
+                  - If Astrin is present and player has helped her settle
+                    into the Glade:
+                      - allow Echo to shelter both the player and Astrin
+                        for the night in a single narrative scene.
+              - No new belly interaction systems; reuse current outcomes.
+
+  - Weekly and daily loop handling
+      - Add minimal scheduling logic for:
+          - Daily events:
+              - Astrin’s herb ID,
+              - Echo check-in chance,
+              - Echo’s favor chance.
+          - Weekly events:
+              - Naiad water blessing,
+              - Fisherman’s mussel mastery refresh if applicable.
+      - Implement this with simple timestamps or counters in state rather
+        than a complex calendar engine.
+
+deliverables:
+  - data/dialogue_npcs_forest.json (or equivalent):
+      - New dialogue entries for:
+          - Echo (check-in, favor, Blue Fireflies reactions),
+          - Hermit (trinket quest + reward),
+          - Naiad (water blessing quest),
+          - Druid (shroomling quest + night ritual),
+          - Fisher (mussel mastery + trap quest),
+          - Astrin (requests, IDs, Glade comfort commentary).
+      - Dialogue must be keyed by:
+          - npc_id,
+          - simple state flags (quest started/completed),
+          - season/time-of-day where relevant.
+
+  - data/events_forest.json (or equivalent):
+      - A definition for the Blue Fireflies event:
+          - conditions: season, time-of-day, location, chance.
+          - text: the descriptive scene.
+          - optional: small buff metadata.
+      - Optional definition stubs for:
+          - Druid night ritual at Birch Circle,
+          - any simple anomalies you add (if needed for flavor).
+
+  - src/npcs.py / src/npc_*.py:
+      - Functions to:
+          - evaluate simple daily/weekly timers (e.g. last_naiad_blessing_day),
+          - check and update micro-quest flags,
+          - hook into inventory for “bring X items” checks.
+      - Add per-NPC helper code only as needed; keep logic contained.
+
+  - src/engine.py / src/rest.py / src/exploration.py:
+      - Integrate:
+          - Blue Fireflies event at Glade rest in Spring nights.
+          - Daily/weekly NPC interaction checks.
+      - Ensure:
+          - Events are triggered in a deterministic, debuggable order
+            (e.g. event -> NPC dialogue -> rest).
+
+  - Save/load:
+      - Extend save data with any new flags and counters, e.g.:
+          - last_naiad_blessing_day,
+          - last_astrin_id_day,
+          - echo_favor_cooldown,
+          - fisher_trap_quest_status,
+          - hermit_trinket_quest_status,
+          - druid_shroom_quest_status,
+          - astrin_request_status.
+      - Safe defaults for old saves:
+          - treat all micro-quests as not started,
+          - cooldowns as expired so players can engage immediately.
+
+acceptance_criteria:
+  - All Wave 1 NPCs (Echo, Hermit, Naiad, Druid, Fisher, Astrin) have at
+    least one micro-quest or repeatable micro-interaction that:
+      - uses simple flags,
+      - has clear start and completion conditions,
+      - yields a small but tangible reward (recipe, tiny buff, or tool).
+  - Blue Fireflies event:
+      - Can trigger on Spring nights at the Glade with the configured chance.
+      - Shows a coherent, atmospheric scene.
+      - Includes Echo’s reaction, and Astrin’s if she lives at the Glade.
+      - If vore is on, allows an optional “rest inside Echo” outcome using
+        existing shelter/vore logic, without new mechanics.
+  - Daily/weekly loops:
+      - Astrin can identify herbs once per day.
+      - Naiad can bless water (if implemented) once per week.
+      - Echo’s check-in and favor events happen sometimes, not constantly.
+  - No crashes due to missing flags or timers.
+  - Old saves load and can immediately start using micro-quests without
+    being blocked by missing state.
+
+non_goals:
+  - No full quest log or journal UI.
+  - No multi-stage branching dialogues beyond simple “not started / started /
+    completed” patterns.
+  - No Act II content, town travel, or deep cave exploration.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep all micro-quests 1–2 steps long.
+  - Use plain boolean or small enum-style flags for quest states.
+  - Prefer to centralize daily/weekly timer logic in one place in state.
+
+test_plan:
+  - Start a new run, quickly unlock:
+      - Hermit, Naiad, Druid, Fisher, Astrin, Echo.
+      - Manually drive:
+          - Hermit’s trinket + map buff,
+          - Naiad’s water blessing quest,
+          - Druid’s spore + chaga quest,
+          - Fisher’s mussel mastery + trap retrieval,
+          - Astrin’s herb request + Glade bonus,
+          - Echo’s check-in and favor events.
+  - Time-skip or simulate several Spring nights resting at the Glade to
+    confirm Blue Fireflies event can trigger and behaves correctly with:
+      - no Astrin,
+      - with Astrin,
+      - with vore off,
+      - with vore on.
+  - Verify daily/weekly limits:
+      - Astrin ID once per day,
+      - Naiad blessing once per week (if implemented),
+      - no event spams on back-to-back days.
+  - Regression:
+      - Exploration, hunger, seasons, runestone repairs, and NPC base
+        behaviors still function correctly.

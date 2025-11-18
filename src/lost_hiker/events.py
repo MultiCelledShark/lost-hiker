@@ -12,6 +12,63 @@ from .state import GameState
 from .character import TimedModifier
 from .seasons import get_seasonal_weight
 
+_races_cache: Optional[Dict[str, Dict[str, object]]] = None
+
+
+def _load_races_if_needed() -> Optional[Dict[str, Dict[str, object]]]:
+    """Load races data if not already cached."""
+    global _races_cache
+    if _races_cache is not None:
+        return _races_cache
+    try:
+        # Try to find data directory relative to this module
+        from . import main
+        data_dir, _ = main.resolve_paths()
+        races_path = data_dir / "races.json"
+        if races_path.exists():
+            with races_path.open("r", encoding="utf-8") as handle:
+                _races_cache = json.load(handle)
+                return _races_cache
+    except Exception:
+        pass
+    return None
+
+
+def _get_exploration_race_flavor(
+    race_id: str,
+    event_category: str,
+    races: Optional[Dict[str, Dict[str, object]]] = None,
+) -> Optional[str]:
+    """Get optional race-specific flavor text for exploration/foraging events."""
+    races_data = races or _load_races_if_needed()
+    if not races_data:
+        return None
+    
+    race_data = races_data.get(race_id, {})
+    flavor_tags = race_data.get("flavor_tags", {})
+    if not flavor_tags:
+        return None
+    
+    sensory = flavor_tags.get("sensory_profile", "")
+    magic = flavor_tags.get("magic_affinity", "")
+    
+    # Optional flavor variants for foraging events
+    if event_category == "forage":
+        if sensory == "forest_tuned" or magic == "mild_forest":
+            # Elves notice forest hum
+            return "You notice a subtle hum in the air—the forest's magic responding to your presence."
+        elif sensory == "earth_tuned" or magic == "stone_resonance":
+            # Dwarves sense stone warmth
+            return "You feel a faint warmth from the nearby stones—the earth remembers your passage."
+        elif sensory == "wind_affinity":
+            # Gryphons react to wind
+            return "A gentle breeze carries new scents to you, shifting with the forest's currents."
+        elif sensory == "sharp_scent":
+            # Wolf-kin, fox-kin, lizard-folk with sharp scent
+            return "Your keen senses pick up subtle details others might miss."
+    
+    return None
+
 
 @dataclass
 class Event:
@@ -81,25 +138,25 @@ class EventPool:
 
     DEFAULT_CATEGORY_WEIGHTS: Dict[str, Dict[str, float]] = {
         "edge": {
-            "forage": 1.35,
-            "flavor": 1.2,
-            "encounter": 0.6,
-            "hazard": 0.6,
-            "boon": 1.1,
+            "forage": 1.5,  # Increased: shallow forest should be safer with more forage
+            "flavor": 1.3,
+            "encounter": 0.5,  # Reduced: fewer predators in shallow
+            "hazard": 0.5,  # Reduced: fewer hazards in shallow
+            "boon": 1.2,
         },
         "mid": {
-            "forage": 1.0,
+            "forage": 1.0,  # Balanced: mid forest is the main survival tension zone
             "flavor": 1.0,
-            "encounter": 1.1,
-            "hazard": 1.05,
+            "encounter": 1.15,  # Slightly increased: more encounters in mid
+            "hazard": 1.1,
             "boon": 1.0,
         },
         "deep": {
-            "forage": 0.7,
-            "flavor": 0.8,
-            "encounter": 1.35,
-            "hazard": 1.25,
-            "boon": 1.1,
+            "forage": 0.65,  # Reduced: deep forest is leaner
+            "flavor": 0.75,
+            "encounter": 1.4,  # Increased: more dangerous encounters
+            "hazard": 1.3,  # Increased: more hazards
+            "boon": 1.15,  # Slightly increased: mystical encounters more common after stabilization
         },
     }
 
@@ -186,6 +243,15 @@ class EventPool:
         state.recent_events = state.recent_events[-self.history_limit :]
         text = [event.text]
         
+        # Add optional race-specific flavor for foraging/exploration events
+        if event.category in ("forage", "flavor") and event.event_type != "encounter":
+            race_flavor = _get_exploration_race_flavor(
+                state.character.race_id,
+                event.category,
+            )
+            if race_flavor:
+                text.append(race_flavor)
+        
         # Track forage events for safety measure
         if event.category == "forage":
             state.steps_since_forage = 0
@@ -207,6 +273,24 @@ class EventPool:
                     text.append(f"You secure {count} {item}.")
                 else:
                     text.append(f"You secure {item}.")
+            
+            # Add optional race-aware foraging flavor
+            try:
+                from .race_flavor import get_foraging_flavor
+                from .main import resolve_paths
+                import json
+                from pathlib import Path
+                data_dir, _ = resolve_paths()
+                races_path = data_dir / "races.json"
+                if races_path.exists():
+                    with races_path.open("r", encoding="utf-8") as handle:
+                        races_data = json.load(handle)
+                        race_flavor = get_foraging_flavor(state.character.race_id, races_data)
+                        if race_flavor:
+                            text.append(race_flavor)
+            except Exception:
+                # If race flavor fails, continue without it
+                pass
         if event.event_type == "encounter":
             items = event.effects.get("inventory_add", [])
             counts = event.effects.get("inventory_add_count", [])

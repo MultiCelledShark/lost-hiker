@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 from .character import Character, TimedModifier
 from .seasons import SeasonConfig
@@ -53,6 +53,9 @@ class GameState:
     runestone_states: Dict[str, Dict[str, bool]] = field(default_factory=dict)
     steps_since_forage: int = 0  # Track steps without forage for safety measure
     # Act I quest state: "Mend the Forest's Pulse"
+    # New centralized structure (preferred)
+    forest_act1: Optional[Dict[str, Any]] = None  # Centralized Act I quest state
+    # Legacy fields (kept for backward compatibility)
     act1_quest_stage: int = 0  # 0=unaware, 1=discovered, 2=repaired one, 3=completed
     act1_repaired_runestones: int = 0  # Count of fully repaired runestones
     act1_total_runestones: int = 0  # Total fractured runestones in Forest
@@ -68,6 +71,8 @@ class GameState:
     wayfinding_ready: bool = False  # Set to True after drinking wayfinding_tea, cleared after teleport or day end
     # NPC dialogue state
     npc_flags: Dict[str, Dict[str, bool]] = field(default_factory=dict)  # NPC-specific flags (e.g., "forest_hermit_met", "intro_done")
+    # NPC state (centralized flags for Wave 1 NPCs)
+    npc_state: Dict[str, Any] = field(default_factory=dict)  # Centralized NPC state flags
     # Echo state
     echo_present_at_glade: bool = True  # Echo is present at Glade unless story logic removes her
     echo_radio_connection_hint_shown: bool = False  # Flag for HT radio connection hint
@@ -75,13 +80,19 @@ class GameState:
     # Echo vore state (Phase 1: Safe Belly Shelter)
     echo_vore_tension: float = 0.0  # Tension level for vore escalation (increases with hugs/boops, decays over days)
     echo_last_vore_tension_day: Optional[int] = None  # Last day tension was increased (for decay tracking)
-    belly_state: Optional[Dict[str, str]] = None  # Current belly shelter state, e.g. {"predator_id": "echo", "mode": "shelter"}
+    # Belly interaction state (Phase 1: Non-lethal Shelter/Struggle Loop)
+    belly_state: Optional[Dict[str, Any]] = None  # Belly interaction state: {"active": bool, "creature_id": str, "mode": "predator"|"echo"|"friend", "depth_before": int, "landmark_before": Optional[str], "turns_inside": int}
     # Condition/strain track (0-3): 0=fine, 1=bruised/rattled, 2=battered/hurting, 3=close to collapse
     condition: int = 0
     # Time-of-day tracking (Dawn, Day, Dusk, Night)
     time_of_day: Optional[str] = "Day"  # Stored as string for JSON serialization
     # Sheltered/enclosed state flag (for SHELTERED outcomes)
     is_sheltered: bool = False
+    # General game flags (e.g., town_path_known, etc.)
+    flags: Dict[str, bool] = field(default_factory=dict)
+    # Lost bag recovery hooks (for predator den recovery gameplay)
+    lost_bag_predator_id: Optional[str] = None  # ID of predator that took the bag
+    lost_bag_den_location_id: Optional[str] = None  # ID of landmark/den where bag was taken
 
     def get_season_name(self) -> str:
         """Get the current season name."""
@@ -190,6 +201,7 @@ class GameState:
             landmark_stability=dict(data.get("landmark_stability", {})),
             runestone_states=dict(data.get("runestone_states", {})),
             steps_since_forage=int(data.get("steps_since_forage", 0)),
+            forest_act1=dict(data.get("forest_act1", {})) if data.get("forest_act1") else None,
             act1_quest_stage=int(data.get("act1_quest_stage", 0)),
             act1_repaired_runestones=int(data.get("act1_repaired_runestones", 0)),
             act1_total_runestones=int(data.get("act1_total_runestones", 0)),
@@ -202,6 +214,7 @@ class GameState:
             kirin_last_travel_day=data.get("kirin_last_travel_day"),
             wayfinding_ready=bool(data.get("wayfinding_ready", False)),
             npc_flags=dict(data.get("npc_flags", {})),
+            npc_state=dict(data.get("npc_state", {})),
             echo_present_at_glade=bool(data.get("echo_present_at_glade", True)),
             echo_radio_connection_hint_shown=bool(data.get("echo_radio_connection_hint_shown", False)),
             echo_last_pet_day=data.get("echo_last_pet_day"),
@@ -211,6 +224,7 @@ class GameState:
             condition=int(data.get("condition", 0)),
             time_of_day=data.get("time_of_day", "Day"),
             is_sheltered=bool(data.get("is_sheltered", False)),
+            flags=dict(data.get("flags", {})),
         )
 
 
@@ -247,6 +261,12 @@ class GameStateRepository:
         state.zone_depths["charred_tree_interior"] = 0
         # Add starting items
         state.inventory.append("water_bottle")
+        # Add starting food (2-4 snacks to give player a buffer)
+        # Tuned: slightly more generous starting food for new players
+        import random
+        starting_food = random.randint(2, 4)  # Increased from 2-3 to 2-4
+        for _ in range(starting_food):
+            state.inventory.append(random.choice(["forest_berries", "trail_nuts", "dried_berries"]))
         return state
 
     def _migrate(self, data: Dict[str, object]) -> Dict[str, object]:
@@ -306,10 +326,28 @@ class GameStateRepository:
             data.setdefault("inventory", []).append("water_bottle")
         data.setdefault("steps_since_forage", 0)
         # Act I quest state (Phase 2)
+        # Initialize forest_act1 if missing (will be populated by init_forest_act1_state)
+        if "forest_act1" not in data:
+            data["forest_act1"] = None
         data.setdefault("act1_quest_stage", 0)
         data.setdefault("act1_repaired_runestones", 0)
         data.setdefault("act1_total_runestones", 0)
         data.setdefault("act1_forest_stabilized", False)
+        # Ensure forest_act1 is initialized for old saves
+        # This will be properly initialized when the game loads via init_forest_act1_state
+        # But we ensure the structure exists in the save data
+        if data.get("forest_act1") is None:
+            # Initialize with defaults based on existing legacy fields
+            repaired = data.get("act1_repaired_runestones", 0)
+            total = data.get("act1_total_runestones", 0)
+            if total == 0:
+                total = 3  # Default based on runestones_forest.json
+            data["forest_act1"] = {
+                "runestones_total": total,
+                "runestones_repaired": repaired,
+                "first_repair_done": repaired > 0,
+                "completed": data.get("act1_forest_stabilized", False)
+            }
         data.setdefault("kirin_interest_level", 0)
         # Kirin state defaults
         data.setdefault("kirin_known", False)
@@ -321,6 +359,42 @@ class GameStateRepository:
         data.setdefault("wayfinding_ready", False)
         # NPC dialogue state
         data.setdefault("npc_flags", {})
+        # NPC state (centralized flags for Wave 1 NPCs)
+        if "npc_state" not in data:
+            data["npc_state"] = {}
+        # Initialize safe defaults for old saves
+        npc_state = data.get("npc_state", {})
+        npc_state.setdefault("hermit_met", False)
+        npc_state.setdefault("hermit_explained_runestones", False)
+        npc_state.setdefault("naiad_met", False)
+        npc_state.setdefault("naiad_share_recipe", False)
+        npc_state.setdefault("druid_met", False)
+        npc_state.setdefault("druid_shroomling_quest_started", False)
+        npc_state.setdefault("druid_shroomling_quest_completed", False)
+        npc_state.setdefault("fisher_met", False)
+        npc_state.setdefault("fisher_mussel_quest_started", False)
+        npc_state.setdefault("fisher_mussel_quest_completed", False)
+        npc_state.setdefault("astrin_status", "missing")  # "missing", "found", "at_glade"
+        npc_state.setdefault("astrin_tea_unlocked", False)
+        # Micro-quest flags
+        npc_state.setdefault("echo_checkin_last_day", None)
+        npc_state.setdefault("echo_favor_last_day", None)
+        npc_state.setdefault("hermit_trinket_quest_started", False)
+        npc_state.setdefault("hermit_trinket_quest_completed", False)
+        npc_state.setdefault("hermit_sketch_given", False)
+        npc_state.setdefault("naiad_blessing_quest_started", False)
+        npc_state.setdefault("naiad_blessing_quest_completed", False)
+        npc_state.setdefault("naiad_blessing_last_week", None)
+        npc_state.setdefault("druid_night_ritual_available", False)
+        npc_state.setdefault("fisher_mussel_mastery_learned", False)
+        npc_state.setdefault("fisher_mussel_mastery_expires_day", None)
+        npc_state.setdefault("fisher_trap_quest_started", False)
+        npc_state.setdefault("fisher_trap_quest_completed", False)
+        npc_state.setdefault("astrin_herb_id_last_day", None)
+        npc_state.setdefault("astrin_request_quest_started", False)
+        npc_state.setdefault("astrin_request_quest_completed", False)
+        npc_state.setdefault("blue_fireflies_seen", False)
+        data["npc_state"] = npc_state
         # Echo state defaults
         data.setdefault("echo_present_at_glade", True)
         data.setdefault("echo_radio_connection_hint_shown", False)
@@ -334,4 +408,6 @@ class GameStateRepository:
         # Time-of-day defaults
         data.setdefault("time_of_day", "Day")
         data.setdefault("is_sheltered", False)
+        # General flags
+        data.setdefault("flags", {})
         return data

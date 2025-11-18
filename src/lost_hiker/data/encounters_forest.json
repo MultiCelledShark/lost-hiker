@@ -411,6 +411,1452 @@
         "min_depth": 10,
         "max_depth": 30
       }
+    },
+    {
+      "id": "squirrel_first",
+      "creature_id": "squirrel",
+      "intro_text": "A small squirrel chitters at you from a low branch, its tail twitching with curiosity. It seems more interested than afraid.",
+      "choices": [
+        {
+          "text": "Stay still and observe",
+          "outcome": "observe_neutral"
+        },
+        {
+          "text": "Offer food",
+          "outcome": "offer_food",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts"]
+          }
+        },
+        {
+          "text": "Make a sudden movement",
+          "outcome": "startle_negative"
+        }
+      ],
+      "outcomes": {
+        "observe_neutral": {
+          "text": "The squirrel watches you for a moment, then scampers away. You feel a small sense of connection with the forest's smaller inhabitants.",
+          "rapport_delta": {
+            "squirrel": 1
+          },
+          "stamina_delta": 0.0
+        },
+        "offer_food": {
+          "text": "You place food on the ground. The squirrel approaches cautiously, takes it, and then drops a small tuft of fur before darting away. You gain squirrel_fur.",
+          "rapport_delta": {
+            "squirrel": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["squirrel_fur"],
+          "inventory_remove": []
+        },
+        "startle_negative": {
+          "text": "Your sudden movement sends the squirrel fleeing. It chitters angrily from a higher branch.",
+          "rapport_delta": {
+            "squirrel": -1
+          },
+          "stamina_delta": -0.2
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 0,
+        "max_depth": 15,
+        "preferred_seasons": ["spring", "fall"]
+      }
+    },
+    {
+      "id": "rabbit_first",
+      "creature_id": "rabbit",
+      "intro_text": "A rabbit freezes in place as you approach, its ears twitching nervously. It's ready to bolt at the slightest provocation.",
+      "choices": [
+        {
+          "text": "Freeze and wait",
+          "outcome": "wait_neutral"
+        },
+        {
+          "text": "Slowly back away",
+          "outcome": "retreat_neutral"
+        },
+        {
+          "text": "Offer food",
+          "outcome": "offer_food",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts"]
+          }
+        }
+      ],
+      "outcomes": {
+        "wait_neutral": {
+          "text": "You remain perfectly still. After a tense moment, the rabbit relaxes slightly and hops away. A small moment of mutual respect.",
+          "rapport_delta": {
+            "rabbit": 1
+          },
+          "stamina_delta": 0.0
+        },
+        "retreat_neutral": {
+          "text": "You back away slowly. The rabbit watches you go, then returns to grazing. No harm done.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0
+        },
+        "offer_food": {
+          "text": "You place food on the ground and step back. The rabbit approaches warily, takes it, and leaves behind a small tuft of fur. You gain rabbit_fur.",
+          "rapport_delta": {
+            "rabbit": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["rabbit_fur"],
+          "inventory_remove": []
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 0,
+        "max_depth": 12,
+        "preferred_seasons": ["spring", "summer", "fall"]
+      }
+    },
+    {
+      "id": "forest_grouse_first",
+      "creature_id": "forest_grouse",
+      "intro_text": "A forest grouse startles from the underbrush, its wings beating loudly as it takes flight. It lands on a nearby branch, watching you warily.",
+      "choices": [
+        {
+          "text": "Stay still",
+          "outcome": "observe_neutral"
+        },
+        {
+          "text": "Offer food",
+          "outcome": "offer_food",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts"]
+          }
+        },
+        {
+          "text": "Approach slowly",
+          "outcome": "approach_neutral"
+        }
+      ],
+      "outcomes": {
+        "observe_neutral": {
+          "text": "The grouse watches you for a moment, then settles down. A few feathers drift down from its perch. You gain grouse_feathers.",
+          "rapport_delta": {
+            "forest_grouse": 1
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["grouse_feathers"]
+        },
+        "offer_food": {
+          "text": "You place food on the ground. The grouse descends cautiously, pecks at it, and leaves behind a few feathers. You gain grouse_feathers.",
+          "rapport_delta": {
+            "forest_grouse": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["grouse_feathers"],
+          "inventory_remove": []
+        },
+        "approach_neutral": {
+          "text": "You approach slowly, but the grouse takes flight again, disappearing into the trees. No harm, but no connection made.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 0,
+        "max_depth": 15,
+        "preferred_seasons": ["spring", "fall"]
+      }
+    },
+    {
+      "id": "glow_moth_cloud_encounter",
+      "creature_id": "glow_moth_cloud",
+      "intro_text": "A cloud of bioluminescent moths drifts through the air around you, their soft glow creating dancing patterns of light. They seem drawn to your presence.",
+      "choices": [
+        {
+          "text": "Stand still and let them land on you",
+          "outcome": "observe_neutral"
+        },
+        {
+          "text": "Reach out gently",
+          "outcome": "reach_neutral"
+        },
+        {
+          "text": "Wave them away",
+          "outcome": "wave_negative"
+        }
+      ],
+      "outcomes": {
+        "observe_neutral": {
+          "text": "The moths land on your arms and shoulders, their soft glow illuminating the area. As they depart, they leave behind a fine dust that shimmers in the moonlight. You gain glow_dust.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0,
+          "inventory_add": ["glow_dust"]
+        },
+        "reach_neutral": {
+          "text": "You reach out gently, and a moth lands on your finger. It leaves behind a small amount of glowing dust before flying away. You gain glow_dust and moth_wing.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0,
+          "inventory_add": ["glow_dust", "moth_wing"]
+        },
+        "wave_negative": {
+          "text": "You wave your arms, and the moths scatter. They leave behind a small amount of dust, but the moment feels lost. You gain glow_dust.",
+          "rapport_delta": {},
+          "stamina_delta": -0.2,
+          "inventory_add": ["glow_dust"]
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 5,
+        "max_depth": 20,
+        "preferred_seasons": ["summer"],
+        "preferred_time_of_day": ["Dusk", "Night"]
+      }
+    },
+    {
+      "id": "burrow_chanter_shroomling_encounter",
+      "creature_id": "burrow_chanter_shroomling",
+      "intro_text": "A small, mushroom-like creature with a bell-shaped cap emerges from a burrow, its cap pulsing with a soft, musical hum. It seems curious about you.",
+      "choices": [
+        {
+          "text": "Crouch down and observe",
+          "outcome": "observe_neutral"
+        },
+        {
+          "text": "Offer food",
+          "outcome": "offer_food",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts"]
+          }
+        },
+        {
+          "text": "Try to touch it",
+          "outcome": "touch_neutral"
+        }
+      ],
+      "outcomes": {
+        "observe_neutral": {
+          "text": "The shroomling hums softly, and a small spore puff drifts from its cap. You catch it carefully. You gain spore_puff and chanter_cap.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0,
+          "inventory_add": ["spore_puff", "chanter_cap"]
+        },
+        "offer_food": {
+          "text": "You place food near the shroomling. It approaches, takes a small piece, and in return offers a spore puff and a piece of its cap. You gain spore_puff, chanter_cap, and mycelial_thread.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0,
+          "inventory_add": ["spore_puff", "chanter_cap", "mycelial_thread"],
+          "inventory_remove": []
+        },
+        "touch_neutral": {
+          "text": "You reach out gently. The shroomling allows the touch, and you feel a soft vibration. It leaves behind a spore puff before retreating into its burrow. You gain spore_puff.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0,
+          "inventory_add": ["spore_puff"]
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 5,
+        "max_depth": 20,
+        "preferred_seasons": ["spring", "summer", "fall"]
+      }
+    },
+    {
+      "id": "river_mussels_gathering",
+      "creature_id": "river_mussels",
+      "intro_text": "You notice clusters of freshwater mussels clinging to submerged rocks in the stream. Their shells glint in the filtered sunlight.",
+      "choices": [
+        {
+          "text": "Gather mussels carefully",
+          "outcome": "gather_success"
+        },
+        {
+          "text": "Leave them be",
+          "outcome": "leave_neutral"
+        }
+      ],
+      "outcomes": {
+        "gather_success": {
+          "text": "You carefully gather several mussels, prying them from the rocks. Some shells break, revealing nacre chips. You gain mussel_flesh and nacre_chips.",
+          "rapport_delta": {},
+          "stamina_delta": -0.3,
+          "inventory_add": ["mussel_flesh", "nacre_chips"]
+        },
+        "leave_neutral": {
+          "text": "You leave the mussels undisturbed. They continue filtering the water, their shells occasionally opening and closing.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 0,
+        "max_depth": 12,
+        "preferred_seasons": ["spring", "summer", "fall"]
+      }
+    },
+    {
+      "id": "coyote_first",
+      "creature_id": "coyote",
+      "intro_text": "A lean coyote steps onto the trail ahead, its amber eyes fixed on you. It yips softly, a sound that's both warning and curiosity.",
+      "choices": [
+        {
+          "text": "Stand your ground calmly",
+          "outcome": "stand_calm"
+        },
+        {
+          "text": "Slowly back away",
+          "outcome": "retreat_calm"
+        },
+        {
+          "text": "Offer food",
+          "outcome": "offer_food",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts", "dried_berries"]
+          }
+        },
+        {
+          "text": "Yell and wave your arms",
+          "outcome": "aggressive_negative"
+        }
+      ],
+      "outcomes": {
+        "stand_calm": {
+          "text": "You hold the coyote's gaze without flinching. After a tense moment, it gives a short yip and steps aside, allowing you to pass.",
+          "rapport_delta": {
+            "coyote": 1
+          },
+          "stamina_delta": -0.3
+        },
+        "retreat_calm": {
+          "text": "You back away slowly. The coyote watches you go, then turns and disappears into the brush. You're safe, but shaken.",
+          "rapport_delta": {},
+          "stamina_delta": -0.5
+        },
+        "offer_food": {
+          "text": "You toss food toward the coyote. It sniffs cautiously, takes it, and gives you a curious look before moving off the trail. A small measure of trust is earned.",
+          "rapport_delta": {
+            "coyote": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_remove": []
+        },
+        "aggressive_negative": {
+          "text": "Your aggressive display triggers the coyote's instincts. It snarls and lunges forward before pulling back. That was too close.",
+          "rapport_delta": {
+            "coyote": -2
+          },
+          "stamina_delta": -1.0
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 0,
+        "max_depth": 12,
+        "preferred_seasons": ["fall", "winter"],
+        "preferred_time_of_day": ["Dusk", "Night"]
+      }
+    },
+    {
+      "id": "coyote_threat",
+      "creature_id": "coyote",
+      "encounter_type": "threat",
+      "intro_text": "A pack of coyotes blocks your path, their yipping calls echoing through the trees. They're hunting, and you're in their territory.",
+      "choices": [
+        {
+          "text": "Attempt to flee",
+          "outcome": "flee_attempt"
+        },
+        {
+          "text": "Try to calm or appease",
+          "outcome": "calm_attempt"
+        },
+        {
+          "text": "Stand your ground",
+          "outcome": "stand_ground_attempt"
+        },
+        {
+          "text": "Offer food to distract",
+          "outcome": "offer_food_threat",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts", "dried_berries"]
+          }
+        },
+        {
+          "text": "Freeze and submit (vore-enabled)",
+          "outcome": "vore_submit",
+          "requirements": {
+            "requires_vore_enabled": true
+          }
+        }
+      ],
+      "outcomes": {
+        "flee_attempt": {
+          "text": "THREAT_FLEE_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "flee"
+        },
+        "calm_attempt": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm"
+        },
+        "stand_ground_attempt": {
+          "text": "THREAT_STAND_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "stand_ground"
+        },
+        "offer_food_threat": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm",
+          "inventory_remove": []
+        },
+        "vore_submit": {
+          "text": "VORE_SWALLOWED",
+          "stamina_delta": 0.0,
+          "condition_delta": 1,
+          "threat_resolution": "vore_shelter"
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 5,
+        "max_depth": 15,
+        "preferred_seasons": ["fall", "winter"],
+        "preferred_time_of_day": ["Dusk", "Night"]
+      }
+    },
+    {
+      "id": "red_fox_first",
+      "creature_id": "red_fox",
+      "intro_text": "A red fox trots into view, its bushy tail held high. It stops and watches you with intelligent, curious eyes.",
+      "choices": [
+        {
+          "text": "Stay still and wait",
+          "outcome": "wait_neutral"
+        },
+        {
+          "text": "Offer food",
+          "outcome": "offer_food",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts", "dried_berries"]
+          }
+        },
+        {
+          "text": "Approach slowly",
+          "outcome": "approach_neutral"
+        }
+      ],
+      "outcomes": {
+        "wait_neutral": {
+          "text": "The fox watches you for a long moment, then gives a soft bark and trots away. You feel a sense of mutual respect.",
+          "rapport_delta": {
+            "red_fox": 1
+          },
+          "stamina_delta": 0.0
+        },
+        "offer_food": {
+          "text": "You place food on the ground. The fox approaches warily, takes it, and leaves behind a tuft of fur before disappearing into the brush. You gain fox_fur.",
+          "rapport_delta": {
+            "red_fox": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["fox_fur"],
+          "inventory_remove": []
+        },
+        "approach_neutral": {
+          "text": "You take a step forward, but the fox is already moving, melting into the underbrush with practiced ease.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 0,
+        "max_depth": 15,
+        "preferred_seasons": ["fall", "winter"],
+        "preferred_time_of_day": ["Dawn", "Dusk", "Night"]
+      }
+    },
+    {
+      "id": "red_fox_threat",
+      "creature_id": "red_fox",
+      "encounter_type": "threat",
+      "intro_text": "A red fox blocks your path, its lips curled back in a snarl. This one is territorial and aggressive, not curious.",
+      "choices": [
+        {
+          "text": "Attempt to flee",
+          "outcome": "flee_attempt"
+        },
+        {
+          "text": "Try to calm or appease",
+          "outcome": "calm_attempt"
+        },
+        {
+          "text": "Stand your ground",
+          "outcome": "stand_ground_attempt"
+        },
+        {
+          "text": "Offer food to distract",
+          "outcome": "offer_food_threat",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts", "dried_berries"]
+          }
+        },
+        {
+          "text": "Freeze and submit (vore-enabled)",
+          "outcome": "vore_submit",
+          "requirements": {
+            "requires_vore_enabled": true
+          }
+        }
+      ],
+      "outcomes": {
+        "flee_attempt": {
+          "text": "THREAT_FLEE_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "flee"
+        },
+        "calm_attempt": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm"
+        },
+        "stand_ground_attempt": {
+          "text": "THREAT_STAND_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "stand_ground"
+        },
+        "offer_food_threat": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm",
+          "inventory_remove": []
+        },
+        "vore_submit": {
+          "text": "VORE_SWALLOWED",
+          "stamina_delta": 0.0,
+          "condition_delta": 1,
+          "threat_resolution": "vore_shelter"
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 5,
+        "max_depth": 18,
+        "preferred_seasons": ["fall", "winter"],
+        "preferred_time_of_day": ["Dusk", "Night"]
+      }
+    },
+    {
+      "id": "timber_wolf_first",
+      "creature_id": "timber_wolf",
+      "intro_text": "A massive timber wolf steps onto the trail, its thick, bark-colored fur making it blend with the forest. Its deep howl echoes through the trees.",
+      "choices": [
+        {
+          "text": "Stand your ground calmly",
+          "outcome": "stand_calm"
+        },
+        {
+          "text": "Slowly back away",
+          "outcome": "retreat_calm"
+        },
+        {
+          "text": "Offer food",
+          "outcome": "offer_food",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts", "dried_berries"]
+          }
+        }
+      ],
+      "outcomes": {
+        "stand_calm": {
+          "text": "You hold the wolf's gaze. After a tense moment, it gives a low growl and steps aside, allowing you to pass. Your heart pounds.",
+          "rapport_delta": {
+            "timber_wolf": 1
+          },
+          "stamina_delta": -0.5
+        },
+        "retreat_calm": {
+          "text": "You back away slowly. The wolf watches you go, then turns and disappears into the forest. You're safe, but shaken.",
+          "rapport_delta": {},
+          "stamina_delta": -0.5
+        },
+        "offer_food": {
+          "text": "You toss food toward the wolf. It sniffs, takes it, and gives you a measured look before moving off the trail. A small measure of respect is earned.",
+          "rapport_delta": {
+            "timber_wolf": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_remove": []
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 8,
+        "max_depth": 25,
+        "preferred_seasons": ["fall", "winter"]
+      }
+    },
+    {
+      "id": "timber_wolf_threat",
+      "creature_id": "timber_wolf",
+      "encounter_type": "threat",
+      "intro_text": "A pack of timber wolves surrounds you, their deep howls echoing through the forest. They're hunting, and you're the prey.",
+      "choices": [
+        {
+          "text": "Attempt to flee",
+          "outcome": "flee_attempt"
+        },
+        {
+          "text": "Try to calm or appease",
+          "outcome": "calm_attempt"
+        },
+        {
+          "text": "Stand your ground",
+          "outcome": "stand_ground_attempt"
+        },
+        {
+          "text": "Offer food to distract",
+          "outcome": "offer_food_threat",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts", "dried_berries"]
+          }
+        },
+        {
+          "text": "Freeze and submit (vore-enabled)",
+          "outcome": "vore_submit",
+          "requirements": {
+            "requires_vore_enabled": true
+          }
+        }
+      ],
+      "outcomes": {
+        "flee_attempt": {
+          "text": "THREAT_FLEE_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "flee"
+        },
+        "calm_attempt": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm"
+        },
+        "stand_ground_attempt": {
+          "text": "THREAT_STAND_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "stand_ground"
+        },
+        "offer_food_threat": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm",
+          "inventory_remove": []
+        },
+        "vore_submit": {
+          "text": "VORE_SWALLOWED",
+          "stamina_delta": 0.0,
+          "condition_delta": 1,
+          "threat_resolution": "vore_shelter"
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 10,
+        "max_depth": 25,
+        "preferred_seasons": ["fall", "winter"],
+        "preferred_time_of_day": ["Dusk", "Night"]
+      }
+    },
+    {
+      "id": "brown_bear_first",
+      "creature_id": "brown_bear",
+      "intro_text": "A massive brown bear lumbers into view, its honey-scented fur glistening in the sunlight. It stops and rises on its hind legs, sniffing the air.",
+      "choices": [
+        {
+          "text": "Freeze and stay perfectly still",
+          "outcome": "freeze_neutral"
+        },
+        {
+          "text": "Slowly back away",
+          "outcome": "retreat_calm"
+        },
+        {
+          "text": "Speak calmly",
+          "outcome": "speak_calm"
+        }
+      ],
+      "outcomes": {
+        "freeze_neutral": {
+          "text": "You remain perfectly still. The bear sniffs the air, then drops to all fours and ambles away. Your heart pounds, but you're safe.",
+          "rapport_delta": {
+            "brown_bear": 1
+          },
+          "stamina_delta": -0.5
+        },
+        "retreat_calm": {
+          "text": "You back away slowly, never turning your back. The bear watches you go, then returns to whatever it was doing. You're safe, but shaken.",
+          "rapport_delta": {},
+          "stamina_delta": -0.5
+        },
+        "speak_calm": {
+          "text": "You speak in a calm, low voice. The bear seems to recognize that you're not a threat and ambles away. A moment of mutual understanding.",
+          "rapport_delta": {
+            "brown_bear": 1
+          },
+          "stamina_delta": -0.3
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 10,
+        "max_depth": 25,
+        "preferred_seasons": ["spring", "fall"]
+      }
+    },
+    {
+      "id": "brown_bear_threat",
+      "creature_id": "brown_bear",
+      "encounter_type": "threat",
+      "intro_text": "A massive brown bear charges toward you, its roar echoing through the forest. This is a territorial display, and you're in its space.",
+      "choices": [
+        {
+          "text": "Attempt to flee",
+          "outcome": "flee_attempt"
+        },
+        {
+          "text": "Try to calm or appease",
+          "outcome": "calm_attempt"
+        },
+        {
+          "text": "Stand your ground",
+          "outcome": "stand_ground_attempt"
+        },
+        {
+          "text": "Freeze and submit (vore-enabled)",
+          "outcome": "vore_submit",
+          "requirements": {
+            "requires_vore_enabled": true
+          }
+        }
+      ],
+      "outcomes": {
+        "flee_attempt": {
+          "text": "THREAT_FLEE_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "flee"
+        },
+        "calm_attempt": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm"
+        },
+        "stand_ground_attempt": {
+          "text": "THREAT_STAND_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "stand_ground"
+        },
+        "vore_submit": {
+          "text": "VORE_SWALLOWED",
+          "stamina_delta": 0.0,
+          "condition_delta": 1,
+          "threat_resolution": "vore_shelter"
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 12,
+        "max_depth": 25,
+        "preferred_seasons": ["spring", "fall"]
+      }
+    },
+    {
+      "id": "moss_treader_encounter",
+      "creature_id": "moss_treader",
+      "intro_text": "A mystical deer-like creature steps into view, its form seeming to shift between solid and ethereal. Moss grows along its back like a living cloak, and its eyes hold ancient wisdom.",
+      "choices": [
+        {
+          "text": "Bow respectfully",
+          "outcome": "bow_respectful"
+        },
+        {
+          "text": "Stay perfectly still",
+          "outcome": "observe_neutral"
+        },
+        {
+          "text": "Approach slowly",
+          "outcome": "approach_neutral"
+        }
+      ],
+      "outcomes": {
+        "bow_respectful": {
+          "text": "You bow deeply. The Moss-Treader returns the gesture, and a small crystal falls from its moss cloak. You gain leyline_resonance_crystal and moss_cloak_fiber.",
+          "rapport_delta": {
+            "moss_treader": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["leyline_resonance_crystal", "moss_cloak_fiber"]
+        },
+        "observe_neutral": {
+          "text": "You remain perfectly still. The Moss-Treader watches you for a long moment, then nods and fades into the forest. A small piece of moss falls behind. You gain moss_cloak_fiber.",
+          "rapport_delta": {
+            "moss_treader": 1
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["moss_cloak_fiber"]
+        },
+        "approach_neutral": {
+          "text": "You approach slowly, but the Moss-Treader fades away before you can reach it. A sense of missed opportunity lingers.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 10,
+        "max_depth": 25,
+        "preferred_seasons": ["spring", "summer", "fall"]
+      }
+    },
+    {
+      "id": "verdant_broodmother_first",
+      "creature_id": "verdant_broodmother",
+      "intro_text": "A massive verdant serpent coils around the fallen giant, its scales shimmering with an otherworldly green light. This is the Verdant Broodmother, and you're in her territory.",
+      "choices": [
+        {
+          "text": "Back away slowly",
+          "outcome": "retreat_calm"
+        },
+        {
+          "text": "Stay perfectly still",
+          "outcome": "freeze_neutral"
+        },
+        {
+          "text": "Make a respectful gesture",
+          "outcome": "respectful_gesture"
+        }
+      ],
+      "outcomes": {
+        "retreat_calm": {
+          "text": "You back away slowly. The Broodmother watches you go, her massive form shifting slightly. You're safe, but you've learned to respect her territory.",
+          "rapport_delta": {
+            "verdant_broodmother": 1
+          },
+          "stamina_delta": -0.5
+        },
+        "freeze_neutral": {
+          "text": "You remain perfectly still. The Broodmother's eyes fix on you, and after a long moment, she relaxes slightly. A small scale falls from her body. You gain verdant_scale.",
+          "rapport_delta": {
+            "verdant_broodmother": 1
+          },
+          "stamina_delta": -0.3,
+          "inventory_add": ["verdant_scale"]
+        },
+        "respectful_gesture": {
+          "text": "You make a respectful bow. The Broodmother seems to appreciate the gesture, and a scale falls from her body. You gain verdant_scale.",
+          "rapport_delta": {
+            "verdant_broodmother": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["verdant_scale"]
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 8,
+        "max_depth": 20
+      }
+    },
+    {
+      "id": "verdant_broodmother_threat",
+      "creature_id": "verdant_broodmother",
+      "encounter_type": "threat",
+      "intro_text": "The Verdant Broodmother uncoils with alarming speed, her massive form blocking your path. Her eyes fix on you with predatory intensity.",
+      "choices": [
+        {
+          "text": "Attempt to flee",
+          "outcome": "flee_attempt"
+        },
+        {
+          "text": "Try to calm or appease",
+          "outcome": "calm_attempt"
+        },
+        {
+          "text": "Stand your ground",
+          "outcome": "stand_ground_attempt"
+        },
+        {
+          "text": "Freeze and submit (vore-enabled)",
+          "outcome": "vore_submit",
+          "requirements": {
+            "requires_vore_enabled": true
+          }
+        }
+      ],
+      "outcomes": {
+        "flee_attempt": {
+          "text": "THREAT_FLEE_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "flee"
+        },
+        "calm_attempt": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm"
+        },
+        "stand_ground_attempt": {
+          "text": "THREAT_STAND_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "stand_ground"
+        },
+        "vore_submit": {
+          "text": "VORE_SWALLOWED",
+          "stamina_delta": 0.0,
+          "condition_delta": 1,
+          "threat_resolution": "vore_shelter"
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 8,
+        "max_depth": 20,
+        "preferred_seasons": ["spring", "summer"]
+      }
+    },
+    {
+      "id": "cave_lurker_panther_first",
+      "creature_id": "cave_lurker_panther",
+      "intro_text": "A sleek black panther emerges from the shadows, its eyes glowing in the dim light. This is a Cave-Lurker, and it's watching you with predatory focus.",
+      "choices": [
+        {
+          "text": "Freeze and stay perfectly still",
+          "outcome": "freeze_neutral"
+        },
+        {
+          "text": "Slowly back away",
+          "outcome": "retreat_calm"
+        },
+        {
+          "text": "Make yourself look larger",
+          "outcome": "intimidate_attempt"
+        }
+      ],
+      "outcomes": {
+        "freeze_neutral": {
+          "text": "You remain perfectly still. The panther watches you for a long moment, then turns and melts back into the shadows. Your heart pounds.",
+          "rapport_delta": {
+            "cave_lurker_panther": 1
+          },
+          "stamina_delta": -0.5
+        },
+        "retreat_calm": {
+          "text": "You back away slowly, never turning your back. The panther watches you go, then disappears into the darkness. You're safe, but shaken.",
+          "rapport_delta": {},
+          "stamina_delta": -0.5
+        },
+        "intimidate_attempt": {
+          "text": "You raise your arms and make yourself look larger. The panther hesitates, then retreats into the shadows. A risky move that paid off.",
+          "rapport_delta": {
+            "cave_lurker_panther": 0
+          },
+          "stamina_delta": -0.3
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 15,
+        "max_depth": 25,
+        "preferred_time_of_day": ["Dusk", "Night"]
+      }
+    },
+    {
+      "id": "cave_lurker_panther_threat",
+      "creature_id": "cave_lurker_panther",
+      "encounter_type": "threat",
+      "intro_text": "The Cave-Lurker Panther pounces from the shadows, its claws extended and fangs bared. This is an ambush, and you're the target.",
+      "choices": [
+        {
+          "text": "Attempt to flee",
+          "outcome": "flee_attempt"
+        },
+        {
+          "text": "Try to calm or appease",
+          "outcome": "calm_attempt"
+        },
+        {
+          "text": "Stand your ground",
+          "outcome": "stand_ground_attempt"
+        },
+        {
+          "text": "Freeze and submit (vore-enabled)",
+          "outcome": "vore_submit",
+          "requirements": {
+            "requires_vore_enabled": true
+          }
+        }
+      ],
+      "outcomes": {
+        "flee_attempt": {
+          "text": "THREAT_FLEE_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "flee"
+        },
+        "calm_attempt": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm"
+        },
+        "stand_ground_attempt": {
+          "text": "THREAT_STAND_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "stand_ground"
+        },
+        "vore_submit": {
+          "text": "VORE_SWALLOWED",
+          "stamina_delta": 0.0,
+          "condition_delta": 1,
+          "threat_resolution": "vore_shelter"
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 15,
+        "max_depth": 25,
+        "preferred_time_of_day": ["Night"]
+      }
+    },
+    {
+      "id": "glow_elk_encounter",
+      "creature_id": "glow_elk",
+      "intro_text": "A magnificent Glow-Elk steps into view, its antlers pulsing with bioluminescent light. This is a rare, mystical creature, and its presence fills the air with an otherworldly energy.",
+      "choices": [
+        {
+          "text": "Bow respectfully",
+          "outcome": "bow_respectful"
+        },
+        {
+          "text": "Stay perfectly still",
+          "outcome": "observe_neutral"
+        },
+        {
+          "text": "Approach slowly",
+          "outcome": "approach_neutral"
+        }
+      ],
+      "outcomes": {
+        "bow_respectful": {
+          "text": "You bow deeply. The Glow-Elk returns the gesture, and a fragment of its glowing antler falls to the ground. You gain antler_fragment and glow_dust.",
+          "rapport_delta": {
+            "glow_elk": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["antler_fragment", "glow_dust"]
+        },
+        "observe_neutral": {
+          "text": "You remain perfectly still. The Glow-Elk watches you for a long moment, then nods and fades into the forest. A small amount of glowing dust drifts down. You gain glow_dust.",
+          "rapport_delta": {
+            "glow_elk": 1
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["glow_dust"]
+        },
+        "approach_neutral": {
+          "text": "You approach slowly, but the Glow-Elk fades away before you can reach it. A sense of missed opportunity lingers, but you feel blessed by the encounter.",
+          "rapport_delta": {
+            "glow_elk": 1
+          },
+          "stamina_delta": 0.0
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 10,
+        "max_depth": 25,
+        "preferred_seasons": ["spring", "summer"]
+      }
+    },
+    {
+      "id": "will_o_wisp_sunken_spring",
+      "creature_id": "will_o_wisp",
+      "intro_text": "Pale, dancing lights appear above the Sunken Spring, their ethereal glow casting shifting patterns on the water's surface. These are will-o'-wisps—mysterious anomalies that seem to pulse with the forest's deeper rhythms.",
+      "choices": [
+        {
+          "text": "Watch quietly",
+          "outcome": "observe_neutral"
+        },
+        {
+          "text": "Approach the lights",
+          "outcome": "approach_neutral"
+        },
+        {
+          "text": "Try to touch one",
+          "outcome": "touch_neutral"
+        }
+      ],
+      "outcomes": {
+        "observe_neutral": {
+          "text": "You watch the will-o'-wisps dance in silence. As they fade, you feel a strange clarity—the forest's paths seem more familiar, as if the lights have granted you a small insight into the land's memory. You gain a temporary wayfinding bonus.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0,
+          "flags": {
+            "will_o_wisp_blessing": true
+          }
+        },
+        "approach_neutral": {
+          "text": "You step closer to the lights. They drift toward you, then away, as if playing a game. One brushes past your shoulder, and you feel a brief warmth. The forest's layout seems clearer in your mind. You gain a temporary wayfinding bonus.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0,
+          "flags": {
+            "will_o_wisp_blessing": true
+          }
+        },
+        "touch_neutral": {
+          "text": "You reach out to touch one of the lights. It dissolves at your touch, leaving behind a faint warmth and a sense of clarity. The will-o'-wisps fade away, but you feel blessed—the forest's paths are clearer now. You gain a temporary wayfinding bonus.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0,
+          "flags": {
+            "will_o_wisp_blessing": true
+          }
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 9,
+        "max_depth": 14,
+        "preferred_time_of_day": ["Night"],
+        "required_landmark": "sunken_spring"
+      }
+    },
+    {
+      "id": "loom_jaw_worm_creek",
+      "creature_id": "loom_jaw_worm",
+      "encounter_type": "threat",
+      "intro_text": "The creekbed shifts beneath your feet, sand and mud collapsing into a funnel trap. Massive jaws snap up from the depths—a Loom-Jaw Worm has been waiting for prey to stumble into its pit.",
+      "choices": [
+        {
+          "text": "Attempt to flee",
+          "outcome": "flee_attempt"
+        },
+        {
+          "text": "Try to calm or appease",
+          "outcome": "calm_attempt"
+        },
+        {
+          "text": "Stand your ground",
+          "outcome": "stand_ground_attempt"
+        },
+        {
+          "text": "Freeze and submit (vore-enabled)",
+          "outcome": "vore_submit",
+          "requirements": {
+            "requires_vore_enabled": true
+          }
+        }
+      ],
+      "outcomes": {
+        "flee_attempt": {
+          "text": "THREAT_FLEE_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "flee"
+        },
+        "calm_attempt": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm"
+        },
+        "stand_ground_attempt": {
+          "text": "THREAT_STAND_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "stand_ground"
+        },
+        "vore_submit": {
+          "text": "VORE_SWALLOWED",
+          "stamina_delta": 0.0,
+          "condition_delta": 1,
+          "threat_resolution": "vore_shelter"
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 0,
+        "max_depth": 15
+      }
+    },
+    {
+      "id": "pale_mire_wolf_creek",
+      "creature_id": "pale_mire_wolf",
+      "encounter_type": "threat",
+      "intro_text": "A pale wolf with mud-streaked fur steps onto the creek bank, its howl echoing across the water. This is a Pale Mire Wolf, a semi-aquatic predator that hunts the forest edges.",
+      "choices": [
+        {
+          "text": "Attempt to flee",
+          "outcome": "flee_attempt"
+        },
+        {
+          "text": "Try to calm or appease",
+          "outcome": "calm_attempt"
+        },
+        {
+          "text": "Stand your ground",
+          "outcome": "stand_ground_attempt"
+        },
+        {
+          "text": "Freeze and submit (vore-enabled)",
+          "outcome": "vore_submit",
+          "requirements": {
+            "requires_vore_enabled": true
+          }
+        }
+      ],
+      "outcomes": {
+        "flee_attempt": {
+          "text": "THREAT_FLEE_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "flee"
+        },
+        "calm_attempt": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm"
+        },
+        "stand_ground_attempt": {
+          "text": "THREAT_STAND_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "stand_ground"
+        },
+        "vore_submit": {
+          "text": "VORE_SWALLOWED",
+          "stamina_delta": 0.0,
+          "condition_delta": 1,
+          "threat_resolution": "vore_shelter"
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 0,
+        "max_depth": 20
+      }
+    },
+    {
+      "id": "moss_mare_night",
+      "creature_id": "moss_mare",
+      "intro_text": "A forest equine spirit steps from between the trees, its moss-covered flanks shimmering with starlight. The Moss-Mare's eyes hold ancient wisdom, and it approaches with gentle curiosity.",
+      "choices": [
+        {
+          "text": "Bow respectfully",
+          "outcome": "bow_respectful"
+        },
+        {
+          "text": "Stay perfectly still",
+          "outcome": "observe_neutral"
+        },
+        {
+          "text": "Approach slowly",
+          "outcome": "approach_neutral"
+        }
+      ],
+      "outcomes": {
+        "bow_respectful": {
+          "text": "You bow deeply. The Moss-Mare returns the gesture, and a crystal falls from its moss cloak. You gain moss_fiber and starlight_crystal.",
+          "rapport_delta": {
+            "moss_mare": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["moss_fiber", "starlight_crystal"]
+        },
+        "observe_neutral": {
+          "text": "You remain perfectly still. The Moss-Mare watches you for a long moment, then nods and fades into the forest. A small piece of moss falls behind. You gain moss_fiber.",
+          "rapport_delta": {
+            "moss_mare": 1
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["moss_fiber"]
+        },
+        "approach_neutral": {
+          "text": "You approach slowly, but the Moss-Mare fades away before you can reach it. A sense of missed opportunity lingers, but you feel blessed by the encounter.",
+          "rapport_delta": {
+            "moss_mare": 1
+          },
+          "stamina_delta": 0.0
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 5,
+        "max_depth": 25,
+        "preferred_time_of_day": ["Night"]
+      }
+    },
+    {
+      "id": "wisp_hive_slug_night",
+      "creature_id": "wisp_hive_slug",
+      "intro_text": "A translucent slug glides across the forest floor, will-o'-wisps flickering within its body like captured starlight. This is a Wisp-Hive Slug, and it moves with deliberate purpose toward you.",
+      "choices": [
+        {
+          "text": "Stay perfectly still",
+          "outcome": "observe_neutral"
+        },
+        {
+          "text": "Reach out gently",
+          "outcome": "reach_neutral"
+        },
+        {
+          "text": "Bow respectfully",
+          "outcome": "bow_respectful"
+        }
+      ],
+      "outcomes": {
+        "observe_neutral": {
+          "text": "The slug approaches slowly, wisps dancing within its translucent body. It pauses before you, then continues on its way. A small wisp crystal falls behind. You gain wisp_crystal.",
+          "rapport_delta": {
+            "wisp_hive_slug": 1
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["wisp_crystal"]
+        },
+        "reach_neutral": {
+          "text": "You reach out gently. The slug allows the touch, and you feel a warm, soothing sensation. It leaves behind a wisp crystal before continuing. You gain wisp_crystal and slime_trail.",
+          "rapport_delta": {
+            "wisp_hive_slug": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["wisp_crystal", "slime_trail"]
+        },
+        "bow_respectful": {
+          "text": "You bow deeply. The slug pauses, and the wisps within brighten. It leaves behind both a wisp crystal and a trail of glowing slime. You gain wisp_crystal and slime_trail.",
+          "rapport_delta": {
+            "wisp_hive_slug": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_add": ["wisp_crystal", "slime_trail"]
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 5,
+        "max_depth": 25,
+        "preferred_time_of_day": ["Night", "Dusk"]
+      }
+    },
+    {
+      "id": "gloom_mantle_panther_deep",
+      "creature_id": "gloom_mantle_panther",
+      "encounter_type": "threat",
+      "intro_text": "A panther darker than shadow emerges from the deep forest, its eyes like pools of void. This is a Gloom-Mantle Panther, and its presence alone chills the air. You're in dangerous territory.",
+      "choices": [
+        {
+          "text": "Attempt to flee",
+          "outcome": "flee_attempt"
+        },
+        {
+          "text": "Try to calm or appease",
+          "outcome": "calm_attempt"
+        },
+        {
+          "text": "Stand your ground",
+          "outcome": "stand_ground_attempt"
+        },
+        {
+          "text": "Freeze and submit (vore-enabled)",
+          "outcome": "vore_submit",
+          "requirements": {
+            "requires_vore_enabled": true
+          }
+        }
+      ],
+      "outcomes": {
+        "flee_attempt": {
+          "text": "THREAT_FLEE_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "flee"
+        },
+        "calm_attempt": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm"
+        },
+        "stand_ground_attempt": {
+          "text": "THREAT_STAND_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "stand_ground"
+        },
+        "vore_submit": {
+          "text": "VORE_SWALLOWED",
+          "stamina_delta": 0.0,
+          "condition_delta": 1,
+          "threat_resolution": "vore_shelter"
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 25,
+        "max_depth": 35,
+        "preferred_time_of_day": ["Night"]
+      }
+    },
+    {
+      "id": "timber_warg_deep",
+      "creature_id": "timber_warg",
+      "encounter_type": "threat",
+      "intro_text": "A massive wolf with dark bark-colored fur and eyes that gleam with unnatural intelligence blocks your path. Its howl carries a hint of ancient magic—this is a Timber Warg, and it's hunting.",
+      "choices": [
+        {
+          "text": "Attempt to flee",
+          "outcome": "flee_attempt"
+        },
+        {
+          "text": "Try to calm or appease",
+          "outcome": "calm_attempt"
+        },
+        {
+          "text": "Stand your ground",
+          "outcome": "stand_ground_attempt"
+        },
+        {
+          "text": "Freeze and submit (vore-enabled)",
+          "outcome": "vore_submit",
+          "requirements": {
+            "requires_vore_enabled": true
+          }
+        }
+      ],
+      "outcomes": {
+        "flee_attempt": {
+          "text": "THREAT_FLEE_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "flee"
+        },
+        "calm_attempt": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm"
+        },
+        "stand_ground_attempt": {
+          "text": "THREAT_STAND_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "stand_ground"
+        },
+        "vore_submit": {
+          "text": "VORE_SWALLOWED",
+          "stamina_delta": 0.0,
+          "condition_delta": 1,
+          "threat_resolution": "vore_shelter"
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 25,
+        "max_depth": 35
+      }
     }
   ]
 }

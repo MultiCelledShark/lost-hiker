@@ -1,0 +1,126 @@
+name: "Lost Hiker – Echo Dialogue Patch (Race-Aware + Belly Flavor)"
+
+description: |
+  Expand Echo’s dialogue to recognize all 10 playable races, and add
+  light race-aware flavor to her normal interactions and belly shelter
+  scenes. This is a flavor-only task: no new mechanics, no new systems.
+
+  Races to recognize:
+    - human
+    - wolf_kin
+    - cow_kin
+    - elf
+    - dwarf
+    - lizard_folk
+    - deer_kin
+    - fox_kin
+    - gryphon_folk
+    - dragonborn
+
+goals:
+  - Add race-aware greeting / general lines for Echo:
+      - On first meeting or early camp conversations, Echo should have
+        optional lines keyed off the player’s race_id, for example:
+          - Human:
+              - “Two-legs with no fur or scales… you look so breakable.
+                 Yet you persist. I admire that.”
+          - Wolf-kin:
+              - “You smell like kin, but your paws are all wrong. Don’t
+                 worry — I won’t mistake you for dinner.”
+          - Cow-kin:
+              - “Warm scent, steady heart. Easy to track, hard to forget.
+                 Relax — I tease.”
+          - Elf:
+              - “You hear the forest differently. When you go quiet, I
+                 can almost hear it with you.”
+          - Dwarf:
+              - “Stone sits in your bones. When you step, the earth
+                 answers. Comforting.”
+          - Lizard-folk:
+              - “Your scales hold heat well. If you grow cold, tell me.
+                 I can coil tighter.”
+          - Deer-kin:
+              - “Your scent is old, tangled in roots and riverbeds.
+                 Predators hesitate around you. I do not.”
+          - Fox-kin:
+              - “You move like trouble on soft paws. I expect mischief.
+                 Try not to keep me guessing.”
+          - Gryphon-folk:
+              - “Feathers and confidence. You remind me of cliff winds.
+                 I like that.”
+          - Dragonborn:
+              - “There’s a quiet fire inside you. Not hunger, not malice…
+                 something older. I’ll watch it with interest.”
+      - Implement as optional branches that only appear if race_id matches.
+
+  - Add race-aware belly shelter flavor for Echo:
+      - When Echo has the player swallowed for shelter (Belly Phase 1,
+        mode == "echo"), add small race-specific variations, e.g.:
+          - Human:
+              - “You fit easily. Soft. Rest — I’ll carry you.”
+          - Wolf-kin:
+              - “All that fur. Warm… stop thrashing, you’re fluffing my throat.”
+          - Cow-kin:
+              - “Heavy, but pleasant. Settle in. I’ll tighten the coils.”
+          - Elf:
+              - “You hum against me. Is that magic, or nerves?”
+          - Dwarf:
+              - “Dense little thing. Like a river stone. Don’t wedge yourself.”
+          - Lizard-folk:
+              - “Cool scales. I’ll warm you up. Don’t worry.”
+          - Deer-kin:
+              - “Your heartbeat flutters. Calm — nothing will reach you in here.”
+          - Fox-kin:
+              - “Twitchy tail. You’re impossible to hold still. Let me squeeze closer…”
+          - Gryphon-folk:
+              - “Feathers everywhere. I should have expected that. I can manage.”
+          - Dragonborn:
+              - “You radiate heat. Strange, but pleasant. Stay as long as you like.”
+      - These should be sprinkled into existing Echo belly text as
+        variants, not replace all generic lines.
+
+  - Radio / HT flavor:
+      - Where Echo talks over the radio (HT), allow a few optional
+        species-aware quips selected by race_id.
+      - Keep it subtle so conversations don’t feel repetitive.
+
+deliverables:
+  - Updated Echo dialogue data (e.g. data/dialogue_echo.json or the
+    equivalent dialogue resource) with:
+      - race-aware greetings,
+      - race-aware belly shelter variants,
+      - a few race-aware radio lines.
+  - Any minor plumbing in dialogue helpers to:
+      - read player race_id,
+      - select appropriate line variants.
+
+acceptance_criteria:
+  - Echo clearly acknowledges the player’s race at least once early in
+    the game (camp, radio, or first conversation).
+  - When inside Echo’s belly in safe shelter mode, race-aware lines can
+    appear, but generic lines still work as a fallback.
+  - No mechanical differences: all changes are text only.
+  - No crashes from missing race_ids or dialogue keys.
+  - Existing Echo dialogue still works if new lines are not triggered.
+
+non_goals:
+  - No new questlines.
+  - No changes to Echo’s mechanical behavior, only text.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep race checks minimal and data-driven.
+  - Favor optional alternate lines over hard-coded if/else walls.
+
+test_plan:
+  - Start new games with at least:
+      - human, wolf_kin, cow_kin, elf, dwarf, lizard_folk,
+        deer_kin, fox_kin, gryphon_folk, dragonborn.
+  - For each:
+      - trigger an early Echo interaction (camp or starting sequence)
+        to confirm a race-aware line can appear.
+      - trigger Echo belly shelter (where possible) to confirm the
+        correct race-aware flavor shows up.
+  - Confirm that if race_id is missing or unknown, generic dialogue is used.

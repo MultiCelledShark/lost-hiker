@@ -296,17 +296,34 @@ class CursesUI(UI):
                 pass
         
         if self._current_options:
+            import textwrap
             for idx, option in enumerate(self._current_options):
                 if render_y >= max_y - 1:
                     break
                 try:
-                    self._screen.move(render_y, 0)
-                    self._screen.clrtoeol()
-                    label = f"  {idx + 1}. {option}"
-                    # Highlight selected option
-                    attr = curses.A_REVERSE if idx == self._menu_selected else curses.A_NORMAL
-                    self._screen.addstr(label[:max_x-1], attr)
-                    render_y += 1
+                    # Wrap long options to fit screen width
+                    # Reserve space for "  X. " prefix (5 chars)
+                    prefix = f"  {idx + 1}. "
+                    wrap_width = max(1, max_x - len(prefix))
+                    wrapped_lines = textwrap.wrap(option, width=wrap_width, break_long_words=True, break_on_hyphens=False)
+                    if not wrapped_lines:
+                        wrapped_lines = [option[:wrap_width]]
+                    
+                    # Render each wrapped line
+                    for line_idx, line in enumerate(wrapped_lines):
+                        if render_y >= max_y - 1:
+                            break
+                        self._screen.move(render_y, 0)
+                        self._screen.clrtoeol()
+                        if line_idx == 0:
+                            label = f"{prefix}{line}"
+                        else:
+                            # Indent continuation lines
+                            label = f"      {line}"
+                        # Highlight selected option (all lines)
+                        attr = curses.A_REVERSE if idx == self._menu_selected else curses.A_NORMAL
+                        self._screen.addstr(label[:max_x-1], attr)
+                        render_y += 1
                 except curses.error:
                     pass
         
@@ -377,7 +394,12 @@ class CursesUI(UI):
 def load_races(data_dir: Path) -> Dict[str, Dict[str, object]]:
     path = data_dir / "races.json"
     with path.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+        races = json.load(handle)
+    # Backward compatibility: map old "wolfkin" to new "wolf_kin"
+    if "wolfkin" in races and "wolf_kin" not in races:
+        races["wolf_kin"] = races["wolfkin"]
+        del races["wolfkin"]
+    return races
 
 
 def load_creatures(data_dir: Path) -> Dict[str, Dict[str, object]]:
@@ -418,9 +440,14 @@ def settings_menu(ui: UI, state: GameState) -> None:
 
 def choose_race(ui: UI, races: Dict[str, Dict[str, object]]) -> str:
     ordered = sorted(races.items())
-    display = [
-        f"{race_id} - {data.get('name', race_id).title()}" for race_id, data in ordered
-    ]
+    display = []
+    for race_id, data in ordered:
+        name = data.get('name', race_id).title()
+        description = data.get('description', data.get('summary', ''))
+        if description:
+            display.append(f"{name} - {description}")
+        else:
+            display.append(f"{name}")
     selection = ui.menu("Choose a race:", display)
     index = display.index(selection)
     return ordered[index][0]
@@ -562,9 +589,20 @@ def main() -> None:
         # Load dialogue catalogs and merge them
         forest_dialogue = load_dialogue_catalog(data_dir, "dialogue_forest.json")
         echo_dialogue = load_dialogue_catalog(data_dir, "dialogue_echo.json")
-        # Merge dialogue nodes from both catalogs
+        naiad_dialogue = load_dialogue_catalog(data_dir, "dialogue_naiad.json")
+        druid_dialogue = load_dialogue_catalog(data_dir, "dialogue_druid.json")
+        fisher_dialogue = load_dialogue_catalog(data_dir, "dialogue_fisher.json")
+        astrin_dialogue = load_dialogue_catalog(data_dir, "dialogue_astrin.json")
+        # Merge dialogue nodes from all catalogs
         from .dialogue import DialogueCatalog
-        all_nodes = list(forest_dialogue.nodes) + list(echo_dialogue.nodes)
+        all_nodes = (
+            list(forest_dialogue.nodes)
+            + list(echo_dialogue.nodes)
+            + list(naiad_dialogue.nodes)
+            + list(druid_dialogue.nodes)
+            + list(fisher_dialogue.nodes)
+            + list(astrin_dialogue.nodes)
+        )
         dialogue_catalog = DialogueCatalog(all_nodes)
         menu_options = ["New Game", "Continue", "Settings", "Quit"]
         while True:
@@ -600,6 +638,9 @@ def main() -> None:
                     continue
                 # Recalculate calendar to ensure it's correct after migration
                 state.recalculate_calendar(season_config)
+                # Backward compatibility: migrate old race_id "wolfkin" to "wolf_kin"
+                if state.character.race_id == "wolfkin":
+                    state.character.race_id = "wolf_kin"
                 race = races.get(state.character.race_id)
                 if race:
                     sync_character_with_race(state.character, race)

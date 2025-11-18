@@ -1,0 +1,312 @@
+name: "Lost Hiker - Forest Act I Quest Spine & Progression"
+
+description: |
+  Turn the existing runestone/ley-line repair mechanics in the Glade+Forest
+  into a clear Act I quest spine with:
+    - explicit quest/state tracking,
+    - clear player-facing feedback on progress,
+    - tuned thresholds for "forest stabilized" (Act I complete),
+    - small narrative payoffs with Echo, the forest hermit, and Kirin,
+    - a soft unlock hook for the eventual Town (without implementing Town yet).
+
+  This should make a new run feel like it has a tangible early-game arc:
+    wake up → learn about the damage → find runestones → repair ley-lines →
+    calm the Forest → prepare to move toward civilization.
+
+goals:
+  - Central Act I quest state:
+      - Introduce a dedicated structure in game state for the Forest Act I
+        quest, e.g.:
+          - state.forest_act1 = {
+                "started": bool,
+                "runestones_total": int,
+                "runestones_repaired": int,
+                "first_runestone_found": bool,
+                "first_repair_done": bool,
+                "completed": bool
+            }
+      - If there is already partial tracking in runestone/forest_effects
+        logic, consolidate it here or bridge cleanly.
+      - Ensure:
+          - this object is persisted in saves,
+          - missing values from old saves default to:
+              - started = False,
+              - completed = False,
+              - counts = 0.
+
+  - Define Act I completion condition:
+      - Decide and implement a concrete completion rule for Forest Act I:
+          - For example:
+              - require repairing N "core" runestones (e.g. 3–5 out of the 14
+                total landmarks/runestones), OR
+              - require repairing all runestones that are explicitly tied to
+                ley-line stability in the design doc.
+          - Use config or a constant so this is easy to tweak later:
+              - e.g. REQUIRED_ACT1_RUNESTONES = 3.
+      - When conditions are met:
+          - set forest_act1.completed = True exactly once.
+      - Ensure:
+          - this condition does not depend on vore or any optional systems.
+
+  - Player-facing progress feedback:
+      - Add a simple "quest/progress" summary to the status UI:
+          - For example:
+              - "Forest Ley-Lines: X/Y runestones repaired"
+              - If not started:
+                  - "Forest Ley-Lines: Unstable (no runestones repaired yet)"
+              - If completed:
+                  - "Forest Ley-Lines: Stabilized (Act I complete)"
+      - Make sure this appears in:
+          - curses status view,
+          - non-curses status print.
+      - Optionally add a short description line so the player knows:
+          - why they’re doing this ("Repairing runestones calms the Forest
+            and may reveal routes toward civilization.").
+
+  - Onboarding into the quest:
+      - Ensure early-game events reliably introduce the concept of:
+          - damaged runestones,
+          - ley-lines,
+          - the goal of repairing them.
+      - Sources:
+          - Echo:
+              - At high enough rapport or via a short early-game conversation,
+                she should:
+                  - mention the runestones directly,
+                  - hint that repairing them will calm the distortions.
+          - Forest hermit:
+              - The first (or second) time you meet them:
+                  - they should explicitly point you at the runestones as an
+                    actionable goal.
+          - Optional system messages:
+              - The first time you see a runestone (even before repair is
+                possible), show a one-time tip like:
+                  - "You sense this stone is part of a damaged pattern; Echo
+                     or the hermit might know more."
+      - This doesn’t need a full quest journal, but:
+          - the player should not have to guess that “repair X stones” is the
+            main Act I task.
+
+  - Narrative & systemic effects of progress:
+      - As more runestones are repaired, the Forest should:
+          - slightly reduce threat encounter frequency (or severity),
+          - slightly increase path stability (forest_memory friendliness),
+          - slightly improve Kirin/wildlife behavior toward the player.
+      - Implement small, incremental adjustments tied to:
+          - forest_act1.runestones_repaired.
+      - Examples (implementation details up to you, but document in code):
+          - When repaired_count >= 1:
+              - slightly lower chance of hostile threat encounters.
+          - When repaired_count >= 2:
+              - forest_memory/wayfinding is more forgiving:
+                  - better odds to re-find previously visited landmarks.
+          - When repaired_count >= REQUIRED_ACT1_RUNESTONES:
+              - treat the Forest as "stabilizing":
+                  - lower base threat chance,
+                  - friendlier encounter bias,
+                  - Kirin more willing to assist (if not already).
+      - Make sure these adjustments are:
+          - subtle, not binary,
+          - additive with existing season/depth logic.
+
+  - Act I completion narrative beats:
+      - When forest_act1.completed flips to True for the first time:
+          - Trigger a short narrative beat:
+              - e.g. a dream at camp, a quiet moment with Echo, forest hermit
+                comment, or Kirin’s change in tone.
+          - This can be:
+              - delivered at the next time the player:
+                  - sleeps at camp,
+                  - or enters the Glade,
+                  - or speaks to the hermit/Echo.
+      - Implement at least one of:
+          - an Echo conversation node that acknowledges:
+              - "The Forest feels steadier; you’ve done something important."
+          - a hermit conversation node:
+              - recognizing that "the worst of the ley-line damage is
+                patched", and hinting that the way to Town will become
+                clearer soon.
+          - a one-off ambient event at the Glade or a runestone:
+              - brief, flavorful, not a giant cutscene.
+
+  - Soft Town unlock hook (no full Town yet):
+      - After forest_act1.completed = True:
+          - set a flag indicating that the *concept* of reaching Town is now
+            in play:
+              - e.g. state.flags["town_path_known"] = True.
+          - Add at least one hint in dialogue or events:
+              - Echo or hermit might say:
+                  - "Paths to the old road should be easier to find now."
+              - Kirin might:
+                  - hint that they can "see" the Town from the ley-lines.
+      - Do NOT:
+          - implement the Town zone yet.
+          - open actual travel there.
+      - Optionally:
+          - add a placeholder camp menu item or status line:
+              - "The road to Town is not yet implemented." or similar,
+                only if you feel it’s necessary to prevent confusion.
+
+  - Retrofitting existing runestone repair logic:
+      - Ensure the existing runestone repair implementation:
+          - updates forest_act1.runestones_total and runestones_repaired.
+          - triggers first_runestone_found and first_repair_done flags as
+            appropriate.
+      - If there are partial/incomplete repairs or multi-step repairs per
+        stone, define what counts as "repaired" for Act I progression and
+        use that consistently.
+
+  - Vore/system neutrality:
+      - Make sure:
+          - Forest Act I progression:
+              - does not require vore,
+              - does not behave differently based on vore settings.
+          - Vore scenes (Echo, Kirin, predators) may exist as side content,
+            but:
+              - they must not be required or heavily rewarded for Act I
+                completion.
+
+  - Save/load:
+      - Persist:
+          - the forest_act1 quest structure,
+          - flags like town_path_known,
+          - any new progress metrics.
+      - Old saves:
+          - If loaded mid-forest:
+              - reconstruct a reasonable forest_act1 state by:
+                  - scanning existing runestone repair data where possible, OR
+                  - defaulting to:
+                      - started=True if any runestone is discovered,
+                      - runestones_repaired according to what’s already fixed.
+              - If this is too heavy, at minimum:
+                  - treat all existing saves as:
+                      - started=True,
+                      - runestones_repaired = known_repaired_count or 0,
+                      - completed=False unless all key stones are fixed.
+
+deliverables:
+  - src/forest_act1.py or equivalent:
+      - Centralize:
+          - the forest_act1 state structure,
+          - helper functions:
+              - init_forest_act1_state(state),
+              - update_forest_act1_on_runestone_found/repair(state, stone_id),
+              - is_forest_act1_complete(state),
+              - get_forest_act1_progress_summary(state).
+      - Logic for:
+          - evaluating when to set completed=True,
+          - applying small mechanical adjustments based on progress.
+
+  - src/status.py or equivalent:
+      - Extend status output to show:
+          - "Forest Ley-Lines: X/Y repaired" (or similar).
+          - A simple textual state (Unstable / Stabilizing / Stabilized).
+
+  - src/engine.py / src/exploration.py / src/runestones.py:
+      - Wire:
+          - calls into forest_act1 helpers when:
+              - the player discovers a runestone,
+              - repairs one.
+      - Hook:
+          - forest_act1 progression into:
+              - encounter frequency adjustments,
+              - forest_memory friendliness,
+              - Kirin attitude (if applicable).
+
+  - data/dialogue_forest.json / data/dialogue_echo.json / any hermit dialogue:
+      - Add:
+          - Echo lines that:
+              - introduce runestones/ley-lines early on.
+              - acknowledge Act I completion when forest_act1.completed=True.
+          - Hermit lines that:
+              - explicitly encourage repairing runestones.
+              - comment on the Forest feeling "less angry" when progress is
+                made.
+              - hint at Town/town_path_known when Act I is complete.
+
+  - src/events.py or equivalent:
+      - Add:
+          - a small, one-time event or dream that plays when Act I completes
+            (triggered by sleeping/camping or entering the Glade).
+
+  - Save/load modules:
+      - Extend:
+          - to include forest_act1 structure and any related flags.
+      - Handle:
+          - migration from old saves gracefully.
+
+acceptance_criteria:
+  - New run:
+      - Within the first few days of play:
+          - player is explicitly made aware (via Echo/hermit/event) that:
+              - the Forest is damaged,
+              - runestones exist,
+              - repairing them is the main early goal.
+      - Status view:
+          - shows "Forest Ley-Lines: X/Y repaired" and an appropriate label.
+      - Repairing runestones:
+          - clearly moves progress from Unstable → Stabilizing → Stabilized.
+
+  - Act I completion:
+      - When the required number of key stones is repaired:
+          - forest_act1.completed flips to True once.
+          - the player eventually sees:
+              - a short narrative payoff (dream, Echo, hermit, or similar).
+              - a hint that paths toward Town are opening (but they cannot
+                go there yet).
+      - Forest behavior:
+          - feels noticeably calmer (but not risk-free) after completion:
+              - threat encounters slightly less frequent,
+              - paths more stable.
+      - Vore:
+          - has no impact on whether Act I can be completed.
+
+  - Old saves:
+      - Loading an existing Forest save:
+          - does not crash.
+          - forest_act1 state is reconstructed or initialized sensibly.
+          - status shows some progress or "Unstable" depending on existing
+            runestone repairs.
+
+  - Stability:
+      - No crashes in exploration, runestone repair, Echo/hermit/Kirin
+        dialogue, or status view due to missing forest_act1 data.
+
+non_goals:
+  - Do NOT:
+      - Implement the Town zone or actual travel to Town.
+      - Implement a full quest journal UI.
+      - Add complex branching storylines; this is about one clear Act I arc.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep all Act I spine logic in one place (forest_act1.py) and call into
+    it, instead of scattering progress logic across many files.
+  - Make the thresholds easy to tune later.
+  - Keep narrative beats short but flavorful.
+
+test_plan:
+  - New run:
+      - Play from start until at least 3 runestones are found and some are
+        repaired.
+      - Confirm:
+          - onboarding (Echo/hermit) happens,
+          - status progress updates,
+          - Forest behavior subtly shifts with progress.
+      - Repair enough runestones to complete Act I:
+          - confirm completion flags set,
+          - narrative payoff triggers,
+          - Town hints appear.
+
+  - Existing saves:
+      - Load a mid-forest save with some runestones repaired:
+          - confirm no crash,
+          - status progress roughly matches reality.
+      - Try repairs after loading:
+          - confirm forest_act1 updates and eventually completes.
+
+  - Regression:
+      - Echo vore, Kirin travel, threat encounters, hunger, seasons,
+        landmarks, curses UI, and check sky still behave correctly.

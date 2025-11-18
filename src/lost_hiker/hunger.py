@@ -26,6 +26,9 @@ def get_stamina_cap_multiplier(days_without_meal: int) -> float:
     """
     Get the stamina cap multiplier based on days without a proper meal.
     
+    Tuned for balance: slightly more forgiving to allow careful players
+    to survive without constant death threats, but still punishing.
+    
     Args:
         days_without_meal: Number of days without a proper meal
         
@@ -35,11 +38,11 @@ def get_stamina_cap_multiplier(days_without_meal: int) -> float:
     if days_without_meal == 0:
         return 1.0
     elif days_without_meal == 1:
-        return 0.75
+        return 0.80  # Slightly more forgiving (was 0.75)
     elif days_without_meal == 2:
-        return 0.5
+        return 0.55  # Slightly more forgiving (was 0.5)
     elif days_without_meal == 3:
-        return 0.25
+        return 0.30  # Slightly more forgiving (was 0.25)
     else:
         return 0.0  # Will trigger game over
 

@@ -141,6 +141,14 @@
           "rapport_delta": 0
         },
         {
+          "text": "The forest feels different.",
+          "next_node_id": "forest_hermit_first_repair_reaction",
+          "rapport_delta": 1,
+          "conditions": {
+            "runestone_progress": "some"
+          }
+        },
+        {
           "text": "I've repaired one stone.",
           "next_node_id": "forest_hermit_some_progress",
           "rapport_delta": 1,
@@ -169,7 +177,7 @@
     {
       "id": "forest_hermit_no_progress",
       "npc_id": "forest_hermit",
-      "text": "The stones won't mend themselves. The forest needs your help. When you're ready, seek out the fractured runestones—you'll know them by their wrongness, their distorted pulse.",
+      "text": "The stones won't mend themselves. The forest needs your help. The forest is bent out of shape—the paths don't remember themselves, and the ley-lines pulse wrong. When you're ready, seek out the fractured runestones—you'll know them by their wrongness, their distorted pulse.",
       "options": [
         {
           "text": "I'll get started soon.",
@@ -179,6 +187,23 @@
         {
           "text": "Tell me again how to repair them.",
           "next_node_id": "forest_hermit_runestone_guidance",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_first_repair_reaction",
+      "npc_id": "forest_hermit",
+      "text": "Feels like the woods can breathe again. That first stone you mended—it made a difference. The forest's memory is starting to return. Keep at it, and the paths will remember themselves fully.",
+      "options": [
+        {
+          "text": "I'll continue.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "How many more do I need?",
+          "next_node_id": "forest_hermit_progress_guidance",
           "rapport_delta": 0
         }
       ]
@@ -220,7 +245,7 @@
     {
       "id": "forest_hermit_act1_complete",
       "npc_id": "forest_hermit",
-      "text": "You've done it. The forest's pulse is stable again. The paths remember themselves, and the way forward is clear. Beyond these woods, civilization awaits—a town by the lake, and beyond that, the mountain where answers might lie. You've earned your passage.",
+      "text": "You've done the Forest a real kindness. The forest's pulse is stable again. The paths remember themselves, and the way forward is clear. Beyond these woods, civilization awaits—a town by the lake, and beyond that, the mountain where answers might lie. You've earned your passage.",
       "options": [
         {
           "text": "What should I do next?",
@@ -283,6 +308,16 @@
           "rapport_delta": 1
         },
         {
+          "text": "I found your trinket.",
+          "next_node_id": "forest_hermit_trinket_return",
+          "rapport_delta": 0,
+          "conditions": {
+            "has_items": ["hermit_trinket"],
+            "require_flag": "hermit_trinket_quest_started",
+            "require_not_flag": "hermit_trinket_quest_completed"
+          }
+        },
+        {
           "text": "Just passing through.",
           "next_node_id": "END",
           "rapport_delta": 0
@@ -303,6 +338,85 @@
           "text": "I'll keep that in mind.",
           "next_node_id": "END",
           "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_trinket_quest",
+      "npc_id": "forest_hermit",
+      "text": "I lost a small wooden token—a trinket I carved years ago. It must have fallen near one of the landmarks I frequent. If you find it, I'd be grateful. It's not valuable, but it means something to me. I think I dropped it near the Whispering Hollow or Old Creek Bend.",
+      "conditions": {
+        "require_flag": "forest_hermit_intro_done",
+        "require_not_flag": "hermit_trinket_quest_started"
+      },
+      "options": [
+        {
+          "text": "I'll keep an eye out for it.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "hermit_trinket_quest_started": true
+          }
+        },
+        {
+          "text": "What does it look like?",
+          "next_node_id": "forest_hermit_trinket_description",
+          "rapport_delta": 0,
+          "set_flags": {
+            "hermit_trinket_quest_started": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_trinket_description",
+      "npc_id": "forest_hermit",
+      "text": "It's a small wooden disc, carved with simple runes. Nothing fancy—just something I made to help me remember the paths. If you find it, bring it back to me. I'll share a small recipe in return—something that might help you find your way.",
+      "options": [
+        {
+          "text": "I'll look for it.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_trinket_return",
+      "npc_id": "forest_hermit",
+      "text": "You found it! Thank you. Here—I'll share a simple recipe for a calming tea. It won't help you navigate, but it might help you think more clearly when you're lost. And... I've been sketching the forest paths in my mind. Let me share what I've learned—it might help you remember the landmarks better.",
+      "conditions": {
+        "has_items": ["hermit_trinket"],
+        "require_flag": "hermit_trinket_quest_started",
+        "require_not_flag": "hermit_trinket_quest_completed"
+      },
+      "options": [
+        {
+          "text": "Thank you. This will be helpful.",
+          "next_node_id": "END",
+          "rapport_delta": 2,
+          "set_flags": {
+            "hermit_trinket_quest_completed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_sketch",
+      "npc_id": "forest_hermit",
+      "text": "Since you've been mending the stones, I've been paying closer attention to the forest's patterns. I've sketched a mental map of sorts—nothing fancy, just landmarks and connections. It might help you remember paths better. Here, let me share what I've learned.",
+      "conditions": {
+        "require_flag": "forest_hermit_intro_done",
+        "runestone_progress": "some",
+        "require_not_flag": "hermit_sketch_given"
+      },
+      "options": [
+        {
+          "text": "Thank you. This will help.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "hermit_sketch_given": true
+          }
         }
       ]
     }

@@ -1,0 +1,184 @@
+name: "Lost Hiker – Forest Creature Expansion (Predators Wave Complete)"
+
+description: |
+  Flesh out the full non-unique predatory / belly-capable creature roster
+  for the Forest zone, reaching a total of 30 distinct creatures. These are
+  all encounterable creatures (not NPCs) that can threaten, shelter, or
+  transport the player, with varied behaviors across shallow/mid/deep forest
+  and creek/river edges.
+
+  This task does NOT introduce new systems. It adds and wires up creature
+  data, encounter entries, and tags so that:
+    - the Forest feels ecologically full,
+    - Belly Phase 1 has varied personalities to draw from,
+    - future combat and Belly Phase 2 can hook into a complete roster,
+    - Kirin fast-travel is a bit more reliable and surfaced clearly.
+
+goals:
+  - Define Forest predator roster (30 total, non-unique):
+      - Ensure the following creatures exist as data-driven entries with
+        at least:
+          - name,
+          - short description,
+          - depth band(s),
+          - biome tags (forest / creek / cave-mouth / night-only etc.),
+          - temperament (hostile, wary, mystical, friendly-shelter),
+          - vore/belly tags (can_swallow_player, is_friendly_belly, etc.).
+      - Core predators (already present or planned):
+          - Wolf
+          - Coyote
+          - Fox
+          - Brown Bear
+          - Forest Panther
+          - Verdant Broodmother (giant plant serpent)
+          - Moss-Treader (gentle, mystical carrier)
+          - Glow-Elk (mystical, gentle carrier)
+          - Giant Centipede
+      - Expansion predators (kept after pruning):
+          - Forest Lynx
+          - Vine-Wrap Serpent (smaller ley-line serpent)
+          - Twilight Great Owl (large ground-hunting owl, night-only)
+          - Timber Warg (large magical wolf variant)
+          - Hollow-Throat Marten (pouch-like predator)
+          - Barkhide Lurcher (log/bark ambush creature)
+          - Verdant Pseudodragon (small gliding reptile)
+          - Gloom-Mantle Panther (rare deep variant)
+          - Tangle-Hare Alpha (large magical hare)
+          - Ridge-Tongue Lizard (arboreal ambusher)
+          - Glade-Crawler (mossy multi-legged tree/rock predator)
+          - Whisper-Fang Weasel (stealthy, night-biased predator)
+          - Pale Mire Wolf (semi-aquatic forest-edge wolf)
+      - Newly finalized additions:
+          - Loom-Jaw Worm (creekbed ambush worm, antlion-like)
+          - Mud-Veil Leech (large stamina-draining creek leech)
+          - Root-Snare Antlion (forest-floor pit ambush insect)
+          - Pine-Belly Mimic (pinecone/fruit mimic that engulfs prey)
+          - Wisp-Hive Slug (friendly mystical slug that shelters wisps)
+          - Wind-Drift Gryphon (small gryphon, silent glider)
+          - Root-Tunnel Boar-Worm (segmented root-tunnel worm)
+          - Moss-Mare (forest equine spirit, gentle night shelter)
+      - Each creature must have:
+          - consistent tone and flavor text,
+          - clear depth/biome placement,
+          - basic behavior notes for encounter selection.
+
+  - Encounter table integration:
+      - Update Forest encounter tables (e.g. data/encounters_forest.json)
+        so these creatures:
+          - appear at appropriate depths:
+              - shallow: fox, coyote, Tangle-Hare Alpha, Pine-Belly Mimic,
+                Forest Lynx, Barkhide Lurcher, some small mysticals.
+              - mid: wolf, brown bear, marten, Glade-Crawler,
+                Verdant Pseudodragon, Wind-Drift Gryphon, etc.
+              - deep: forest panther, Gloom-Mantle Panther, Timber Warg,
+                Broodmother, Pale Mire Wolf, Root-Tunnel Boar-Worm, etc.
+              - creek/river: Loom-Jaw Worm, Mud-Veil Leech, Pale Mire Wolf,
+                plus occasional crossovers.
+          - have reasonable base spawn weights and season/time-of-day
+            biases (e.g. Twilight Great Owl at night, Wisp-Hive Slug at night
+            near wisps).
+      - Ensure that encounter tables:
+          - are not predator spam in shallow forest,
+          - but deep forest / cave-mouth edges feel legitimately dangerous.
+
+  - Belly Phase 1 hooks:
+      - For each predator, add simple flags/notes for Belly Phase 1:
+          - can_swallow_player: bool
+          - is_friendly_belly: bool (Moss-Treader, Glow-Elk, Wisp-Hive Slug,
+            Moss-Mare, some Pine-Belly Mimic variants, etc.)
+      - Friendly bellies should:
+          - bias toward RELAX/soothe success,
+          - give small stamina or comfort benefits,
+          - be clearly telegraphed in flavor.
+      - Hostile bellies should:
+          - risk stamina loss on struggle,
+          - sometimes result in transport deeper or to another landmark.
+
+  - Kirin fast-travel tuning:
+      - Revisit Kirin’s encounter entry:
+          - make it somewhat rare in early Act I,
+          - more reliably encounterable after Forest Act I stabilization
+            (forest_act1.completed == True),
+          - bias toward appearing near major landmarks / glades.
+      - Adjust Kirin encounter logic so:
+          - it clearly offers fast-travel between unlocked landmarks,
+          - fast-travel options are predictable and feel like a reward,
+          - but it never trivializes exploration.
+
+  - Minimal future-proof combat tags:
+      - For each predator, add simple combat-related tags (no system yet):
+          - size_class: small / medium / large / huge
+          - attack_style: pounce / constrict / charge / aerial / ambush
+          - threat_tier: 1–4 (1 = light, 4 = apex)
+      - Do not implement combat here; just tag for future use.
+
+deliverables:
+  - data/creatures_forest.json (or equivalent):
+      - 30 predator/belly-capable creature entries as described.
+  - data/encounters_forest.json (or equivalent):
+      - updated encounter tables with depth/biome/time/season weights
+        for all 30 predators.
+      - tuned Kirin encounter weighting and behavior flags.
+  - src/encounters.py / src/engine.py:
+      - any small helper functions or mapping logic needed to:
+          - match encounter rolls to the new creature list,
+          - read belly-related flags for Belly Phase 1,
+          - respect Kirin’s tuned behavior.
+  - Optional short note:
+      - docs/design/forest_creatures_roster.md summarizing:
+          - roster list,
+          - depth bands,
+          - threat tiers,
+          - belly friendliness.
+
+acceptance_criteria:
+  - Forest encounters:
+      - can surface all 30 predators in appropriate zones,
+      - shallow forest feels varied but survivable,
+      - deep forest feels meaningfully more dangerous,
+      - creek/river landmarks have distinct predator rosters (e.g.
+        Loom-Jaw Worm, Mud-Veil Leech, Pale Mire Wolf).
+  - Belly Phase 1:
+      - reads creature belly flags correctly,
+      - friendly vs hostile belly creatures feel distinct in text and
+        small effects.
+  - Kirin:
+      - remains rare early,
+      - becomes noticeably more present and reliable as fast-travel
+        after Forest Act I stabilization,
+      - offers clear travel choices without breaking exploration.
+  - No crashes from missing creature ids or encounter references.
+  - No new mechanics or UI added; this is purely content + tags.
+
+non_goals:
+  - No Belly Phase 2 (arrow QTE) implementation.
+  - No combat system implementation.
+  - No Act II creatures or non-Forest biomes.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep creature data normalized and consistent.
+  - Prefer data-driven flags over hard-coded creature-specific logic.
+  - Name creature ids sanely (snake_case, no spaces).
+
+test_plan:
+  - Run multiple exploration passes:
+      - shallow-only,
+      - mid-depth-focused,
+      - deep-forest-focused,
+      - creek/river-focused.
+  - Verify:
+      - mix of predators matches expectations per depth and biome,
+      - friendly mystical creatures (Moss-Treader, Glow-Elk, Wisp-Hive Slug,
+        Moss-Mare) appear rarely but memorably,
+      - Loom-Jaw Worm and Mud-Veil Leech show up at water landmarks.
+  - Trigger belly outcomes for at least:
+      - a hostile predator,
+      - a friendly belly creature,
+      - a creek predator (Loom-Jaw or Mud-Veil).
+  - Confirm Kirin behavior:
+      - rare but possible early Act I,
+      - more reliable post-stabilization,
+      - correctly offers fast-travel between known landmarks.

@@ -1,0 +1,125 @@
+name: "Lost Hiker – Race Flavor Integration (NPCs, Belly, Exploration, Foraging)"
+
+description: |
+  Integrate race-based flavor across multiple systems:
+    - NPC reactions (Astrin, Druid, Fisherman, Naiad),
+    - generic belly text (non-Echo predators),
+    - exploration descriptions,
+    - foraging text.
+
+  All differences are purely narrative; no stats or mechanics change.
+  Use race_id and race flavor tags from data/races.json.
+
+goals:
+  - NPC race flavor hooks:
+      - For each of the following NPCs:
+          - Echo (already handled in Echo task, but keep compatibility),
+          - Astrin (half-dryad),
+          - Druid,
+          - Fisherman (lizard-folk),
+          - Naiad,
+        add optional short lines that vary by player race_id. Examples:
+          - Astrin:
+              - elf: “Oh — one of you. Let’s see if you actually listen
+                when the trees speak.”
+              - dwarf: “Don’t scowl. Plants like you more than you think.”
+              - lizard_folk: “Cold hands. I’ll warm your tea.”
+              - deer_kin: “Your steps are gentle. Stay a moment — I like that.”
+              - fox_kin: “If you steal my herbs, I will know.”
+              - gryphon_folk: “Watch your feathers. My drying racks are delicate.”
+              - dragonborn: “Ooh… your aura tastes spicy. Let me test a brew.”
+          - Fisherman (lizard-folk):
+              - human: “You lot don’t float as well as you think.”
+              - lizard_folk: “Ah. Proper body shape for the river.”
+              - gryphon_folk: “Wings don’t help in water. Learn fast.”
+          - Naiad:
+              - elf: “Moon-lighted one. You hear the current’s edges.”
+              - deer_kin: “Forest-child of river-blood… welcome.”
+              - dragonborn: “Scaled fire in my waters… curious.”
+      - Implement these as small optional branches keyed on race_id, used
+        sparingly so dialogue doesn’t become repetitive.
+
+  - Generic belly flavor (non-Echo predators):
+      - Allow small, reusable snippets that adjust belly text based on race:
+          - wolf_kin: emphasis on scent and fur.
+          - cow_kin: emphasis on bulk/steadiness.
+          - lizard_folk / dragonborn: more temperature-based (warm vs cold).
+          - gryphon_folk: feather-related descriptions.
+          - deer_kin: fluttering heart, instinctual freezes.
+          - fox_kin: twitchy, restless movements.
+      - Implementation can be template-based:
+          - e.g. a function that picks a race_flavor suffix line for
+            belly scenes when appropriate.
+
+  - Exploration flavor variants:
+      - Add small, race-aware exploration text hooks (1–2 lines per race),
+        used occasionally, not every turn. Examples:
+          - wolf_kin: “Your nose twitches. The forest smells crowded tonight.”
+          - dwarf: “Stone remembers every footstep. Yours included.”
+          - elf: “You sense a faint pull — the ley-lines humming quietly.”
+          - lizard_folk: “The air feels cold. Your scales tighten instinctively.”
+          - deer_kin: “A twig cracks. You freeze without thinking.”
+          - gryphon_folk: “A stray gust ruffles your feathers. Storm coming?”
+          - dragonborn: “Your inner warmth stirs. Magic in the air.”
+
+  - Foraging flavor variants:
+      - Add a few race-aware lines to the foraging descriptions, used
+        when items are gathered:
+          - dwarf: more “earth and root” metaphors.
+          - elf: faint “aura” or “song” of herbs.
+          - lizard_folk: temperature contrasts (cold scales vs warm moss).
+          - fox_kin: twitchy tail, light-footed digging.
+          - gryphon_folk: using talons delicately.
+          - dragonborn: Ember-Root or hot herbs feel “like kin.”
+      - Implement as small helper logic that swaps or appends flavor
+        sentences based on race tags.
+
+deliverables:
+  - Updated NPC dialogue files:
+      - data/dialogue_astrin.json
+      - data/dialogue_druid.json
+      - data/dialogue_fisherman.json
+      - data/dialogue_naiad.json
+      - (any others where race-aware hooks make sense)
+  - Updated exploration text code/data:
+      - functions or tables that can inject race-flavored lines occasionally.
+  - Updated foraging text code/data:
+      - minor helpers for adding race-based flavor suffixes or variants.
+  - Any shared helper that:
+      - reads player race_id and flavor_tags,
+      - returns short flavor snippets for belly, exploration, or foraging.
+
+acceptance_criteria:
+  - NPCs:
+      - At least one line per NPC that can vary by race_id.
+      - If race_id is unknown, generic dialogue still works.
+  - Exploration:
+      - Some exploration messages occasionally reference the player’s
+        race in subtle, immersive ways.
+  - Foraging:
+      - Some foraging messages occasionally reflect species (fur, scales,
+        feathers, antlers, etc.).
+  - Belly (non-Echo):
+      - Race-based belly flavor is present but not overused; generic
+        belly descriptions still function as a fallback.
+  - No mechanical impact; purely narrative.
+
+non_goals:
+  - No new questlines or systems.
+  - No stat changes, resistances, or bonuses.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep race flavor modular and data-driven.
+  - Avoid writing giant if/else ladders; prefer lookup tables.
+
+test_plan:
+  - Start new games as several different races and:
+      - talk to each NPC to confirm race-aware dialogue can appear.
+      - explore long enough to see exploration flavor variants.
+      - perform foraging actions and confirm occasional race-based lines.
+      - trigger a hostile belly outcome and confirm race flavor can appear.
+  - Validate that generic text still appears if race-specific variants
+    are not triggered.

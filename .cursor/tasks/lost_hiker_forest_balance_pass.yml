@@ -1,0 +1,257 @@
+name: "Lost Hiker – Forest Balance & Integration Pass (Act I Core Loop)"
+
+description: |
+  Balance and integrate all existing Forest systems so Act I feels like a
+  cohesive, fair, and replayable survival loop.
+
+  This task does NOT add new mechanics. It tunes:
+    - food & resource availability,
+    - encounter tables,
+    - stamina/hunger pacing,
+    - Kirin travel frequency,
+    - NPC rewards/micro-quests,
+    - Forest Memory effects,
+    - Glade vs. field camping outcomes,
+    - early vs. late Act I difficulty.
+
+  Goal: Make the Forest feel like a proper beta zone:
+    - hard but fair early game,
+    - satisfying mid-game once systems are engaged,
+    - still interesting after Act I stabilization.
+
+goals:
+  - Food & resource economy tuning
+      - Review current food sources:
+          - forageable creatures (squirrel, rabbit, grouse, etc.),
+          - mussels at Old Creek Bend,
+          - mushroom/herb spawns,
+          - any starting food rations.
+      - Ensure:
+          - Early-game starvation/death is possible but not common if the
+            player engages with foraging and NPC help.
+          - A new player who explores shallow forest, uses basic foraging,
+            and completes at least one Fisher/Astrin micro-quest should have
+            a reliable path to maintain food.
+      - Adjust:
+          - forage yields (how many “meals” per gather),
+          - spawn frequencies and clustering (especially in shallow/mid),
+          - starting food baseline (e.g. initial rations) if needed.
+      - Keep:
+          - Deep forest should still feel leaner and riskier than shallow.
+
+  - Stamina, hunger, and rest pacing
+      - Review:
+          - current stamina costs for exploration steps,
+          - hunger thresholds and caps (75/50/25% behavior),
+          - camp vs. collapse stamina recovery values,
+          - bonuses from teas and micro-quests (Astrin, Naiad, Druid, etc.).
+      - Adjust:
+          - so that a typical day of:
+              - shallow/mid exploration,
+              - some foraging,
+              - one or two NPC interactions,
+            leaves the player tired but not constantly on the brink of collapse.
+      - Ensure:
+          - By mid-Act I, a player who uses teas, sleeps at the Glade some
+            nights, and doesn’t over-push deep runs can manage a sustainable
+            exploration pace.
+          - Teas and NPC bonuses feel helpful but not mandatory to survive.
+
+  - Encounter table tuning (threat vs. safe vs. mystical)
+      - Review current Forest encounter weighting by:
+          - depth band (shallow/mid/deep/mountain-edge/cave-mouth),
+          - time-of-day,
+          - season,
+          - Forest stability (forest_act1).
+      - Adjust:
+          - Shallow:
+              - higher chance of forageables and mild predators (fox, coyote),
+              - very low chance of lethal-feeling situations.
+          - Mid:
+              - balanced mix of forageables, predators, and NPCs,
+              - feels like the “core” danger/survival zone.
+          - Deep/mountain-edge:
+              - higher threat density (wolf, bear, Broodmother, Panther),
+              - slightly more mystical encounters (Moss-Treader, Glow-Elk) after
+                some runestones are repaired.
+      - Ensure:
+          - Forest does not feel empty (too few encounters) or exhausting
+            (constant predators).
+          - Act I stabilization (forest_act1.completed) softens the harshest
+            spikes but does not trivialize danger.
+
+  - Kirin travel & rare creature frequency
+      - Review Kirin’s current spawn frequency and conditions.
+      - Adjust so that:
+          - Early to mid Act I:
+              - Kirin is rare, more like a rumor/miracle.
+          - Late Act I (especially after most runestones are stabilized):
+              - Kirin becomes a reliable but not guaranteed travel option,
+                especially between major landmarks.
+      - For other rare creatures:
+          - Moss-Treader and Glow-Elk:
+              - Increase appearance chance slightly after stabilization,
+                primarily as gentle encounters.
+              - Keep them rare enough that they still feel special.
+
+  - Forest Memory & navigation feel
+      - Review forest_memory’s impact on:
+          - path repetition,
+          - re-finding known landmarks,
+          - getting lost or shuffled in deep areas.
+      - Adjust so that:
+          - Early game:
+              - forest_memory is low and getting lost is possible, but the
+                player can still reasonably reach 2–3 landmarks with some
+                persistence.
+          - After moderate play:
+              - forest_memory + NPC hints + teas make re-finding important
+                landmarks noticeably easier.
+          - Act I completion:
+              - navigation feels “gentler” without removing the possibility
+                of missteps in deep/mountain-edge zones.
+
+  - NPC reward & micro-quest value tuning
+      - Review rewards from:
+          - Hermit (trinket + map buff),
+          - Naiad (water blessing + Water-Clarity Tea),
+          - Druid (spore/chaga quest + clarity tea),
+          - Fisher (mussel mastery + trap reward),
+          - Astrin (Dreamleaf tea, Glade rest bonus, herb ID),
+          - Echo (check-ins, small resource favors, Blue Fireflies event).
+      - Adjust:
+          - so each reward feels meaningful the first time,
+          - but does not overshadow baseline survival.
+      - Ensure:
+          - NPC loops are worth revisiting (for teas, buffs, identification),
+          - but the player can survive without perfect optimization.
+
+  - Glade vs. field camping balance
+      - Review:
+          - current stamina recovery for:
+              - Glade rest,
+              - field/forest camp,
+              - Echo shelter (if used),
+              - Astrin tea buffs.
+      - Adjust:
+          - so Glade rest is clearly “best” in comfort terms, especially if
+            Astrin is present and you use her teas.
+          - Field camps remain viable but slightly riskier/leaner.
+      - Blue Fireflies:
+          - ensure that the event’s optional buff does not break stamina
+            balance or trivialize subsequent days.
+
+  - Season & time-of-day flavor vs. mechanics
+      - Check:
+          - that seasonal differences (spring/summer/autumn/winter) and
+            day/night cycles have visible impact on:
+              - forageable availability,
+              - predator activity,
+              - NPC availability where appropriate.
+      - Tune:
+          - without overcomplicating tables; just enough that players can
+            feel:
+              - “nights are more dangerous”,
+              - “winter is leaner”,
+              - “spring is a little kinder and more magical.”
+
+  - Difficulty curve across Act I
+      - Early Act I (0 runestones repaired):
+          - rough but survivable for a careful player.
+      - Mid Act I (1–2 runestones repaired, some NPC quests done):
+          - the Forest should feel tense but manageable.
+      - Late Act I (near or at forest_act1.completed):
+          - stabilization should feel like a reward:
+              - slightly fewer spiky threats,
+              - easier navigation,
+              - more mystical/beautiful events.
+      - Ensure:
+          - No softlocks from pure RNG (e.g. extreme drought of food).
+          - Death is still possible if the player is reckless, ignores food,
+            or over-pushes into deep forest unprepared.
+
+deliverables:
+  - Updated data files:
+      - encounters (e.g. data/encounters_forest.json):
+          - adjusted weights for predators, forageables, NPC events,
+            and rare creatures per depth/season/time-of-day/stability.
+      - resources/foraging (e.g. data/foraging_forest.json or equivalents):
+          - adjusted yields and spawn chances.
+      - any NPC/micro-quest reward values (recipes, buffs) in the relevant
+        data files.
+
+  - Code changes:
+      - src/engine.py / src/exploration.py:
+          - tuned encounter selection logic and thresholds.
+      - src/hunger.py / src/stamina.py or equivalents:
+          - tuned stamina costs, hunger thresholds, and rest recovery.
+      - src/ui_curses.py:
+          - if any minor tweaks are needed to clearly present status changes.
+
+  - Internal documentation:
+      - A short internal comment block or markdown note (e.g.
+        docs/design/forest_balance_notes.md) summarizing:
+          - final baseline values chosen for:
+              - food yield expectations,
+              - stamina per day,
+              - encounter frequency expectations,
+              - Kirin/rare creature rates,
+          - so future work (Act II, combat, belly-loop) has a clear starting
+            reference.
+
+acceptance_criteria:
+  - A fresh Act I playthrough:
+      - Player can:
+          - reliably reach a few landmarks,
+          - find enough food if they engage with foraging,
+          - survive at least several in-game weeks without feeling like
+            starvation is inevitable or trivial.
+      - NPC micro-quests:
+          - feel worth doing,
+          - their rewards are noticeable but not mandatory cheats.
+      - Exploration:
+          - feels tense but fair in mid/late Act I,
+          - is clearly harsher in deep/mountain-edge zones.
+      - Act I stabilization:
+          - makes the Forest feel “calmer but still wild.”
+  - Tester-oriented behavior:
+      - The Forest no longer feels:
+          - “empty hallway”,
+          - or “predator spam death maze.”
+      - Glade feels like a true home base, not an invulnerable cheat.
+  - No new mechanics introduced:
+      - all changes are parameter tuning, weight adjustments, or minor
+        behavioral tweaks.
+
+non_goals:
+  - No new features (combat revamp, belly minigame, town, caves).
+  - No new UI systems.
+  - No new narrative arcs; only tuning what already exists.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Prefer conservative changes first; avoid huge jumps in difficulty.
+  - Keep encounter selection logic readable and data-driven where possible.
+  - Document key tuned constants in code comments for future reference.
+
+test_plan:
+  - Run multiple short test runs with different playstyles:
+      - cautious forager,
+      - aggressive explorer,
+      - NPC-focused helper.
+  - In each:
+      - Track:
+          - days survived,
+          - frequency of starvation/collapse,
+          - how many landmarks discovered,
+          - how many NPC quests completed.
+  - Confirm:
+      - Shallow areas feel safer than deep,
+      - Spring feels slightly kinder, winter leaner,
+      - Act I completion noticeably eases the Forest without removing teeth.
+  - Regression:
+      - NPC micro-quests still function and reward properly,
+      - Kirin, rare creatures, and micro-events (like Blue Fireflies)
+        still appear under the correct conditions.

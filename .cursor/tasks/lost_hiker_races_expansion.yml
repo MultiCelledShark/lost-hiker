@@ -1,0 +1,105 @@
+name: "Lost Hiker – Playable Races Expansion (Phase 1)"
+
+description: |
+  Add seven new playable races to the character creation system. Maintain
+  the existing design rule: races provide FLAVOR differences only, with
+  no mechanical bonuses. Ensure each race has:
+    - race_id
+    - name
+    - short description
+    - body_type or phenotypes for flavor text
+    - flavor_tags (species, scent, thermal_flavor, magic_affinity, etc.)
+  Update character creation to include a clear list and race descriptions.
+  Integrate light narrative hooks for belly flavor, NPC dialogue, and
+  foraging/exploration text, without changing core systems.
+
+goals:
+  - Add the following races to data/races.json:
+      - Elf (Wilder Elf)
+      - Dwarf (Stoneborn)
+      - Lizard-folk
+      - Deer-kin
+      - Fox-kin
+      - Gryphon-folk (anthropomorphic gryphon, bipedal)
+      - Dragonborn (anthro dragon, no elemental breath yet)
+
+  - Each race entry must include:
+      - race_id (snake_case)
+      - display_name
+      - description (1–2 sentences)
+      - body_type (humanoid default, with variations like furred, scaled, feathered)
+      - flavor_tags:
+          - species: e.g. elf, dwarf, beastfolk, drakefolk
+          - sensory_profile: e.g. sharp_scent, earth_tuned, water_affinity
+          - thermal_flavor: cold_natured, warm_natured, neutral, etc.
+          - magic_affinity: none, mild_forest, stone_resonance, faint_draconic
+          - predator_reactions: optional tags (predators_hesitate,
+            predators_curiosity, predators_gradual_comfort)
+          - mystical_creature_reactions: e.g. wisps_follow, moss_mare_affinity
+
+  - Character Creation:
+      - Race selection UI must list all 10 races:
+          - human
+          - wolf_kin
+          - cow_kin
+          - elf
+          - dwarf
+          - lizard_folk
+          - deer_kin
+          - fox_kin
+          - gryphon_folk
+          - dragonborn
+      - Include short description text for each on selection.
+
+  - Light integration with existing systems:
+      - Belly Phase 1:
+          - allow optional flavor variations based on flavor_tags.
+          - no mechanical differences: only text.
+      - Foraging:
+          - optional descriptive variants (e.g. elves noticing forest hum,
+            dwarves describing stone warmth, gryphons reacting to wind).
+      - NPC Dialogue:
+          - Echo, Astrin, Druid, Fisherman should have at least ONE optional line
+            referencing each race’s overall vibe.
+      - Exploration:
+          - small descriptive differences (not mechanical):
+              - temperature flavor,
+              - sensory lines,
+              - subtle forest resonance.
+
+deliverables:
+  - Updated data/races.json with full 10-race roster.
+  - Updated character creation menu to include new races.
+  - Minor flavor hookups:
+      - belly flavor templates using flavor_tags,
+      - optional race flavor lines in NPC dialogue,
+      - minimal foraging/exploration text variants.
+
+acceptance_criteria:
+  - Character creation shows all 10 races.
+  - No mechanical bonuses exist; flavor only.
+  - NPCs reference new races lightly without breaking dialogue flow.
+  - Belly Phase 1 displays optional race-based flavor lines pulled from tags.
+  - No missing race ids or crashes during character creation or save/load.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+non_goals:
+  - No stat bonuses, resistances, or combat differences.
+  - No new UI screens besides adjusting current race menu.
+  - No detailed racial romance paths (future).
+
+coding_guidelines:
+  - Keep race definitions clean and data-driven.
+  - Use snake_case for race_ids.
+  - Avoid complex logic branching; use tags to pick flavor variants.
+
+test_plan:
+  - Create a character as each race to ensure:
+      - race selection works,
+      - name entry follows,
+      - game loads correctly,
+      - belly flavor displays race-specific lines where appropriate,
+      - NPC greetings recognize species lightly (Echo, Astrin, Druid, Fisherman).
+  - Verify saving and loading preserves race_id.

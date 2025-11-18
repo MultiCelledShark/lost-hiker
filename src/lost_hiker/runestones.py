@@ -432,11 +432,20 @@ def mark_runestone_discovered(state: GameState, landmark_id: str, runestone_defs
         state.runestone_states[landmark_id] = {}
     state.runestone_states[landmark_id]["is_discovered"] = True
     
-    # Initialize total runestones count if not set
+    # Find the runestone ID for this landmark
+    runestone_id = None
+    for rs_id, rs_def in runestone_defs.items():
+        if rs_def.get("landmark_id") == landmark_id:
+            runestone_id = rs_id
+            break
+    
+    # Update forest_act1 state
+    from .forest_act1 import update_forest_act1_on_runestone_found
+    update_forest_act1_on_runestone_found(state, runestone_id or landmark_id, len(runestone_defs))
+    
+    # Legacy compatibility: also update old fields
     if state.act1_total_runestones == 0:
         state.act1_total_runestones = len(runestone_defs)
-    
-    # Update quest stage if this is the first discovery
     if state.act1_quest_stage == 0:
         state.act1_quest_stage = 1
 
@@ -467,11 +476,28 @@ def update_quest_state_after_repair(state: GameState, runestone_defs: Dict[str, 
         runestone_defs: Dictionary of runestone definitions
     """
     # Count total runestones
+    total_runestones = len(runestone_defs)
     if state.act1_total_runestones == 0:
-        state.act1_total_runestones = len(runestone_defs)
+        state.act1_total_runestones = total_runestones
     
     # Count repaired runestones
     repaired_count = get_repaired_runestone_count(state)
+    
+    # Find the runestone ID for the current landmark (if available)
+    runestone_id = None
+    if state.current_landmark:
+        for rs_id, rs_def in runestone_defs.items():
+            if rs_def.get("landmark_id") == state.current_landmark:
+                runestone_id = rs_id
+                break
+    
+    # Update forest_act1 state
+    from .forest_act1 import update_forest_act1_on_runestone_repair
+    update_forest_act1_on_runestone_repair(
+        state, runestone_id or state.current_landmark or "unknown", total_runestones
+    )
+    
+    # Legacy compatibility: also update old fields
     state.act1_repaired_runestones = repaired_count
     
     # Update quest stage

@@ -43,7 +43,7 @@
         "has_creek": false,
         "has_camp_spot": false,
         "has_food": true,
-        "food_type": "night_mushrooms"
+        "food_type": "mystical_herbs"
       }
     },
     {
@@ -60,7 +60,7 @@
         "has_camp_spot": false,
         "has_gold_pan": true,
         "has_food": true,
-        "food_type": "creek_forage"
+        "food_type": "creek_aquatic"
       }
     },
     {
@@ -79,6 +79,108 @@
         "food_type": "edible_fungus",
         "has_npc": true,
         "npc_id": "forest_hermit"
+      }
+    },
+    {
+      "id": "sunken_spring",
+      "name": "Sunken Spring",
+      "depth_min": 6,
+      "depth_max": 10,
+      "tags": ["water", "mystical", "npc"],
+      "short_description": "A natural spring that has sunken into a shallow depression, its waters clear and strangely still.",
+      "long_description": "The Sunken Spring forms a natural pool in a depression between ancient roots. The water is crystal clear and unnaturally still, reflecting the canopy above like a perfect mirror. Strange, bioluminescent plants line the edges, their soft glow making the water shimmer with an otherworldly light. The air here feels charged with magic, and the water seems to pulse with a rhythm that matches the forest's ley-lines. This place feels both peaceful and powerful, a nexus where water and magic intertwine.",
+      "features": {
+        "has_runestone": false,
+        "has_creek": false,
+        "has_camp_spot": false,
+        "has_food": true,
+        "food_type": "mystical_herbs"
+      }
+    },
+    {
+      "id": "verdant_hollow",
+      "name": "Verdant Hollow",
+      "depth_min": 8,
+      "depth_max": 12,
+      "tags": ["safe", "mushroom", "npc"],
+      "short_description": "A lush, overgrown hollow where mushrooms grow in strange, spiraling patterns.",
+      "long_description": "The Verdant Hollow is a depression in the forest floor where the undergrowth grows thick and wild. Mushrooms of all sizes sprout in spiraling patterns, their caps ranging from pale cream to deep violet. Some of the larger fungi have formed natural shelters, their broad caps creating small alcoves. The air here is rich with the scent of damp earth and fungal spores. Shroomlings occasionally scuttle between the mushroom clusters, their presence a sign that something is wrong—these cave-dwelling fungi shouldn't be on the surface at all.",
+      "features": {
+        "has_runestone": false,
+        "has_creek": false,
+        "has_camp_spot": true,
+        "has_food": true,
+        "food_type": "edible_fungus"
+      }
+    },
+    {
+      "id": "old_creek_bend",
+      "name": "Old Creek Bend",
+      "depth_min": 4,
+      "depth_max": 8,
+      "tags": ["creek", "resource", "gathering", "npc"],
+      "short_description": "An old, well-worn bend in the creek where the water has carved deep pools and exposed rocky banks.",
+      "long_description": "The Old Creek Bend is a familiar spot where generations of travelers have stopped to rest and gather. The creek here has carved deep pools along the outer curve, while the inner bank is lined with smooth, water-worn stones. Mussels cling to the rocks beneath the water's surface, and the sandy bottom is rich with river life. A lizard-folk figure can sometimes be seen here during the day, their webbed hands moving with practiced efficiency as they examine the creek's offerings. This place feels like a reliable resource point, a place where the forest provides.",
+      "features": {
+        "has_runestone": false,
+        "has_creek": true,
+        "has_camp_spot": false,
+        "has_food": true,
+        "food_type": "creek_aquatic"
+      }
+    },
+    {
+      "id": "plains_pass",
+      "name": "Plains Pass",
+      "depth_min": 3,
+      "depth_max": 7,
+      "tags": ["exit", "blocked"],
+      "short_description": "A narrow pass that should lead to the open plains beyond, but the way is blocked by fallen oaks and twisted roots.",
+      "long_description": "The Plains Pass should offer a route north toward open grasslands, but the path is choked with debris. Fallen oaks lie across the trail, their massive trunks tangled with gnarled roots that have erupted from the disturbed earth. The ground is unstable here, with deep fissures running through the soil. The forest's distortions have made this route impassable—the roots writhe and shift, and the debris seems to move when you're not looking directly at it. There's no safe way through without the forest's pulse being restored.",
+      "features": {
+        "is_exit_blocker": true,
+        "exit_direction": "plains"
+      }
+    },
+    {
+      "id": "mountain_route",
+      "name": "Mountain Route",
+      "depth_min": 12,
+      "depth_max": 18,
+      "tags": ["exit", "blocked", "mountain"],
+      "short_description": "A switchback trail that should climb toward the mountains, but a rockslide has buried the path.",
+      "long_description": "The Mountain Route once wound its way up the foothills in a series of switchbacks, but now it's buried under a massive rockslide. Boulders the size of small houses block the trail, and loose scree covers what little of the path remains visible. The slide looks recent—fresh scars mark the mountainside above, and the air still carries the faint scent of disturbed earth. The way forward is completely impassable. Without proper tools and a stable path, attempting to climb over would be suicidal.",
+      "features": {
+        "is_exit_blocker": true,
+        "exit_direction": "mountain"
+      }
+    },
+    {
+      "id": "riverside_road",
+      "name": "Riverside Road",
+      "depth_min": 5,
+      "depth_max": 9,
+      "tags": ["exit", "blocked", "river"],
+      "short_description": "An old road that follows the river, but the crossing has been washed out by floodwaters.",
+      "long_description": "The Riverside Road follows the curve of a wide, fast-moving river. This should be a route toward civilization, but the crossing point has been completely washed out. The banks are eroded and unstable, with deep gouges where floodwaters have torn away the earth. The river itself runs swift and dangerous here, its current pulling at anything that enters. The old bridge is gone—only a few broken pilings remain, jutting from the water like broken teeth. Without a stable crossing and proper gear, the river is impassable.",
+      "features": {
+        "is_exit_blocker": true,
+        "exit_direction": "riverside"
+      }
+    },
+    {
+      "id": "hollow_echo_cavern_mouth",
+      "name": "Hollow Echo Cavern Mouth",
+      "depth_min": 15,
+      "depth_max": 20,
+      "tags": ["exit", "blocked", "cave"],
+      "short_description": "A dark cave entrance that leads into the depths, but the descent looks unsafe without proper gear.",
+      "long_description": "The Hollow Echo Cavern Mouth opens into darkness, its entrance wide enough to walk through but descending steeply into the earth. The walls are slick with moisture, and the floor drops away into shadow. Without rope, proper lighting, or climbing gear, attempting to descend would be incredibly dangerous. The cave seems to echo with distant sounds—water dripping, something shifting in the dark. This route might lead somewhere important, but it's not safe to explore without the right equipment and preparation.",
+      "features": {
+        "is_exit_blocker": true,
+        "exit_direction": "cave",
+        "has_food": true,
+        "food_type": "cave_forage"
       }
     }
   ]

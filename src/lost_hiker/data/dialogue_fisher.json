@@ -1,0 +1,504 @@
+{
+  "nodes": [
+    {
+      "id": "fisher_start_human",
+      "npc_id": "fisher",
+      "text": "A lizard-folk crouched by the water's edge looks up as you approach, their webbed hands still examining a mussel. 'You lot don't float as well as you think.' They gesture to the creek. 'But the creek here is rich with mussels—reliable food, if you know where to look. Under the rocks, along the mud lines. They're small, but they add up.'",
+      "conditions": {
+        "require_not_flag": "fisher_met",
+        "require_race": ["human"]
+      },
+      "options": [
+        {
+          "text": "How do I find mussels?",
+          "next_node_id": "fisher_mussel_advice",
+          "rapport_delta": 0,
+          "set_flags": {
+            "fisher_met": true
+          }
+        },
+        {
+          "text": "Can you teach me?",
+          "next_node_id": "fisher_quest",
+          "rapport_delta": 1,
+          "set_flags": {
+            "fisher_met": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "fisher_start_lizard",
+      "npc_id": "fisher",
+      "text": "A lizard-folk crouched by the water's edge looks up as you approach, their webbed hands still examining a mussel. 'Ah. Proper body shape for the river.' They nod approvingly. 'The creek here is rich with mussels—reliable food, if you know where to look. Under the rocks, along the mud lines. They're small, but they add up.'",
+      "conditions": {
+        "require_not_flag": "fisher_met",
+        "require_race": ["lizard_folk"]
+      },
+      "options": [
+        {
+          "text": "How do I find mussels?",
+          "next_node_id": "fisher_mussel_advice",
+          "rapport_delta": 0,
+          "set_flags": {
+            "fisher_met": true
+          }
+        },
+        {
+          "text": "Can you teach me?",
+          "next_node_id": "fisher_quest",
+          "rapport_delta": 1,
+          "set_flags": {
+            "fisher_met": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "fisher_start_gryphon",
+      "npc_id": "fisher",
+      "text": "A lizard-folk crouched by the water's edge looks up as you approach, their webbed hands still examining a mussel. 'Wings don't help in water. Learn fast.' They chuckle. 'The creek here is rich with mussels—reliable food, if you know where to look. Under the rocks, along the mud lines. They're small, but they add up.'",
+      "conditions": {
+        "require_not_flag": "fisher_met",
+        "require_race": ["gryphon_folk"]
+      },
+      "options": [
+        {
+          "text": "How do I find mussels?",
+          "next_node_id": "fisher_mussel_advice",
+          "rapport_delta": 0,
+          "set_flags": {
+            "fisher_met": true
+          }
+        },
+        {
+          "text": "Can you teach me?",
+          "next_node_id": "fisher_quest",
+          "rapport_delta": 1,
+          "set_flags": {
+            "fisher_met": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "fisher_start",
+      "npc_id": "fisher",
+      "text": "A lizard-folk crouched by the water's edge looks up as you approach, their webbed hands still examining a mussel. 'Ah, a traveler. You look hungry. The creek here is rich with mussels—reliable food, if you know where to look. Under the rocks, along the mud lines. They're small, but they add up.'",
+      "conditions": {
+        "require_not_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "How do I find mussels?",
+          "next_node_id": "fisher_mussel_advice",
+          "rapport_delta": 0,
+          "set_flags": {
+            "fisher_met": true
+          }
+        },
+        {
+          "text": "Can you teach me?",
+          "next_node_id": "fisher_quest",
+          "rapport_delta": 1,
+          "set_flags": {
+            "fisher_met": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "fisher_mussel_advice",
+      "npc_id": "fisher",
+      "text": "Look for them under flat rocks in the shallow water, or along the mud lines where the bank meets the creek. They cling to the rocks, so you'll need to pry them loose carefully. Don't take too many from one spot—leave some to grow. And always check that they're alive before you eat them. Dead mussels can make you sick. If you're lucky, you might also catch Creek Darters in the shallow pools, or even a Stoneback Trout in the deeper water—those are prime catches.",
+      "options": [
+        {
+          "text": "Thank you for the advice.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "Can you show me how to prepare them?",
+          "next_node_id": "fisher_quest",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_quest",
+      "npc_id": "fisher",
+      "text": "I can teach you, but first, gather some mussels yourself. Bring me a few—three or four should do. Once you've found them, I'll show you how to clean them properly and make a simple stew. It's not fancy, but it'll keep you fed and warm. Useful knowledge for surviving in these woods.",
+      "options": [
+        {
+          "text": "I'll gather some mussels and return.",
+          "next_node_id": "fisher_quest_started",
+          "rapport_delta": 1,
+          "set_flags": {
+            "fisher_mussel_quest_started": true
+          }
+        },
+        {
+          "text": "I'll think about it.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_quest_started",
+      "npc_id": "fisher",
+      "text": "Good. When you have the mussels, come back and I'll show you how to prepare them properly. It's a simple skill, but it'll serve you well out here.",
+      "options": [
+        {
+          "text": "I'll return when I have them.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_quest_complete",
+      "npc_id": "fisher",
+      "text": "Ah, you've got them! Good. Now, watch closely. First, you need to clean them—scrub the shells, make sure they're alive. Then, you can cook them simply: steam them until they open, or add them to a stew with whatever herbs you have. Here, I'll write down a simple recipe for mussel stew. It's not much, but it'll keep you fed and give you a bit of warmth on cold nights.",
+      "options": [
+        {
+          "text": "Thank you. This will be very helpful.",
+          "next_node_id": "END",
+          "rapport_delta": 2,
+          "set_flags": {
+            "fisher_mussel_quest_completed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "fisher_revisit",
+      "npc_id": "fisher",
+      "text": "The Fisher looks up from the water. 'Back again? How's the foraging going?'",
+      "conditions": {
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I'm managing.",
+          "next_node_id": "fisher_chat",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I have the mussels you asked for.",
+          "next_node_id": "fisher_quest_complete",
+          "rapport_delta": 0,
+          "conditions": {
+            "has_items": ["mussel"],
+            "require_flag": "fisher_mussel_quest_started",
+            "require_not_flag": "fisher_mussel_quest_completed"
+          }
+        },
+        {
+          "text": "I found your trap.",
+          "next_node_id": "fisher_trap_return",
+          "rapport_delta": 0,
+          "conditions": {
+            "has_items": ["broken_trap"],
+            "require_flag": "fisher_trap_quest_started",
+            "require_not_flag": "fisher_trap_quest_completed"
+          }
+        },
+        {
+          "text": "Just passing through.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_chat",
+      "npc_id": "fisher",
+      "text": "The creek's been good to me. The mussels are reliable, even when other food is scarce. Creek Darters are quick but worth the effort, and if you're patient, you might catch a Stoneback Trout in the deeper pools—that's a real prize. Though I've noticed the deeper pools and caves feel... strange lately. Something's off down there. But the surface waters are still safe enough, if you know what you're doing.",
+      "options": [
+        {
+          "text": "I'll be careful.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "What do you mean, strange?",
+          "next_node_id": "fisher_caves",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_stability_reaction",
+      "npc_id": "fisher",
+      "text": "The creek's been steadier lately. The currents flow more predictably, and the mussels are easier to find. I don't know what you've been doing, but the water feels... calmer. More stable. It's a good change.",
+      "conditions": {
+        "require_flag": "fisher_met",
+        "runestone_progress": "some"
+      },
+      "options": [
+        {
+          "text": "I've been mending the runestones.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I'm glad it's helping.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_caves",
+      "npc_id": "fisher",
+      "text": "The currents feel wrong. The water doesn't flow the way it should. It's like something's disrupting the natural flow, making the deeper pools restless. I stay away from the caves now—too risky. But the surface waters are still fine, as long as you're careful.",
+      "options": [
+        {
+          "text": "I'll keep that in mind.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_mussel_mastery",
+      "npc_id": "fisher",
+      "text": "You've learned the basics. Now let me show you a better technique—how to shuck them more efficiently, how to find the best spots. It'll help you gather more mussels from each visit. Practice this, and you'll get better yields for a few days.",
+      "conditions": {
+        "require_flag": "fisher_mussel_quest_completed",
+        "require_not_flag": "fisher_mussel_mastery_learned"
+      },
+      "options": [
+        {
+          "text": "Thank you. I'll practice this.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "fisher_mussel_mastery_learned": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "fisher_trap_quest",
+      "npc_id": "fisher",
+      "text": "I had a fish trap—simple thing, but useful. It got washed downstream during the last heavy rain. If you find it, I'd appreciate it back. It should be near one of the water landmarks—maybe Old Creek Bend or further downstream. In return, I can share a simple survival recipe or show you how to make a basic tool.",
+      "conditions": {
+        "require_flag": "fisher_met",
+        "require_not_flag": "fisher_trap_quest_started"
+      },
+      "options": [
+        {
+          "text": "I'll look for it.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "fisher_trap_quest_started": true
+          }
+        },
+        {
+          "text": "What does it look like?",
+          "next_node_id": "fisher_trap_description",
+          "rapport_delta": 0,
+          "set_flags": {
+            "fisher_trap_quest_started": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "fisher_trap_description",
+      "npc_id": "fisher",
+      "text": "It's a simple woven trap—sticks and cord, nothing fancy. Should be caught on rocks or branches near the water. If you find it, bring it back. I'll show you how to make one yourself, or share a recipe for better foraging.",
+      "options": [
+        {
+          "text": "I'll look for it.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_trap_return",
+      "npc_id": "fisher",
+      "text": "You found it! Thank you. Here—I'll show you how to make a simple foraging tool. It's not much, but it'll help you gather food more efficiently at creek-side landmarks. Or if you prefer, I can share a recipe for a simple survival meal.",
+      "conditions": {
+        "has_items": ["broken_trap"],
+        "require_flag": "fisher_trap_quest_started",
+        "require_not_flag": "fisher_trap_quest_completed"
+      },
+      "options": [
+        {
+          "text": "Thank you. This will be helpful.",
+          "next_node_id": "END",
+          "rapport_delta": 2,
+          "set_flags": {
+            "fisher_trap_quest_completed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "fisher_race_human",
+      "npc_id": "fisher",
+      "text": "Humans often struggle with water work, but you've been managing well. The creek can be tricky if you don't know its moods.",
+      "conditions": {
+        "require_race": "human",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I'm learning.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_race_wolf_kin",
+      "npc_id": "fisher",
+      "text": "Your sharp senses must help you spot mussels, wolf-kin. Though I imagine the water makes it harder to use your nose.",
+      "conditions": {
+        "require_race": "wolf_kin",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "The water does complicate things.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_race_cow_kin",
+      "npc_id": "fisher",
+      "text": "Your steady approach to foraging is good, cow-kin. The creek rewards patience and careful observation.",
+      "conditions": {
+        "require_race": "cow_kin",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I try to be patient.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_race_elf",
+      "npc_id": "fisher",
+      "text": "You seem to understand the water's flow, elf. The creek responds to those who listen to its rhythms.",
+      "conditions": {
+        "require_race": "elf",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "Water has its own music.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_race_dwarf",
+      "npc_id": "fisher",
+      "text": "Stone and water work together, dwarf. The mussels cling to rocks—your understanding of stone might help you find the best spots.",
+      "conditions": {
+        "require_race": "dwarf",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I'll keep that in mind.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_race_lizard_folk",
+      "npc_id": "fisher",
+      "text": "You're well-suited to water work, lizard-folk. Your scales and webbed hands give you an advantage in the creek.",
+      "conditions": {
+        "require_race": "lizard_folk",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "The water feels natural to me.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_race_deer_kin",
+      "npc_id": "fisher",
+      "text": "Your graceful movements serve you well by the water, deer-kin. The creek rewards those who move carefully along its banks.",
+      "conditions": {
+        "require_race": "deer_kin",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I try to be careful.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_race_fox_kin",
+      "npc_id": "fisher",
+      "text": "Your quick eyes must help you spot mussels, fox-kin. They blend into the rocks, but you seem to find them easily.",
+      "conditions": {
+        "require_race": "fox_kin",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I keep my eyes sharp.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_race_gryphon_folk",
+      "npc_id": "fisher",
+      "text": "Your keen eyes from above must help you spot good fishing spots, gryphon-folk. Though I imagine you prefer the water's edge to diving in.",
+      "conditions": {
+        "require_race": "gryphon_folk",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I prefer to stay dry.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_race_dragonborn",
+      "npc_id": "fisher",
+      "text": "Your draconic heritage gives you an interesting relationship with water, dragonborn. Some dragons are drawn to it, others avoid it entirely.",
+      "conditions": {
+        "require_race": "dragonborn",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I find it peaceful.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    }
+  ]
+}
+

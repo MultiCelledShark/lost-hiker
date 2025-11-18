@@ -1,0 +1,777 @@
+{
+  "nodes": [
+    {
+      "id": "astrin_lost_start",
+      "npc_id": "astrin",
+      "text": "You spot a figure huddled near the water's edge, their satchel overflowing with plant samples. A half-dryad with leaves tangled in her hair looks up, her expression a mix of relief and exhaustion. 'Oh! Another person! I'm Astrin—I'm a herbalist, but I'm... I'm lost. I was collecting samples and got turned around. The forest paths keep shifting, and I can't find my way back to safety. Do you know where the Glade is? I heard it's a safe place, but I can't seem to find it.'",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "missing"
+        }
+      },
+      "options": [
+        {
+          "text": "I can help you get to the Glade.",
+          "next_node_id": "astrin_rescue",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I know where it is. Follow me.",
+          "next_node_id": "astrin_rescue",
+          "rapport_delta": 1
+        },
+        {
+          "text": "Are you okay?",
+          "next_node_id": "astrin_condition",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_condition",
+      "npc_id": "astrin",
+      "text": "I'm... I'm tired, and hungry, and I've been wandering for days. I'm not much of a survivalist—I know plants, not wilderness. I just need to get somewhere safe where I can rest and organize my samples. The Glade is supposed to be safe, right?",
+      "options": [
+        {
+          "text": "Yes, it's safe. I'll help you get there.",
+          "next_node_id": "astrin_rescue",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I'll guide you.",
+          "next_node_id": "astrin_rescue",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "astrin_rescue",
+      "npc_id": "astrin",
+      "text": "Oh, thank you! I'm so relieved. I've been carrying all these samples, and I'm exhausted. If you can help me get to the Glade, I can set up a proper workspace there. I can brew teas, identify herbs, help you with whatever you need. I just need somewhere safe to work.",
+      "options": [
+        {
+          "text": "Let's go.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "astrin_status": "found"
+          }
+        }
+      ]
+    },
+    {
+      "id": "astrin_glade_start_elf",
+      "npc_id": "astrin",
+      "text": "Astrin looks up from organizing her samples, a small workspace set up near the charred tree. 'Oh — one of you. Let's see if you actually listen when the trees speak.' She smiles slightly. 'Thank you for helping me get here. I've set up a small workspace, and I'm finally able to organize my samples properly. Is there anything I can help you with? I can brew teas from herbs you bring me, or identify plants you've found.'",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        },
+        "require_race": ["elf"]
+      },
+      "options": [
+        {
+          "text": "Can you brew teas for me?",
+          "next_node_id": "astrin_brewing",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can you identify herbs?",
+          "next_node_id": "astrin_identification",
+          "rapport_delta": 0
+        },
+        {
+          "text": "How are you settling in?",
+          "next_node_id": "astrin_settling",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_glade_start_dwarf",
+      "npc_id": "astrin",
+      "text": "Astrin looks up from organizing her samples, a small workspace set up near the charred tree. 'Don't scowl. Plants like you more than you think.' She smiles warmly. 'Thank you for helping me get here. I've set up a small workspace, and I'm finally able to organize my samples properly. Is there anything I can help you with? I can brew teas from herbs you bring me, or identify plants you've found.'",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        },
+        "require_race": ["dwarf"]
+      },
+      "options": [
+        {
+          "text": "Can you brew teas for me?",
+          "next_node_id": "astrin_brewing",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can you identify herbs?",
+          "next_node_id": "astrin_identification",
+          "rapport_delta": 0
+        },
+        {
+          "text": "How are you settling in?",
+          "next_node_id": "astrin_settling",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_glade_start_lizard",
+      "npc_id": "astrin",
+      "text": "Astrin looks up from organizing her samples, a small workspace set up near the charred tree. 'Cold hands. I'll warm your tea.' She gestures to a small kettle. 'Thank you for helping me get here. I've set up a small workspace, and I'm finally able to organize my samples properly. Is there anything I can help you with? I can brew teas from herbs you bring me, or identify plants you've found.'",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        },
+        "require_race": ["lizard_folk"]
+      },
+      "options": [
+        {
+          "text": "Can you brew teas for me?",
+          "next_node_id": "astrin_brewing",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can you identify herbs?",
+          "next_node_id": "astrin_identification",
+          "rapport_delta": 0
+        },
+        {
+          "text": "How are you settling in?",
+          "next_node_id": "astrin_settling",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_glade_start_deer",
+      "npc_id": "astrin",
+      "text": "Astrin looks up from organizing her samples, a small workspace set up near the charred tree. 'Your steps are gentle. Stay a moment — I like that.' She smiles. 'Thank you for helping me get here. I've set up a small workspace, and I'm finally able to organize my samples properly. Is there anything I can help you with? I can brew teas from herbs you bring me, or identify plants you've found.'",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        },
+        "require_race": ["deer_kin"]
+      },
+      "options": [
+        {
+          "text": "Can you brew teas for me?",
+          "next_node_id": "astrin_brewing",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can you identify herbs?",
+          "next_node_id": "astrin_identification",
+          "rapport_delta": 0
+        },
+        {
+          "text": "How are you settling in?",
+          "next_node_id": "astrin_settling",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_glade_start_fox",
+      "npc_id": "astrin",
+      "text": "Astrin looks up from organizing her samples, a small workspace set up near the charred tree. 'If you steal my herbs, I will know.' Her tone is teasing but firm. 'Thank you for helping me get here. I've set up a small workspace, and I'm finally able to organize my samples properly. Is there anything I can help you with? I can brew teas from herbs you bring me, or identify plants you've found.'",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        },
+        "require_race": ["fox_kin"]
+      },
+      "options": [
+        {
+          "text": "Can you brew teas for me?",
+          "next_node_id": "astrin_brewing",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can you identify herbs?",
+          "next_node_id": "astrin_identification",
+          "rapport_delta": 0
+        },
+        {
+          "text": "How are you settling in?",
+          "next_node_id": "astrin_settling",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_glade_start_gryphon",
+      "npc_id": "astrin",
+      "text": "Astrin looks up from organizing her samples, a small workspace set up near the charred tree. 'Watch your feathers. My drying racks are delicate.' She gestures to a collection of herbs hanging nearby. 'Thank you for helping me get here. I've set up a small workspace, and I'm finally able to organize my samples properly. Is there anything I can help you with? I can brew teas from herbs you bring me, or identify plants you've found.'",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        },
+        "require_race": ["gryphon_folk"]
+      },
+      "options": [
+        {
+          "text": "Can you brew teas for me?",
+          "next_node_id": "astrin_brewing",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can you identify herbs?",
+          "next_node_id": "astrin_identification",
+          "rapport_delta": 0
+        },
+        {
+          "text": "How are you settling in?",
+          "next_node_id": "astrin_settling",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_glade_start_dragonborn",
+      "npc_id": "astrin",
+      "text": "Astrin looks up from organizing her samples, a small workspace set up near the charred tree. 'Ooh… your aura tastes spicy. Let me test a brew.' She grins. 'Thank you for helping me get here. I've set up a small workspace, and I'm finally able to organize my samples properly. Is there anything I can help you with? I can brew teas from herbs you bring me, or identify plants you've found.'",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        },
+        "require_race": ["dragonborn"]
+      },
+      "options": [
+        {
+          "text": "Can you brew teas for me?",
+          "next_node_id": "astrin_brewing",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can you identify herbs?",
+          "next_node_id": "astrin_identification",
+          "rapport_delta": 0
+        },
+        {
+          "text": "How are you settling in?",
+          "next_node_id": "astrin_settling",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_glade_start",
+      "npc_id": "astrin",
+      "text": "Astrin looks up from organizing her samples, a small workspace set up near the charred tree. 'Oh, hello! Thank you again for helping me get here. I've set up a small workspace, and I'm finally able to organize my samples properly. Is there anything I can help you with? I can brew teas from herbs you bring me, or identify plants you've found.'",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "Can you brew teas for me?",
+          "next_node_id": "astrin_brewing",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can you identify herbs?",
+          "next_node_id": "astrin_identification",
+          "rapport_delta": 0
+        },
+        {
+          "text": "How are you settling in?",
+          "next_node_id": "astrin_settling",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_brewing",
+      "npc_id": "astrin",
+      "text": "Yes! I can brew teas from herbs you bring me. I know several recipes—soothing teas, clarity teas, even a special blend that can help with rapport and understanding. Bring me the herbs, and I'll brew whatever you need. I have a special recipe for a 'Soothe Tea' that can help calm your mind after stressful encounters.",
+      "options": [
+        {
+          "text": "That sounds useful. What herbs do you need?",
+          "next_node_id": "astrin_recipe",
+          "rapport_delta": 0,
+          "set_flags": {
+            "astrin_tea_unlocked": true
+          }
+        },
+        {
+          "text": "I'll bring you some herbs soon.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_brewing_elf",
+      "npc_id": "astrin",
+      "text": "Yes! I can brew teas from herbs you bring me. Fine-tuned for forest ears and hearts. The botanical notes will sing to you—I can tell you'll appreciate the subtleties. Bring me the herbs, and I'll brew whatever you need.",
+      "conditions": {
+        "require_race": "elf"
+      },
+      "options": [
+        {
+          "text": "That sounds useful. What herbs do you need?",
+          "next_node_id": "astrin_recipe",
+          "rapport_delta": 0,
+          "set_flags": {
+            "astrin_tea_unlocked": true
+          }
+        },
+        {
+          "text": "I'll bring you some herbs soon.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_brewing_dwarf",
+      "npc_id": "astrin",
+      "text": "Yes! I can brew teas from herbs you bring me. Grounding, isn't it? The earthy blends will settle deep in your bones. Don't scowl—plants like you more than you think. Bring me the herbs, and I'll brew whatever you need.",
+      "conditions": {
+        "require_race": "dwarf"
+      },
+      "options": [
+        {
+          "text": "That sounds useful. What herbs do you need?",
+          "next_node_id": "astrin_recipe",
+          "rapport_delta": 0,
+          "set_flags": {
+            "astrin_tea_unlocked": true
+          }
+        },
+        {
+          "text": "I'll bring you some herbs soon.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_brewing_dragonborn",
+      "npc_id": "astrin",
+      "text": "Yes! I can brew teas from herbs you bring me. Ooh… your aura tastes spicy. This one plays nicely with your inner fire. Let me test a brew that resonates with that draconic warmth. Bring me the herbs, and I'll brew whatever you need.",
+      "conditions": {
+        "require_race": "dragonborn"
+      },
+      "options": [
+        {
+          "text": "That sounds useful. What herbs do you need?",
+          "next_node_id": "astrin_recipe",
+          "rapport_delta": 0,
+          "set_flags": {
+            "astrin_tea_unlocked": true
+          }
+        },
+        {
+          "text": "I'll bring you some herbs soon.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_brewing_lizard_folk",
+      "npc_id": "astrin",
+      "text": "Yes! I can brew teas from herbs you bring me. Cold hands. I'll warm your tea—the heat will seep into those scales nicely. Bring me the herbs, and I'll brew whatever you need.",
+      "conditions": {
+        "require_race": "lizard_folk"
+      },
+      "options": [
+        {
+          "text": "That sounds useful. What herbs do you need?",
+          "next_node_id": "astrin_recipe",
+          "rapport_delta": 0,
+          "set_flags": {
+            "astrin_tea_unlocked": true
+          }
+        },
+        {
+          "text": "I'll bring you some herbs soon.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_recipe",
+      "npc_id": "astrin",
+      "text": "For the Soothe Tea, I need any calming herb—mint works well, or chamomile if you can find it. Brew it with fresh water, and it'll help ease your mind. I can also make a Rapport Tea if you bring me the right combination—it helps with understanding and connection. Just bring me the herbs when you have them, and I'll brew it for you.",
+      "options": [
+        {
+          "text": "Thank you. I'll bring you the herbs.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "astrin_identification",
+      "npc_id": "astrin",
+      "text": "Of course! I can identify most common herbs and plants. Just show me what you've found, and I'll tell you what it is and what it's good for. I'm particularly good with forest herbs—I've been studying them for years. I'm especially interested in rare finds like Heartmore Shoots, Dreammilk Moss, Glow-Tail Larva, Starlace Fungus, and Veilgrass Tufts—they're incredibly valuable for advanced tea brewing.",
+      "options": [
+        {
+          "text": "I'll bring you some samples.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "What herbs should I look for?",
+          "next_node_id": "astrin_herb_advice",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_herb_advice",
+      "npc_id": "astrin",
+      "text": "Look for mint near water sources—it's great for calming teas. Dream Fern grows in shaded areas and is useful for meditation and runestone work. Bramble Root can be found near thickets and is good for tool maintenance. And keep an eye out for any unusual plants—the forest is full of surprises, especially with the runestones being repaired. If you find Heartmore Shoots, Dreammilk Moss, Glow-Tail Larva, Starlace Fungus, or Veilgrass Tufts, bring them to me—they're high-value ingredients for my most potent teas.",
+      "options": [
+        {
+          "text": "I'll keep that in mind.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_settling",
+      "npc_id": "astrin",
+      "text": "I'm doing much better now, thank you. The Glade is safe, and I can finally work properly. I've noticed the forest feels different since you've been mending the runestones—the plants are responding, growing more predictably. It's fascinating to observe. I'm glad I can be here to help.",
+      "options": [
+        {
+          "text": "I'm glad you're safe.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "The forest is changing?",
+          "next_node_id": "astrin_forest_changes",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_forest_changes",
+      "npc_id": "astrin",
+      "text": "Yes. The plants are responding to the stabilized ley-lines. Herbs are growing in more predictable cycles, and the forest's natural rhythms are returning. It's a good sign—it means your work is making a real difference. The forest remembers itself more clearly now.",
+      "options": [
+        {
+          "text": "That's good to hear.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_revisit",
+      "npc_id": "astrin",
+      "text": "Astrin looks up from her work. 'Hello again! Is there anything I can help you with today?'",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I need some tea brewed.",
+          "next_node_id": "astrin_brewing",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can you identify this plant?",
+          "next_node_id": "astrin_identification",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Just checking in.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_act1_complete",
+      "npc_id": "astrin",
+      "text": "The forest feels so much calmer now. The magical 'buzz' that used to interfere with my tea brewing has settled. I can work more precisely, and my teas are coming out better. The stabilized ley-lines make everything feel more... harmonious. It's wonderful.",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        },
+        "runestone_progress": "act1_complete"
+      },
+      "options": [
+        {
+          "text": "I'm glad it's helping your work.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "The forest is healing.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "astrin_herb_identification",
+      "npc_id": "astrin",
+      "text": "Let me take a look at that. Yes, I can identify it for you. This is [herb name], and it's useful for [purpose]. I can help you understand what herbs you've found and how to use them. Just bring me any unidentified plants, and I'll tell you what they are.",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "Thank you. That's helpful.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_request_quest",
+      "npc_id": "astrin",
+      "text": "I'm working on a special tea blend—something that can help with rest and comfort. If you could bring me three glow-dust units and two calming herbs—mint works well—I can share the recipe with you. It's called Dreamleaf Tea, and it makes resting at the Glade feel more restorative.",
+      "conditions": {
+        "require_state": {
+          "astrin_status": "at_glade"
+        },
+        "require_not_flag": "astrin_request_quest_started"
+      },
+      "options": [
+        {
+          "text": "I'll gather those for you.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "astrin_request_quest_started": true
+          }
+        },
+        {
+          "text": "What will this tea do?",
+          "next_node_id": "astrin_request_explanation",
+          "rapport_delta": 0,
+          "set_flags": {
+            "astrin_request_quest_started": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "astrin_request_explanation",
+      "npc_id": "astrin",
+      "text": "Dreamleaf Tea helps you rest more deeply. When you drink it before resting at the Glade, it brings a sense of comfort and safety. It's particularly nice when you're tired or stressed. The Glade feels more like home when you've had a good cup of Dreamleaf Tea.",
+      "options": [
+        {
+          "text": "I'll gather the ingredients.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "astrin_request_complete",
+      "npc_id": "astrin",
+      "text": "Perfect! Here's the recipe for Dreamleaf Tea. Brew it with glow-dust and mint, and drink it before you rest at the Glade. It'll help you sleep more deeply and wake up feeling more refreshed. The Glade is already a safe place, but this tea makes it feel even more like home.",
+      "conditions": {
+        "has_items": {"glow_dust": 3, "mint": 2},
+        "require_flag": "astrin_request_quest_started",
+        "require_not_flag": "astrin_request_quest_completed"
+      },
+      "options": [
+        {
+          "text": "Thank you. This will be very helpful.",
+          "next_node_id": "END",
+          "rapport_delta": 2,
+          "set_flags": {
+            "astrin_request_quest_completed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "astrin_race_human",
+      "npc_id": "astrin",
+      "text": "You know, for someone without any natural connection to plants, you've been very helpful. Most humans I've met don't pay much attention to the forest's smaller details.",
+      "conditions": {
+        "require_race": "human",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I try to pay attention.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_race_wolf_kin",
+      "npc_id": "astrin",
+      "text": "Your keen sense of smell must help you find herbs, wolf-kin. I've noticed you seem to locate patches I might have missed.",
+      "conditions": {
+        "require_race": "wolf_kin",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "My nose does help.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_race_cow_kin",
+      "npc_id": "astrin",
+      "text": "I appreciate your steady presence, cow-kin. The Glade feels more peaceful with you around. It helps my plants grow better.",
+      "conditions": {
+        "require_race": "cow_kin",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I'm glad I can help.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_race_elf",
+      "npc_id": "astrin",
+      "text": "You understand the forest's rhythms better than most, elf. I can see it in how you move through the undergrowth—you never disturb the plants unnecessarily.",
+      "conditions": {
+        "require_race": "elf",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "The forest deserves respect.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_race_dwarf",
+      "npc_id": "astrin",
+      "text": "Your connection to stone is interesting, dwarf. Some of the best herbs grow near rocky outcroppings—perhaps you could help me find new patches.",
+      "conditions": {
+        "require_race": "dwarf",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I'd be happy to help.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_race_lizard_folk",
+      "npc_id": "astrin",
+      "text": "Your scales must make you sensitive to temperature changes, lizard-folk. That's useful for knowing when certain herbs are ready to harvest.",
+      "conditions": {
+        "require_race": "lizard_folk",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I do notice temperature shifts.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_race_deer_kin",
+      "npc_id": "astrin",
+      "text": "Your graceful movements through the forest are a pleasure to watch, deer-kin. You seem to know instinctively where to step to avoid crushing delicate plants.",
+      "conditions": {
+        "require_race": "deer_kin",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I try to be careful.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_race_fox_kin",
+      "npc_id": "astrin",
+      "text": "You're quick to spot things others miss, fox-kin. I've noticed you find herbs in places I wouldn't have thought to look.",
+      "conditions": {
+        "require_race": "fox_kin",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I keep my eyes open.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_race_gryphon_folk",
+      "npc_id": "astrin",
+      "text": "Your keen eyes must help you spot herbs from above, gryphon-folk. Though I suppose you're usually on the ground when foraging.",
+      "conditions": {
+        "require_race": "gryphon_folk",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "My eyes help either way.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_race_dragonborn",
+      "npc_id": "astrin",
+      "text": "There's something ancient about your presence, dragonborn. The plants seem to respond to it—some of my teas have been more potent since you've been here.",
+      "conditions": {
+        "require_race": "dragonborn",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I'm glad it helps.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    }
+  ]
+}
+

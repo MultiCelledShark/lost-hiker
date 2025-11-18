@@ -1,20 +1,20 @@
 {
   "schema_version": 5,
-  "day": 2,
+  "day": 1,
   "current_season": "spring",
-  "day_in_season": 2,
+  "day_in_season": 1,
   "season_index": 0,
   "season_day": 0,
   "stage": "camp",
-  "active_zone": "forest",
+  "active_zone": "glade",
   "character": {
-    "name": "Jeb",
-    "race_id": "wolfkin",
+    "name": "Rhew",
+    "race_id": "dragonborn",
     "tags": [
       "biped",
-      "clawed",
-      "furred",
-      "keen-smell"
+      "scaled",
+      "draconic",
+      "magic-touched"
     ],
     "base_stats": {
       "stamina_max": 4.0,
@@ -27,58 +27,31 @@
     "race_modifiers": [
       {
         "add": {
-          "stamina_max": 5,
+          "stamina_max": 4,
           "inventory_slots": 10
-        }
-      },
-      {
-        "add": {
-          "tame_bonus_wolf": 1
-        }
-      },
-      {
-        "mul": {
-          "cold_penalty": 0.5
         }
       }
     ],
     "permanent_modifiers": []
   },
-  "stamina": 1.0,
+  "stamina": 6.4,
   "inventory": [
     "water_bottle",
-    "edible_mushroom",
     "forest_berries",
-    "trail_nuts",
-    "trail_nuts",
-    "trail_nuts",
-    "edible_mushroom",
-    "edible_mushroom",
-    "dried berries",
-    "birch tinder",
-    "edible_mushroom",
-    "edible_mushroom"
+    "forest_berries"
   ],
-  "days_without_meal": 0,
+  "days_without_meal": 1,
   "ate_snack_today": false,
-  "water_drinks_today": 1,
+  "water_drinks_today": 0,
   "rest_type": "camp",
   "rapport": {
-    "echo": 2,
-    "red_wolf": 1
+    "echo": 2
   },
   "timed_modifiers": [],
-  "recent_events": [
-    "forest_noise",
-    "stream_crossing",
-    "mushroom_patch"
-  ],
-  "zone_steps": {
-    "forest": 13
-  },
+  "recent_events": [],
+  "zone_steps": {},
   "zone_depths": {
-    "charred_tree_interior": 0,
-    "forest": 13
+    "charred_tree_interior": 0
   },
   "vore_enabled": true,
   "player_as_pred_enabled": false,
@@ -93,9 +66,16 @@
   "landmark_stability": {},
   "runestone_states": {},
   "steps_since_forage": 0,
+  "forest_act1": {
+    "runestones_total": 3,
+    "runestones_repaired": 0,
+    "first_repair_done": false,
+    "completed": false,
+    "completion_acknowledged": false
+  },
   "act1_quest_stage": 0,
   "act1_repaired_runestones": 0,
-  "act1_total_runestones": 0,
+  "act1_total_runestones": 3,
   "act1_forest_stabilized": false,
   "kirin_interest_level": 0,
   "kirin_known": false,
@@ -104,14 +84,24 @@
   "kirin_travel_mode_unlocked": [],
   "kirin_last_travel_day": null,
   "wayfinding_ready": false,
-  "npc_flags": {},
+  "npc_flags": {
+    "echo": {
+      "echo_radio_connection_hint_shown": true
+    }
+  },
+  "npc_state": {
+    "echo_race_greeting_shown": true
+  },
   "echo_present_at_glade": true,
-  "echo_radio_connection_hint_shown": false,
+  "echo_radio_connection_hint_shown": true,
   "echo_last_pet_day": 1,
   "echo_vore_tension": 0.0,
   "echo_last_vore_tension_day": null,
   "belly_state": null,
   "condition": 0,
   "time_of_day": "Dawn",
-  "is_sheltered": false
+  "is_sheltered": false,
+  "flags": {},
+  "lost_bag_predator_id": null,
+  "lost_bag_den_location_id": null
 }

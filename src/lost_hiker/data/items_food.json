@@ -70,6 +70,141 @@
     "type": "tea",
     "short_description": "A rare tea that lets paths fold together",
     "long_description": "A warm, fragrant tea brewed from dream fern and mooncap mushroom. Drinking it grants a fleeting sense of the forest's deeper connections—the paths you've walked most often feel closer, more accessible. For a brief time, the lines between here and there seem to blur, allowing one short leap to a familiar place."
+  },
+  "creek_darter": {
+    "name": "Creek Darter",
+    "type": "snack",
+    "short_description": "A small, fast fish",
+    "long_description": "A small, silvery fish caught from shallow creeks and side-pools. Quick and delicate, it provides a modest meal when cooked. The scales are delicate and might be useful for crafting.",
+    "food_value": 1,
+    "safe_raw": false,
+    "tags": ["fish", "aquatic", "crafting_scale"]
+  },
+  "stoneback_trout": {
+    "name": "Stoneback Trout",
+    "type": "meal",
+    "short_description": "A larger river fish",
+    "long_description": "A substantial fish with mottled gray scales that blend with river stones. Found in deeper pools, it provides a hearty meal when cooked. A prime catch for any fisherman.",
+    "food_value": 2,
+    "safe_raw": false,
+    "tags": ["fish", "aquatic"]
+  },
+  "silt_crab": {
+    "name": "Silt Crab",
+    "type": "snack",
+    "short_description": "A small crab from muddy banks",
+    "long_description": "A small crab found in muddy creek banks. Its meat is modest but filling, and the chitin shell can be used for crafting. Best cooked to avoid any risk.",
+    "food_value": 1,
+    "safe_raw": false,
+    "tags": ["crustacean", "aquatic", "crafting_chitin"]
+  },
+  "barkgrub": {
+    "name": "Barkgrub",
+    "type": "snack",
+    "short_description": "A larva from rotting logs",
+    "long_description": "A pale larva found in rotting logs and stumps. Low-value but reliable food. Better cooked than raw—it's more palatable and safer that way.",
+    "food_value": 1,
+    "safe_raw": true,
+    "tags": ["insect", "grub"]
+  },
+  "glow_tail_larva": {
+    "name": "Glow-Tail Larva",
+    "type": "snack",
+    "short_description": "A faintly luminous larva",
+    "long_description": "The larval form of Glow-Moths, this creature emits a faint, ethereal light. Poor food value, but highly prized by herbalists and druids for its magical properties in tea brewing and rituals.",
+    "food_value": 0,
+    "safe_raw": true,
+    "tags": ["insect", "larva", "herb_tea", "magical"]
+  },
+  "moss_eater_beetle": {
+    "name": "Moss-Eater Beetle",
+    "type": "snack",
+    "short_description": "A slow beetle near mossy logs",
+    "long_description": "A slow-moving beetle found near mossy logs and boulders. Provides a modest meal and yields a sticky moss resin that can be used in crafting.",
+    "food_value": 1,
+    "safe_raw": true,
+    "tags": ["insect", "beetle", "crafting_resin"]
+  },
+  "tangle_mice": {
+    "name": "Tangle-Mice",
+    "type": "snack",
+    "short_description": "Small mice with vine-like tails",
+    "long_description": "Small mice with distinctive vine-like tails, found near dense underbrush. Caught in small groups, each provides a modest meal. Their tanglefiber tails can be used for basic snares.",
+    "food_value": 1,
+    "safe_raw": false,
+    "tags": ["mammal", "crafting_fiber"]
+  },
+  "burrow_puff_spores": {
+    "name": "Burrow-Puff Spores",
+    "type": "herb",
+    "short_description": "Puffball fungi spores",
+    "long_description": "Spores from puffball fungi found near cave-mouths and rotting logs. Raw consumption causes mild nausea, but when cooked or processed, they make excellent calming teas that reduce aggression. Valued by druids for their medicinal properties.",
+    "food_value": 0,
+    "safe_raw": false,
+    "tags": ["fungus", "spore", "herb_calming", "cave"]
+  },
+  "ember_root_bulb": {
+    "name": "Ember-Root Bulb",
+    "type": "herb",
+    "short_description": "A warm, glowing root bulb",
+    "long_description": "A warm, glowing root bulb found near ley-line fractures. Used for stamina and heat teas, and essential in runestone repair mixes. The warmth it radiates suggests deep magical properties.",
+    "food_value": 0,
+    "safe_raw": true,
+    "tags": ["root", "herb_stamina_boost", "runestone_mix", "magical"]
+  },
+  "wisp_petal_blossom": {
+    "name": "Wisp-Petal Blossom",
+    "type": "herb",
+    "short_description": "Tiny shimmering petals",
+    "long_description": "Tiny, shimmering petals found where wisps gather at night. Used to boost Forest Memory and clarity teas. The Naiad and Astrin both value these delicate blossoms for their connection to water and memory.",
+    "food_value": 0,
+    "safe_raw": true,
+    "tags": ["flower", "herb_nav_clarity", "magical", "mystical"]
+  },
+  "dreammilk_moss": {
+    "name": "Dreammilk Moss",
+    "type": "herb",
+    "short_description": "Pale glowing moss",
+    "long_description": "Pale, glowing moss found on logs and stone. When boiled, it creates a soothing sleep and recovery tea. Raw consumption causes mild sleepiness. Highly valued by Astrin for its restorative properties.",
+    "food_value": 0,
+    "safe_raw": false,
+    "tags": ["moss", "herb_calming", "herb_recovery", "magical"]
+  },
+  "heartmore_shoot": {
+    "name": "Heartmore Shoot",
+    "type": "herb",
+    "short_description": "A rare red-tipped shoot",
+    "long_description": "A rare red-tipped shoot that boosts stamina recovery. High-tier herb prized by Astrin. Sometimes found near runestones, suggesting a connection to the forest's magical pulse.",
+    "food_value": 0,
+    "safe_raw": true,
+    "tags": ["shoot", "herb_stamina_boost", "rare", "magical"]
+  },
+  "starlace_fungus": {
+    "name": "Starlace Fungus",
+    "type": "herb",
+    "short_description": "Small fungi that appear only at night",
+    "long_description": "Small fungi that appear only at night under clear skies. Used for navigation clarity teas. The Druid's night rituals can mention and consume them, as they seem to resonate with the forest's deeper rhythms.",
+    "food_value": 0,
+    "safe_raw": true,
+    "tags": ["fungus", "herb_nav_clarity", "night_only", "magical"]
+  },
+  "veilgrass_tuft": {
+    "name": "Veilgrass Tuft",
+    "type": "herb",
+    "short_description": "Soft gray grass near mystical landmarks",
+    "long_description": "Soft gray grass found near mystical landmarks. When burned as incense or used in calming teas and rituals, it creates a 'forest hush' effect. Valued by Astrin and those who seek peace in the forest's deeper places.",
+    "food_value": 0,
+    "safe_raw": true,
+    "tags": ["grass", "herb_calming", "mystical", "incense"]
+  },
+  "glow_sap_resin_nodule": {
+    "name": "Glow-Sap Resin Nodule",
+    "type": "crafting",
+    "short_description": "Sap nodules from mystical trees",
+    "long_description": "Sap nodules found on trees frequented by Glow-Elk and other mystical fauna. Used for early snare and trap crafting, and essential in runestone cement mixes. Burns bright when needed as a light source.",
+    "food_value": 0,
+    "safe_raw": true,
+    "tags": ["resin", "runestone_mix", "crafting", "light_source", "magical"]
   }
 }
 

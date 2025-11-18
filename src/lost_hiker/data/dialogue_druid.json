@@ -1,0 +1,357 @@
+{
+  "nodes": [
+    {
+      "id": "druid_start",
+      "npc_id": "druid",
+      "text": "A figure in earth-toned robes looks up from examining a cluster of mushrooms, their expression troubled. 'You there. Have you noticed the Shroomlings? They shouldn't be here—not on the surface. They're cave fungi, meant to stay underground year-round. Something's wrong.'",
+      "conditions": {
+        "require_not_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "What are Shroomlings?",
+          "next_node_id": "druid_shroomling_explanation",
+          "rapport_delta": 0,
+          "set_flags": {
+            "druid_met": true
+          }
+        },
+        {
+          "text": "I've seen them. What does it mean?",
+          "next_node_id": "druid_disturbance",
+          "rapport_delta": 1,
+          "set_flags": {
+            "druid_met": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "druid_shroomling_explanation",
+      "npc_id": "druid",
+      "text": "Shroomlings are cave-dwelling fungi—small, spore-producing creatures that live in the underground caverns. They're sensitive to light and surface conditions, so they stay in the caves where it's dark and damp. For them to be appearing on the surface means the caves are disturbed, or something is driving them out. It's not natural.",
+      "options": [
+        {
+          "text": "What's causing this?",
+          "next_node_id": "druid_disturbance",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can I help?",
+          "next_node_id": "druid_quest",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "druid_disturbance",
+      "npc_id": "druid",
+      "text": "The fractured runestones are part of it—they're disrupting the ley-lines, and that disruption reaches even into the caves. The Shroomlings rising to the surface is a bad sign—it means the caves are disturbed, or something is driving them out. But there's something else, something deeper. The caves themselves feel wrong. Still, mending the runestones will help stabilize things. And if you can help me understand what's happening with the Shroomlings, I might be able to help you in return.",
+      "options": [
+        {
+          "text": "How can I help?",
+          "next_node_id": "druid_quest",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I'll keep that in mind.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_quest",
+      "npc_id": "druid",
+      "text": "If you can bring me a spore puff from one of the Shroomlings and a chaga mushroom, I can study them and learn what's driving them to the surface. In return, I'll share a tea recipe that can help with clarity and focus—useful for mending runestones and navigating the forest's distortions. I'm also interested in Burrow-Puff Spores, Starlace Fungus, Glow-Sap Resin, and Dreammilk Moss—they're valuable for my rituals and studies.",
+      "options": [
+        {
+          "text": "I'll gather those for you.",
+          "next_node_id": "druid_quest_started",
+          "rapport_delta": 1,
+          "set_flags": {
+            "druid_shroomling_quest_started": true
+          }
+        },
+        {
+          "text": "I'll think about it.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_quest_started",
+      "npc_id": "druid",
+      "text": "Good. Bring me a spore puff and a chaga mushroom, and I'll share what I learn. You can find spore puffs near Shroomlings, and chaga grows on birch trees. When you have both, come back and we'll trade.",
+      "options": [
+        {
+          "text": "I'll return when I have them.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_quest_complete",
+      "npc_id": "druid",
+      "text": "Ah, you have them! Let me examine these... Yes, I see it now. The spores are agitated, and the chaga shows signs of ley-line disruption. Here—this tea recipe should help. Brew it with focus, and it will sharpen your mind, help you see through the forest's distortions. It's particularly useful when working with runestones.",
+      "options": [
+        {
+          "text": "Thank you. This will be helpful.",
+          "next_node_id": "END",
+          "rapport_delta": 2,
+          "set_flags": {
+            "druid_shroomling_quest_completed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "druid_revisit",
+      "npc_id": "druid",
+      "text": "The Druid looks up from their work. 'Back again? How goes your work with the runestones?'",
+      "conditions": {
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "I'm making progress.",
+          "next_node_id": "druid_chat",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I have the items you asked for.",
+          "next_node_id": "druid_quest_complete",
+          "rapport_delta": 0,
+          "conditions": {
+            "has_items": ["spore_puff", "chaga_mushroom"],
+            "require_flag": "druid_shroomling_quest_started",
+            "require_not_flag": "druid_shroomling_quest_completed"
+          }
+        },
+        {
+          "text": "Just passing through.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_chat",
+      "npc_id": "druid",
+      "text": "Good. The forest responds to those who help it. Keep mending the stones, and the Shroomlings should return to the caves where they belong. If you need anything else, you know where to find me.",
+      "options": [
+        {
+          "text": "Thank you.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_after_repair",
+      "npc_id": "druid",
+      "text": "I've noticed the Shroomlings are easing back again. Fewer of them on the surface now. The runestones you've mended are making a difference—the ley-lines are stabilizing, and the caves are settling. Good work.",
+      "conditions": {
+        "require_flag": "druid_met",
+        "runestone_progress": "some"
+      },
+      "options": [
+        {
+          "text": "I'm glad it's helping.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I'll keep working on the stones.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_night_ritual",
+      "npc_id": "druid",
+      "text": "The night air is different now—calmer, more stable. The forest's pulse is steadier. Come, sit with me. I'll listen to the forest, and you can too. The ley-lines sing more clearly when the runestones are whole. This might help you remember the paths better. If you have Starlace Fungus, we can use it in the ritual—it only appears at night and resonates with the forest's deeper rhythms.",
+      "conditions": {
+        "require_flag": "druid_met",
+        "runestone_progress": "some",
+        "time_of_day": "Night"
+      },
+      "options": [
+        {
+          "text": "I'll sit with you.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "The forest does feel calmer.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "druid_race_human",
+      "npc_id": "druid",
+      "text": "Humans often struggle to sense the forest's deeper disturbances. But you've been paying attention—that's what matters.",
+      "conditions": {
+        "require_race": "human",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "I try to observe carefully.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_race_wolf_kin",
+      "npc_id": "druid",
+      "text": "Your keen senses must help you notice when something's wrong with the forest, wolf-kin. The Shroomlings' disturbance would be hard to miss for someone with your nose.",
+      "conditions": {
+        "require_race": "wolf_kin",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "I do notice unusual scents.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_race_cow_kin",
+      "npc_id": "druid",
+      "text": "Your steady presence is a comfort, cow-kin. The forest needs beings who understand balance and patience.",
+      "conditions": {
+        "require_race": "cow_kin",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "I try to maintain balance.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_race_elf",
+      "npc_id": "druid",
+      "text": "You feel the forest's pain more keenly than most, elf. The fractured runestones must resonate through you like broken song.",
+      "conditions": {
+        "require_race": "elf",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "It's hard to ignore.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_race_dwarf",
+      "npc_id": "druid",
+      "text": "Your connection to stone gives you insight into the runestones' nature, dwarf. The earth remembers what the surface forgets.",
+      "conditions": {
+        "require_race": "dwarf",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "Stone holds many memories.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_race_lizard_folk",
+      "npc_id": "druid",
+      "text": "Your alertness serves you well, lizard-folk. The forest's disturbances are subtle, but you notice them.",
+      "conditions": {
+        "require_race": "lizard_folk",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "I stay vigilant.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_race_deer_kin",
+      "npc_id": "druid",
+      "text": "Your grace in the forest is a reminder of what it should be, deer-kin. The Shroomlings' presence disrupts that natural harmony.",
+      "conditions": {
+        "require_race": "deer_kin",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "I hope we can restore it.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_race_fox_kin",
+      "npc_id": "druid",
+      "text": "Your quick eyes must catch details others miss, fox-kin. That's valuable when tracking the forest's subtle changes.",
+      "conditions": {
+        "require_race": "fox_kin",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "I try to notice everything.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_race_gryphon_folk",
+      "npc_id": "druid",
+      "text": "Your perspective from above must give you a unique view of the forest's patterns, gryphon-folk. The ley-line disruptions are visible from height.",
+      "conditions": {
+        "require_race": "gryphon_folk",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "The patterns are clearer from above.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_race_dragonborn",
+      "npc_id": "druid",
+      "text": "There's an ancient power in you, dragonborn. The runestones respond to it—perhaps more than they should. Be careful with that connection.",
+      "conditions": {
+        "require_race": "dragonborn",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "I'll be careful.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    }
+  ]
+}
+

@@ -1,28 +1,1493 @@
 {
   "glow_elk": {
     "name": "Glow Elk",
+    "description": "A magnificent mystical elk, its antlers pulsing with bioluminescent light. Its presence fills the air with otherworldly energy, and its eyes hold ancient wisdom.",
+    "type": "predator",
     "tame_threshold": 3,
-    "tags": ["neutral", "forest"],
-    "rewards": { "escort": true, "carry_slots": 5 }
+    "tags": ["neutral", "forest", "mystical", "leyline-tuned"],
+    "rewards": { "escort": true, "carry_slots": 5 },
+    "depth_preferences": {
+      "shallow": 0.1,
+      "mid": 0.3,
+      "deep": 0.4,
+      "mountain_edge": 0.2
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 1.2,
+      "fall": 1.0,
+      "winter": 0.5
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.5,
+      "Day": 1.0,
+      "Dusk": 1.2,
+      "Night": 1.8
+    },
+    "drops": {
+      "food": ["glow_elk_meat"],
+      "crafting": ["glow_dust", "antler_fragment"]
+    },
+    "temperament": "mystical",
+    "has_den": false,
+    "transport_capable": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": true,
+    "size_class": "large",
+    "attack_style": "none",
+    "threat_tier": 1
   },
   "giant_centipede": {
     "name": "Giant Centipede",
+    "description": "A massive multi-legged arthropod with venomous mandibles and a segmented body. Its chitinous plates gleam in the dim forest light, and it moves with unsettling speed.",
+    "type": "predator",
     "tame_threshold": 0,
     "tags": ["hazard", "forest"],
-    "rewards": { "escort": false, "carry_slots": 0 }
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "depth_preferences": {
+      "shallow": 0.2,
+      "mid": 0.4,
+      "deep": 0.3,
+      "cave_mouth": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 0.8,
+      "winter": 0.3
+    },
+    "time_of_day_preferences": {
+      "Dawn": 0.8,
+      "Day": 0.5,
+      "Dusk": 1.0,
+      "Night": 1.5
+    },
+    "drops": {
+      "food": ["centipede_meat"],
+      "crafting": ["chitin_plate", "venom_sac"]
+    },
+    "temperament": "aggressive",
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "medium",
+    "attack_style": "ambush",
+    "threat_tier": 2
   },
   "red_wolf": {
     "name": "Red Wolf",
+    "description": "A lean, russet-furred wolf with intelligent amber eyes. Its movements are fluid and predatory, and it watches you with territorial awareness.",
+    "type": "predator",
     "tame_threshold": 4,
     "tags": ["hostile", "forest"],
     "rewards": { "escort": false, "carry_slots": 0 },
     "can_threaten": true,
-    "threat_style": "pursuit"
+    "threat_style": "pursuit",
+    "depth_preferences": {
+      "shallow": 0.3,
+      "mid": 0.4,
+      "deep": 0.2,
+      "mountain_edge": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 0.8,
+      "fall": 1.2,
+      "winter": 1.3
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 0.7,
+      "Dusk": 1.5,
+      "Night": 1.8
+    },
+    "drops": {
+      "food": ["wolf_meat"],
+      "crafting": ["wolf_fur", "wolf_fang"]
+    },
+    "temperament": "territorial",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "medium",
+    "attack_style": "pounce",
+    "threat_tier": 2
   },
   "mossback_stag": {
     "name": "Mossback Stag",
+    "type": "forageable",
     "tame_threshold": 3,
     "tags": ["neutral", "forest", "shy"],
-    "rewards": { "escort": true, "carry_slots": 3 }
+    "rewards": { "escort": true, "carry_slots": 3 },
+    "depth_preferences": {
+      "shallow": 0.2,
+      "mid": 0.5,
+      "deep": 0.3,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 1.3,
+      "winter": 0.6
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.5,
+      "Day": 1.0,
+      "Dusk": 1.2,
+      "Night": 0.5
+    },
+    "drops": {
+      "food": ["stag_meat"],
+      "crafting": ["stag_hide", "antler_piece"]
+    },
+    "temperament": "skittish"
+  },
+  "squirrel": {
+    "name": "Squirrel",
+    "type": "forageable",
+    "tame_threshold": 2,
+    "tags": ["neutral", "forest", "curious"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "depth_preferences": {
+      "shallow": 0.6,
+      "mid": 0.3,
+      "deep": 0.1,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 1.5,
+      "winter": 0.4
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.5,
+      "Day": 1.2,
+      "Dusk": 1.0,
+      "Night": 0.2
+    },
+    "drops": {
+      "food": ["squirrel_meat"],
+      "crafting": ["squirrel_fur", "squirrel_tail"]
+    },
+    "temperament": "curious"
+  },
+  "rabbit": {
+    "name": "Rabbit",
+    "type": "forageable",
+    "tame_threshold": 2,
+    "tags": ["neutral", "forest", "skittish"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "depth_preferences": {
+      "shallow": 0.5,
+      "mid": 0.4,
+      "deep": 0.1,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.3,
+      "summer": 1.0,
+      "fall": 1.1,
+      "winter": 0.5
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.8,
+      "Day": 1.0,
+      "Dusk": 1.5,
+      "Night": 0.3
+    },
+    "drops": {
+      "food": ["rabbit_meat"],
+      "crafting": ["rabbit_fur", "rabbit_foot"]
+    },
+    "temperament": "skittish"
+  },
+  "forest_grouse": {
+    "name": "Forest Grouse",
+    "type": "forageable",
+    "tame_threshold": 2,
+    "tags": ["neutral", "forest", "skittish"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "depth_preferences": {
+      "shallow": 0.4,
+      "mid": 0.4,
+      "deep": 0.2,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 1.3,
+      "winter": 0.6
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.5,
+      "Day": 1.0,
+      "Dusk": 1.2,
+      "Night": 0.2
+    },
+    "drops": {
+      "food": ["grouse_meat"],
+      "crafting": ["grouse_feathers", "grouse_egg"]
+    },
+    "temperament": "skittish"
+  },
+  "glow_moth_cloud": {
+    "name": "Glow-Moth Cloud",
+    "type": "forageable",
+    "tame_threshold": 0,
+    "tags": ["neutral", "forest", "mystical"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "depth_preferences": {
+      "shallow": 0.3,
+      "mid": 0.4,
+      "deep": 0.2,
+      "mountain_edge": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 1.5,
+      "fall": 0.8,
+      "winter": 0.2
+    },
+    "time_of_day_preferences": {
+      "Dawn": 0.5,
+      "Day": 0.3,
+      "Dusk": 1.0,
+      "Night": 2.0
+    },
+    "drops": {
+      "food": [],
+      "crafting": ["glow_dust", "moth_wing"]
+    },
+    "temperament": "mystical",
+    "near_water": true
+  },
+  "burrow_chanter_shroomling": {
+    "name": "Burrow-Chanter Shroomling",
+    "type": "forageable",
+    "tame_threshold": 0,
+    "tags": ["neutral", "forest", "curious"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "depth_preferences": {
+      "shallow": 0.2,
+      "mid": 0.4,
+      "deep": 0.3,
+      "cave_mouth": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.3,
+      "summer": 1.0,
+      "fall": 1.2,
+      "winter": 0.4
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 0.8,
+      "Dusk": 1.2,
+      "Night": 1.5
+    },
+    "drops": {
+      "food": ["chanter_cap"],
+      "crafting": ["spore_puff", "mycelial_thread"]
+    },
+    "temperament": "curious"
+  },
+  "river_mussels": {
+    "name": "River Mussels",
+    "type": "forageable",
+    "tame_threshold": 0,
+    "tags": ["neutral", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "depth_preferences": {
+      "shallow": 0.5,
+      "mid": 0.4,
+      "deep": 0.1,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 1.1,
+      "winter": 0.3
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 1.0,
+      "Dusk": 1.0,
+      "Night": 1.0
+    },
+    "drops": {
+      "food": ["mussel_flesh"],
+      "crafting": ["nacre_chips", "pearl_fragment"]
+    },
+    "temperament": "neutral",
+    "near_water": true
+  },
+  "coyote": {
+    "name": "Coyote",
+    "description": "A lean, adaptable canid with sharp eyes and a yipping call. It's more opportunistic than truly dangerous, but still a threat when cornered.",
+    "type": "predator",
+    "tame_threshold": 3,
+    "tags": ["hostile", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "pursuit",
+    "depth_preferences": {
+      "shallow": 0.6,
+      "mid": 0.3,
+      "deep": 0.1,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 0.8,
+      "fall": 1.2,
+      "winter": 1.3
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 0.5,
+      "Dusk": 1.8,
+      "Night": 2.0
+    },
+    "drops": {
+      "food": ["coyote_meat"],
+      "crafting": ["coyote_fur", "coyote_fang"]
+    },
+    "temperament": "territorial",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "medium",
+    "attack_style": "pounce",
+    "threat_tier": 1
+  },
+  "red_fox": {
+    "name": "Red Fox",
+    "description": "A clever red-furred fox with a bushy tail and intelligent eyes. It's more curious than aggressive, but territorial when provoked.",
+    "type": "predator",
+    "tame_threshold": 3,
+    "tags": ["hostile", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "pursuit",
+    "depth_preferences": {
+      "shallow": 0.5,
+      "mid": 0.4,
+      "deep": 0.1,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 0.8,
+      "fall": 1.2,
+      "winter": 1.1
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.2,
+      "Day": 0.6,
+      "Dusk": 1.8,
+      "Night": 2.0
+    },
+    "drops": {
+      "food": ["fox_meat"],
+      "crafting": ["fox_fur", "fox_tail"]
+    },
+    "temperament": "territorial",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "small",
+    "attack_style": "pounce",
+    "threat_tier": 1
+  },
+  "timber_wolf": {
+    "name": "Timber Wolf",
+    "description": "A massive wolf with thick bark-colored fur that blends with the forest. Its deep howl echoes through the trees, marking its territory.",
+    "type": "predator",
+    "tame_threshold": 4,
+    "tags": ["hostile", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "pursuit",
+    "depth_preferences": {
+      "shallow": 0.2,
+      "mid": 0.5,
+      "deep": 0.2,
+      "mountain_edge": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 0.7,
+      "fall": 1.3,
+      "winter": 1.5
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 0.8,
+      "Dusk": 1.5,
+      "Night": 1.8
+    },
+    "drops": {
+      "food": ["wolf_meat"],
+      "crafting": ["wolf_fur", "wolf_fang"]
+    },
+    "temperament": "territorial",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "large",
+    "attack_style": "pounce",
+    "threat_tier": 3
+  },
+  "brown_bear": {
+    "name": "Brown Bear",
+    "description": "A massive brown bear with honey-scented fur and powerful claws. It rises on its hind legs when threatened, an imposing sight that commands respect.",
+    "type": "predator",
+    "tame_threshold": 5,
+    "tags": ["hostile", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "charge",
+    "depth_preferences": {
+      "shallow": 0.1,
+      "mid": 0.3,
+      "deep": 0.3,
+      "mountain_edge": 0.3
+    },
+    "season_preferences": {
+      "spring": 1.5,
+      "summer": 1.0,
+      "fall": 1.8,
+      "winter": 0.2
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.5,
+      "Day": 1.0,
+      "Dusk": 1.2,
+      "Night": 0.5
+    },
+    "drops": {
+      "food": ["bear_meat"],
+      "crafting": ["bear_fur", "bear_claw"]
+    },
+    "temperament": "territorial",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "huge",
+    "attack_style": "charge",
+    "threat_tier": 3
+  },
+  "moss_treader": {
+    "name": "Moss-Treader",
+    "description": "A mystical deer-like creature whose form seems to shift between solid and ethereal. Moss grows along its back like a living cloak, and its eyes hold ancient wisdom.",
+    "type": "predator",
+    "tame_threshold": 4,
+    "tags": ["neutral", "forest", "mystical", "leyline-tuned"],
+    "rewards": { "escort": true, "carry_slots": 4 },
+    "can_threaten": false,
+    "depth_preferences": {
+      "shallow": 0.1,
+      "mid": 0.3,
+      "deep": 0.4,
+      "mountain_edge": 0.2
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 1.1,
+      "winter": 0.8
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.8,
+      "Day": 1.0,
+      "Dusk": 1.5,
+      "Night": 0.7
+    },
+    "drops": {
+      "food": [],
+      "crafting": ["moss_cloak_fiber", "leyline_resonance_crystal"]
+    },
+    "temperament": "mystical",
+    "transport_capable": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": true,
+    "size_class": "large",
+    "attack_style": "none",
+    "threat_tier": 1
+  },
+  "verdant_broodmother": {
+    "name": "Verdant Broodmother",
+    "description": "A massive verdant serpent with scales that shimmer with otherworldly green light. She coils around fallen giants, and her presence marks the deepest reaches of the forest.",
+    "type": "predator",
+    "tame_threshold": 5,
+    "tags": ["hostile", "forest", "mystical"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "constrict",
+    "depth_preferences": {
+      "shallow": 0.1,
+      "mid": 0.4,
+      "deep": 0.4,
+      "mountain_edge": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.5,
+      "summer": 1.2,
+      "fall": 1.0,
+      "winter": 0.5
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 1.2,
+      "Dusk": 1.0,
+      "Night": 0.8
+    },
+    "drops": {
+      "food": ["broodmother_venison"],
+      "crafting": ["verdant_scale", "serpent_fang"]
+    },
+    "temperament": "territorial",
+    "has_den": false,
+    "transport_capable": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "huge",
+    "attack_style": "constrict",
+    "threat_tier": 4
+  },
+  "cave_lurker_panther": {
+    "name": "Cave-Lurker Panther",
+    "description": "A sleek black panther that haunts the edges of caves and deep shadows. Its eyes glow in the dim light, and it moves with deadly silence.",
+    "type": "predator",
+    "tame_threshold": 5,
+    "tags": ["hostile", "forest", "cave-mouth"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "ambush",
+    "depth_preferences": {
+      "shallow": 0.0,
+      "mid": 0.2,
+      "deep": 0.3,
+      "cave_mouth": 0.5
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 0.9,
+      "fall": 1.1,
+      "winter": 1.0
+    },
+    "time_of_day_preferences": {
+      "Dawn": 0.3,
+      "Day": 0.2,
+      "Dusk": 1.0,
+      "Night": 2.5
+    },
+    "drops": {
+      "food": ["panther_meat"],
+      "crafting": ["panther_fur", "panther_fang"]
+    },
+    "temperament": "territorial",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "large",
+    "attack_style": "ambush",
+    "threat_tier": 3
+  },
+  "will_o_wisp": {
+    "name": "Will-o'-Wisp",
+    "description": "Pale, dancing lights that pulse with the forest's deeper rhythms. These mysterious anomalies seem drawn to places where magic flows true.",
+    "type": "anomaly",
+    "tame_threshold": 0,
+    "tags": ["neutral", "forest", "mystical", "anomaly"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": false,
+    "depth_preferences": {
+      "shallow": 0.0,
+      "mid": 0.0,
+      "deep": 0.0,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 1.0,
+      "fall": 1.0,
+      "winter": 1.0
+    },
+    "time_of_day_preferences": {
+      "Dawn": 0.0,
+      "Day": 0.0,
+      "Dusk": 0.5,
+      "Night": 2.0
+    },
+    "drops": {
+      "food": [],
+      "crafting": []
+    },
+    "temperament": "mystical",
+    "can_swallow_player": false,
+    "is_friendly_belly": false,
+    "size_class": "small",
+    "attack_style": "none",
+    "threat_tier": 1
+  },
+  "forest_lynx": {
+    "name": "Forest Lynx",
+    "description": "A large wildcat with tufted ears and keen eyes. It's more reclusive than aggressive, preferring to watch from the shadows before acting.",
+    "type": "predator",
+    "tame_threshold": 4,
+    "tags": ["hostile", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "ambush",
+    "depth_preferences": {
+      "shallow": 0.5,
+      "mid": 0.3,
+      "deep": 0.2,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 0.8,
+      "fall": 1.2,
+      "winter": 1.1
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.2,
+      "Day": 0.7,
+      "Dusk": 1.5,
+      "Night": 1.8
+    },
+    "drops": {
+      "food": ["lynx_meat"],
+      "crafting": ["lynx_fur", "lynx_claw"]
+    },
+    "temperament": "wary",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "medium",
+    "attack_style": "pounce",
+    "threat_tier": 2
+  },
+  "vine_wrap_serpent": {
+    "name": "Vine-Wrap Serpent",
+    "description": "A smaller ley-line serpent that coils through the undergrowth like living vines. Its scales shimmer with a faint green glow, and it moves with sinuous grace.",
+    "type": "predator",
+    "tame_threshold": 4,
+    "tags": ["hostile", "forest", "mystical"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "constrict",
+    "depth_preferences": {
+      "shallow": 0.2,
+      "mid": 0.4,
+      "deep": 0.3,
+      "mountain_edge": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.3,
+      "summer": 1.2,
+      "fall": 1.0,
+      "winter": 0.6
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 1.1,
+      "Dusk": 1.0,
+      "Night": 0.9
+    },
+    "drops": {
+      "food": ["serpent_meat"],
+      "crafting": ["verdant_scale", "serpent_fang"]
+    },
+    "temperament": "territorial",
+    "has_den": false,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "medium",
+    "attack_style": "constrict",
+    "threat_tier": 2
+  },
+  "twilight_great_owl": {
+    "name": "Twilight Great Owl",
+    "description": "A massive ground-hunting owl with silent wings and piercing eyes. It hunts in the darkness, its calls echoing through the night forest.",
+    "type": "predator",
+    "tame_threshold": 4,
+    "tags": ["hostile", "forest", "night-only"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "aerial",
+    "depth_preferences": {
+      "shallow": 0.3,
+      "mid": 0.4,
+      "deep": 0.2,
+      "mountain_edge": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 0.9,
+      "fall": 1.1,
+      "winter": 1.2
+    },
+    "time_of_day_preferences": {
+      "Dawn": 0.2,
+      "Day": 0.0,
+      "Dusk": 0.5,
+      "Night": 2.5
+    },
+    "drops": {
+      "food": ["owl_meat"],
+      "crafting": ["owl_feather", "owl_talon"]
+    },
+    "temperament": "territorial",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "large",
+    "attack_style": "aerial",
+    "threat_tier": 3
+  },
+  "timber_warg": {
+    "name": "Timber Warg",
+    "description": "A massive magical wolf variant with dark bark-colored fur and eyes that gleam with unnatural intelligence. Its howl carries a hint of ancient magic.",
+    "type": "predator",
+    "tame_threshold": 5,
+    "tags": ["hostile", "forest", "mystical"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "pursuit",
+    "depth_preferences": {
+      "shallow": 0.0,
+      "mid": 0.2,
+      "deep": 0.5,
+      "cave_mouth": 0.3
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 0.7,
+      "fall": 1.3,
+      "winter": 1.5
+    },
+    "time_of_day_preferences": {
+      "Dawn": 0.8,
+      "Day": 0.6,
+      "Dusk": 1.5,
+      "Night": 2.0
+    },
+    "drops": {
+      "food": ["warg_meat"],
+      "crafting": ["warg_fur", "warg_fang", "dark_crystal"]
+    },
+    "temperament": "territorial",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "large",
+    "attack_style": "pounce",
+    "threat_tier": 4
+  },
+  "hollow_throat_marten": {
+    "name": "Hollow-Throat Marten",
+    "description": "A sleek marten with an unusual expandable throat pouch that allows it to swallow prey larger than itself. It moves with agile grace through the trees.",
+    "type": "predator",
+    "tame_threshold": 3,
+    "tags": ["hostile", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "ambush",
+    "depth_preferences": {
+      "shallow": 0.3,
+      "mid": 0.5,
+      "deep": 0.2,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.1,
+      "summer": 1.0,
+      "fall": 1.2,
+      "winter": 1.0
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 0.8,
+      "Dusk": 1.5,
+      "Night": 1.2
+    },
+    "drops": {
+      "food": ["marten_meat"],
+      "crafting": ["marten_fur", "marten_claw"]
+    },
+    "temperament": "wary",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "small",
+    "attack_style": "ambush",
+    "threat_tier": 1
+  },
+  "barkhide_lurcher": {
+    "name": "Barkhide Lurcher",
+    "description": "A creature that mimics fallen logs and bark, perfectly camouflaged until it strikes. Its ambush tactics make it a dangerous predator despite its small size.",
+    "type": "predator",
+    "tame_threshold": 0,
+    "tags": ["hostile", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "ambush",
+    "depth_preferences": {
+      "shallow": 0.6,
+      "mid": 0.3,
+      "deep": 0.1,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 1.1,
+      "winter": 0.8
+    },
+    "time_of_day_preferences": {
+      "Dawn": 0.8,
+      "Day": 1.2,
+      "Dusk": 1.0,
+      "Night": 0.9
+    },
+    "drops": {
+      "food": ["lurcher_meat"],
+      "crafting": ["barkhide_scale", "lurcher_fang"]
+    },
+    "temperament": "aggressive",
+    "has_den": false,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "small",
+    "attack_style": "ambush",
+    "threat_tier": 1
+  },
+  "verdant_pseudodragon": {
+    "name": "Verdant Pseudodragon",
+    "description": "A small gliding reptile with leaf-like wings and intelligent eyes. It's more curious than dangerous, but can still be a threat when cornered.",
+    "type": "predator",
+    "tame_threshold": 3,
+    "tags": ["hostile", "forest", "mystical"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "aerial",
+    "depth_preferences": {
+      "shallow": 0.2,
+      "mid": 0.5,
+      "deep": 0.2,
+      "mountain_edge": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.3,
+      "summer": 1.2,
+      "fall": 1.0,
+      "winter": 0.6
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.5,
+      "Day": 1.2,
+      "Dusk": 1.0,
+      "Night": 0.8
+    },
+    "drops": {
+      "food": ["pseudodragon_meat"],
+      "crafting": ["dragon_scale", "wing_membrane"]
+    },
+    "temperament": "wary",
+    "has_den": false,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "small",
+    "attack_style": "aerial",
+    "threat_tier": 1
+  },
+  "gloom_mantle_panther": {
+    "name": "Gloom-Mantle Panther",
+    "description": "A rare deep forest variant of the panther, its fur darker than shadow and its eyes like pools of void. It moves with impossible silence through the deepest woods.",
+    "type": "predator",
+    "tame_threshold": 5,
+    "tags": ["hostile", "forest", "mystical"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "ambush",
+    "depth_preferences": {
+      "shallow": 0.0,
+      "mid": 0.1,
+      "deep": 0.5,
+      "cave_mouth": 0.4
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 0.8,
+      "fall": 1.1,
+      "winter": 1.2
+    },
+    "time_of_day_preferences": {
+      "Dawn": 0.2,
+      "Day": 0.1,
+      "Dusk": 1.2,
+      "Night": 2.8
+    },
+    "drops": {
+      "food": ["panther_meat"],
+      "crafting": ["gloom_fur", "void_eye", "shadow_claw"]
+    },
+    "temperament": "territorial",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "large",
+    "attack_style": "ambush",
+    "threat_tier": 4
+  },
+  "tangle_hare_alpha": {
+    "name": "Tangle-Hare Alpha",
+    "description": "A large magical hare with vines and roots tangled in its fur. Despite its size, it's more defensive than aggressive, using its bulk to intimidate rather than attack.",
+    "type": "predator",
+    "tame_threshold": 3,
+    "tags": ["hostile", "forest", "mystical"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "charge",
+    "depth_preferences": {
+      "shallow": 0.6,
+      "mid": 0.3,
+      "deep": 0.1,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.3,
+      "summer": 1.0,
+      "fall": 1.2,
+      "winter": 0.7
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.8,
+      "Day": 1.0,
+      "Dusk": 1.5,
+      "Night": 0.8
+    },
+    "drops": {
+      "food": ["hare_meat"],
+      "crafting": ["tangle_fur", "root_fiber"]
+    },
+    "temperament": "wary",
+    "has_den": false,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "medium",
+    "attack_style": "charge",
+    "threat_tier": 1
+  },
+  "ridge_tongue_lizard": {
+    "name": "Ridge-Tongue Lizard",
+    "description": "An arboreal ambusher with a long, sticky tongue and excellent camouflage. It waits motionless on tree branches before striking with lightning speed.",
+    "type": "predator",
+    "tame_threshold": 0,
+    "tags": ["hostile", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "ambush",
+    "depth_preferences": {
+      "shallow": 0.3,
+      "mid": 0.5,
+      "deep": 0.2,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.3,
+      "fall": 1.0,
+      "winter": 0.4
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 1.5,
+      "Dusk": 1.0,
+      "Night": 0.5
+    },
+    "drops": {
+      "food": ["lizard_meat"],
+      "crafting": ["lizard_scale", "sticky_tongue"]
+    },
+    "temperament": "aggressive",
+    "has_den": false,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "small",
+    "attack_style": "ambush",
+    "threat_tier": 1
+  },
+  "glade_crawler": {
+    "name": "Glade-Crawler",
+    "description": "A mossy multi-legged predator that moves between trees and rocks with unsettling grace. Its many legs allow it to traverse terrain that would stop other predators.",
+    "type": "predator",
+    "tame_threshold": 4,
+    "tags": ["hostile", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "ambush",
+    "depth_preferences": {
+      "shallow": 0.2,
+      "mid": 0.5,
+      "deep": 0.2,
+      "mountain_edge": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.3,
+      "summer": 1.2,
+      "fall": 1.0,
+      "winter": 0.7
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 1.2,
+      "Dusk": 1.0,
+      "Night": 0.9
+    },
+    "drops": {
+      "food": ["crawler_meat"],
+      "crafting": ["moss_web", "crawler_leg"]
+    },
+    "temperament": "territorial",
+    "has_den": false,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "medium",
+    "attack_style": "ambush",
+    "threat_tier": 2
+  },
+  "whisper_fang_weasel": {
+    "name": "Whisper-Fang Weasel",
+    "description": "A stealthy predator with long, needle-like fangs. It moves with near-silent footsteps and prefers to hunt under cover of darkness.",
+    "type": "predator",
+    "tame_threshold": 0,
+    "tags": ["hostile", "forest", "night-biased"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "ambush",
+    "depth_preferences": {
+      "shallow": 0.4,
+      "mid": 0.4,
+      "deep": 0.2,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.0,
+      "summer": 0.9,
+      "fall": 1.1,
+      "winter": 1.2
+    },
+    "time_of_day_preferences": {
+      "Dawn": 0.5,
+      "Day": 0.3,
+      "Dusk": 1.5,
+      "Night": 2.2
+    },
+    "drops": {
+      "food": ["weasel_meat"],
+      "crafting": ["weasel_fur", "whisper_fang"]
+    },
+    "temperament": "aggressive",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "small",
+    "attack_style": "ambush",
+    "threat_tier": 1
+  },
+  "pale_mire_wolf": {
+    "name": "Pale Mire Wolf",
+    "description": "A semi-aquatic forest-edge wolf with pale, mud-streaked fur. It hunts along creeks and river edges, its howls echoing across the water.",
+    "type": "predator",
+    "tame_threshold": 4,
+    "tags": ["hostile", "forest", "creek"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "pursuit",
+    "depth_preferences": {
+      "shallow": 0.4,
+      "mid": 0.4,
+      "deep": 0.1,
+      "mountain_edge": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 1.1,
+      "winter": 1.0
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 0.8,
+      "Dusk": 1.5,
+      "Night": 1.8
+    },
+    "drops": {
+      "food": ["wolf_meat"],
+      "crafting": ["mire_fur", "wolf_fang", "mud_stone"]
+    },
+    "temperament": "territorial",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "medium",
+    "attack_style": "pounce",
+    "threat_tier": 2
+  },
+  "loom_jaw_worm": {
+    "name": "Loom-Jaw Worm",
+    "description": "A creekbed ambush worm with an antlion-like pit trap. It waits beneath the mud and sand, its massive jaws ready to snap shut on unwary prey.",
+    "type": "predator",
+    "tame_threshold": 0,
+    "tags": ["hostile", "forest", "creek"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "ambush",
+    "depth_preferences": {
+      "shallow": 0.5,
+      "mid": 0.4,
+      "deep": 0.1,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.3,
+      "summer": 1.2,
+      "fall": 1.0,
+      "winter": 0.5
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 1.2,
+      "Dusk": 1.0,
+      "Night": 0.8
+    },
+    "drops": {
+      "food": ["worm_meat"],
+      "crafting": ["worm_chitin", "loom_jaw"]
+    },
+    "temperament": "aggressive",
+    "has_den": false,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "medium",
+    "attack_style": "ambush",
+    "threat_tier": 2
+  },
+  "mud_veil_leech": {
+    "name": "Mud-Veil Leech",
+    "description": "A large stamina-draining leech that lurks in creek mud. It attaches itself to prey, draining energy before releasing them weakened but alive.",
+    "type": "predator",
+    "tame_threshold": 0,
+    "tags": ["hostile", "forest", "creek"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "ambush",
+    "depth_preferences": {
+      "shallow": 0.5,
+      "mid": 0.4,
+      "deep": 0.1,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.3,
+      "summer": 1.2,
+      "fall": 1.0,
+      "winter": 0.4
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 1.1,
+      "Dusk": 1.0,
+      "Night": 0.9
+    },
+    "drops": {
+      "food": ["leech_meat"],
+      "crafting": ["leech_sac", "mud_veil"]
+    },
+    "temperament": "aggressive",
+    "has_den": false,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "medium",
+    "attack_style": "ambush",
+    "threat_tier": 2
+  },
+  "root_snare_antlion": {
+    "name": "Root-Snare Antlion",
+    "description": "A forest-floor pit ambush insect that creates funnel traps in soft earth. It waits at the bottom, ready to snatch prey that tumbles in.",
+    "type": "predator",
+    "tame_threshold": 0,
+    "tags": ["hostile", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "ambush",
+    "depth_preferences": {
+      "shallow": 0.4,
+      "mid": 0.5,
+      "deep": 0.1,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.3,
+      "summer": 1.2,
+      "fall": 1.0,
+      "winter": 0.5
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 1.2,
+      "Dusk": 1.0,
+      "Night": 0.8
+    },
+    "drops": {
+      "food": ["antlion_meat"],
+      "crafting": ["antlion_chitin", "root_fiber"]
+    },
+    "temperament": "aggressive",
+    "has_den": false,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "small",
+    "attack_style": "ambush",
+    "threat_tier": 1
+  },
+  "pine_belly_mimic": {
+    "name": "Pine-Belly Mimic",
+    "description": "A pinecone or fruit mimic that engulfs prey when they get too close. Some variants are more defensive than predatory, offering shelter to those who don't struggle.",
+    "type": "predator",
+    "tame_threshold": 2,
+    "tags": ["hostile", "forest", "mystical"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "ambush",
+    "depth_preferences": {
+      "shallow": 0.6,
+      "mid": 0.3,
+      "deep": 0.1,
+      "mountain_edge": 0.0
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 1.3,
+      "winter": 0.8
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 1.2,
+      "Dusk": 1.0,
+      "Night": 0.8
+    },
+    "drops": {
+      "food": [],
+      "crafting": ["mimic_scale", "pine_resin"]
+    },
+    "temperament": "wary",
+    "has_den": false,
+    "can_swallow_player": true,
+    "is_friendly_belly": true,
+    "size_class": "small",
+    "attack_style": "ambush",
+    "threat_tier": 1
+  },
+  "wisp_hive_slug": {
+    "name": "Wisp-Hive Slug",
+    "description": "A friendly mystical slug that shelters will-o'-wisps in its translucent body. It moves slowly but purposefully, offering safe passage to those who respect it.",
+    "type": "predator",
+    "tame_threshold": 3,
+    "tags": ["neutral", "forest", "mystical"],
+    "rewards": { "escort": true, "carry_slots": 2 },
+    "can_threaten": false,
+    "depth_preferences": {
+      "shallow": 0.2,
+      "mid": 0.4,
+      "deep": 0.3,
+      "mountain_edge": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 1.1,
+      "winter": 0.7
+    },
+    "time_of_day_preferences": {
+      "Dawn": 0.8,
+      "Day": 0.5,
+      "Dusk": 1.5,
+      "Night": 2.0
+    },
+    "drops": {
+      "food": [],
+      "crafting": ["slime_trail", "wisp_crystal"]
+    },
+    "temperament": "mystical",
+    "transport_capable": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": true,
+    "size_class": "medium",
+    "attack_style": "none",
+    "threat_tier": 1
+  },
+  "wind_drift_gryphon": {
+    "name": "Wind-Drift Gryphon",
+    "description": "A small gryphon with silent gliding flight. Its eagle-like head and lion-like body blend with the forest canopy, and it hunts with graceful precision.",
+    "type": "predator",
+    "tame_threshold": 4,
+    "tags": ["hostile", "forest", "mystical"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "aerial",
+    "depth_preferences": {
+      "shallow": 0.2,
+      "mid": 0.5,
+      "deep": 0.2,
+      "mountain_edge": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.1,
+      "summer": 1.0,
+      "fall": 1.2,
+      "winter": 0.9
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.5,
+      "Day": 1.2,
+      "Dusk": 1.0,
+      "Night": 0.7
+    },
+    "drops": {
+      "food": ["gryphon_meat"],
+      "crafting": ["gryphon_feather", "gryphon_talon"]
+    },
+    "temperament": "territorial",
+    "has_den": false,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "medium",
+    "attack_style": "aerial",
+    "threat_tier": 2
+  },
+  "root_tunnel_boar_worm": {
+    "name": "Root-Tunnel Boar-Worm",
+    "description": "A segmented root-tunnel worm with a boar-like head and powerful tunneling ability. It creates elaborate burrow networks through the deepest forest.",
+    "type": "predator",
+    "tame_threshold": 0,
+    "tags": ["hostile", "forest"],
+    "rewards": { "escort": false, "carry_slots": 0 },
+    "can_threaten": true,
+    "threat_style": "charge",
+    "depth_preferences": {
+      "shallow": 0.0,
+      "mid": 0.2,
+      "deep": 0.5,
+      "cave_mouth": 0.3
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 1.1,
+      "winter": 0.8
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.0,
+      "Day": 1.1,
+      "Dusk": 1.0,
+      "Night": 0.9
+    },
+    "drops": {
+      "food": ["boar_worm_meat"],
+      "crafting": ["boar_tusk", "tunnel_chitin"]
+    },
+    "temperament": "territorial",
+    "has_den": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": false,
+    "size_class": "large",
+    "attack_style": "charge",
+    "threat_tier": 3
+  },
+  "moss_mare": {
+    "name": "Moss-Mare",
+    "description": "A forest equine spirit with moss-covered flanks and eyes like pools of starlight. It offers gentle night shelter to those who show respect for the forest.",
+    "type": "predator",
+    "tame_threshold": 4,
+    "tags": ["neutral", "forest", "mystical", "night-only"],
+    "rewards": { "escort": true, "carry_slots": 4 },
+    "can_threaten": false,
+    "depth_preferences": {
+      "shallow": 0.2,
+      "mid": 0.4,
+      "deep": 0.3,
+      "mountain_edge": 0.1
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 1.1,
+      "winter": 0.8
+    },
+    "time_of_day_preferences": {
+      "Dawn": 0.3,
+      "Day": 0.0,
+      "Dusk": 0.8,
+      "Night": 2.5
+    },
+    "drops": {
+      "food": [],
+      "crafting": ["moss_fiber", "starlight_crystal"]
+    },
+    "temperament": "mystical",
+    "transport_capable": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": true,
+    "size_class": "large",
+    "attack_style": "none",
+    "threat_tier": 1
+  },
+  "kirin": {
+    "name": "Forest Kirin",
+    "description": "A magnificent creature with a coat shimmering like moonlight on water and antlers branching like living crystal. It moves with impossible grace, each step silent despite its size. A guardian of the deep forest, drawn to places where magic flows true.",
+    "type": "predator",
+    "tame_threshold": 5,
+    "tags": ["neutral", "forest", "mystical", "leyline-tuned"],
+    "rewards": { "escort": true, "carry_slots": 5 },
+    "can_threaten": false,
+    "depth_preferences": {
+      "shallow": 0.0,
+      "mid": 0.2,
+      "deep": 0.5,
+      "mountain_edge": 0.3
+    },
+    "season_preferences": {
+      "spring": 1.2,
+      "summer": 1.0,
+      "fall": 1.1,
+      "winter": 0.9
+    },
+    "time_of_day_preferences": {
+      "Dawn": 1.5,
+      "Day": 1.0,
+      "Dusk": 1.8,
+      "Night": 1.2
+    },
+    "drops": {
+      "food": [],
+      "crafting": ["kirin_mane", "crystal_fragment"]
+    },
+    "temperament": "mystical",
+    "has_den": false,
+    "transport_capable": true,
+    "can_swallow_player": true,
+    "is_friendly_belly": true,
+    "size_class": "huge",
+    "attack_style": "none",
+    "threat_tier": 1
   }
 }

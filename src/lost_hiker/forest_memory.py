@@ -152,11 +152,13 @@ def adjust_landmark_weights_based_on_memory(
             weight *= day_bias
         
         # As more runestones are repaired, slightly increase weight for higher-stability landmarks
-        repaired_count = state.act1_repaired_runestones
+        from .forest_act1 import init_forest_act1_state, get_forest_memory_modifier
+        init_forest_act1_state(state)
+        repaired_count = state.forest_act1.get("runestones_repaired", 0) if state.forest_act1 else state.act1_repaired_runestones
         if repaired_count > 0 and stability > 0:
-            # Each repair adds a small bonus to known landmarks
-            repair_bonus = 1.0 + (repaired_count * 0.1)
-            weight *= repair_bonus
+            # Use forest memory modifier from forest_act1
+            memory_modifier = get_forest_memory_modifier(state)
+            weight *= memory_modifier
         
         weights.append(weight)
     

@@ -6,8 +6,8 @@
       "category": "forage",
       "text": "Under damp leaves, a patch of mint releases a cool scent.",
       "effects": { "inventory_add": ["mint"] },
-      "base_weight": 1.4,
-      "depth_weight": -0.2,
+      "base_weight": 1.5,
+      "depth_weight": -0.12,
       "min_depth": 0,
       "max_depth": 9
     },
@@ -17,8 +17,8 @@
       "category": "forage",
       "text": "A moss-soft log hides a leather pouch packed with dried berries.",
       "effects": { "inventory_add": ["dried berries", "birch tinder"] },
-      "base_weight": 0.9,
-      "depth_weight": 0.15,
+      "base_weight": 1.0,
+      "depth_weight": 0.1,
       "min_depth": 4,
       "max_depth": 16
     },
@@ -27,9 +27,9 @@
       "type": "forage",
       "category": "forage",
       "text": "A patch of wild berry bushes grows along the trail edge, their dark fruits glistening.",
-      "effects": { "inventory_add": ["forest_berries"], "inventory_add_count": [[2, 4]] },
-      "base_weight": 1.2,
-      "depth_weight": -0.1,
+      "effects": { "inventory_add": ["forest_berries"], "inventory_add_count": [[2, 5]] },
+      "base_weight": 1.4,
+      "depth_weight": -0.12,
       "min_depth": 0,
       "max_depth": 15
     },
@@ -38,9 +38,9 @@
       "type": "forage",
       "category": "forage",
       "text": "Beneath a gnarled tree, you find a small cluster of fallen trail nuts scattered in the leaf litter.",
-      "effects": { "inventory_add": ["trail_nuts"], "inventory_add_count": [[3, 6]] },
-      "base_weight": 1.0,
-      "depth_weight": 0.0,
+      "effects": { "inventory_add": ["trail_nuts"], "inventory_add_count": [[3, 7]] },
+      "base_weight": 1.1,
+      "depth_weight": -0.05,
       "min_depth": 2,
       "max_depth": 20
     },
@@ -49,9 +49,9 @@
       "type": "forage",
       "category": "forage",
       "text": "A small cluster of pale, edible mushrooms grows in the damp shade of a fallen log.",
-      "effects": { "inventory_add": ["edible_mushroom"], "inventory_add_count": [[2, 3]] },
-      "base_weight": 1.1,
-      "depth_weight": 0.05,
+      "effects": { "inventory_add": ["edible_mushroom"], "inventory_add_count": [[2, 4]] },
+      "base_weight": 1.2,
+      "depth_weight": 0.0,
       "min_depth": 1,
       "max_depth": 18
     },
@@ -109,10 +109,11 @@
         "rapport_inc": { "glow_elk": 2 },
         "encounter_text": "Warm light halos you as the glow elk brushes past, leaving motes that cling to your sleeves."
       },
-      "base_weight": 0.6,
-      "depth_weight": 0.3,
+      "base_weight": 0.5,
+      "depth_weight": 0.35,
       "min_depth": 12,
-      "max_depth": 30
+      "max_depth": 30,
+      "checks": { "requires_runestone_repair": 1 }
     },
     {
       "id": "giant_centipede_tracks",
@@ -197,6 +198,212 @@
       "depth_weight": 0.25,
       "min_depth": 6,
       "max_depth": 20,
+      "checks": { "requires_runestone_repair": 1 }
+    },
+    {
+      "id": "blue_fireflies_spring",
+      "type": "event",
+      "category": "boon",
+      "text": "As night falls, the Glade fills with a soft, ethereal light. Blue fireflies drift into the clearing, their bioluminescent bodies pulsing in perfect synchrony. They move as one, creating patterns of light that seem to trace the ley-lines themselves. The air hums with a gentle harmony, and for a moment, the forest feels perfectly at peace.",
+      "base_weight": 0.03,
+      "checks": {
+        "season": "spring",
+        "time_of_day": "Night",
+        "location": "glade"
+      }
+    },
+    {
+      "id": "hermit_trinket_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "You spot something glinting in the leaf litter—a small wooden disc carved with simple runes. It looks like it's been here for a while, weathered but intact.",
+      "effects": { "inventory_add": ["hermit_trinket"] },
+      "base_weight": 0.4,
+      "depth_weight": 0.0,
+      "min_depth": 0,
+      "max_depth": 15
+    },
+    {
+      "id": "broken_trap_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "Caught on a branch near the water's edge, you find a simple woven trap—sticks and cord, slightly damaged but mostly intact. It must have washed downstream.",
+      "effects": { "inventory_add": ["broken_trap"] },
+      "base_weight": 0.3,
+      "depth_weight": 0.0,
+      "min_depth": 0,
+      "max_depth": 12
+    },
+    {
+      "id": "creek_darter_catch",
+      "type": "forage",
+      "category": "forage",
+      "text": "In a shallow side-pool, you spot a small silvery fish darting between the rocks. With quick hands, you manage to catch a Creek Darter.",
+      "effects": { "inventory_add": ["creek_darter"] },
+      "base_weight": 0.8,
+      "depth_weight": -0.05,
+      "min_depth": 3,
+      "max_depth": 12
+    },
+    {
+      "id": "stoneback_trout_catch",
+      "type": "forage",
+      "category": "forage",
+      "text": "In a deeper pool, you spot a larger fish with mottled gray scales—a Stoneback Trout. It's a substantial catch that will make a hearty meal.",
+      "effects": { "inventory_add": ["stoneback_trout"] },
+      "base_weight": 0.4,
+      "depth_weight": 0.1,
+      "min_depth": 5,
+      "max_depth": 15
+    },
+    {
+      "id": "silt_crab_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "Along the muddy bank, you spot a small crab scuttling between the silt. You manage to catch it before it burrows away.",
+      "effects": { "inventory_add": ["silt_crab"] },
+      "base_weight": 0.6,
+      "depth_weight": -0.03,
+      "min_depth": 3,
+      "max_depth": 10
+    },
+    {
+      "id": "barkgrub_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "In a rotting log, you find pale larvae wriggling beneath the bark. Barkgrubs—not glamorous, but reliable food.",
+      "effects": { "inventory_add": ["barkgrub"], "inventory_add_count": [[1, 3]] },
+      "base_weight": 1.0,
+      "depth_weight": 0.0,
+      "min_depth": 1,
+      "max_depth": 18
+    },
+    {
+      "id": "glow_tail_larva_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "A faint, ethereal light catches your eye—a Glow-Tail Larva, the larval form of Glow-Moths. It emits a soft luminescence that seems almost magical.",
+      "effects": { "inventory_add": ["glow_tail_larva"] },
+      "base_weight": 0.3,
+      "depth_weight": 0.15,
+      "min_depth": 8,
+      "max_depth": 22
+    },
+    {
+      "id": "moss_eater_beetle_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "Near a mossy log, you spot a slow-moving beetle. A Moss-Eater Beetle, its carapace glistening with a sticky resin.",
+      "effects": { "inventory_add": ["moss_eater_beetle"] },
+      "base_weight": 0.7,
+      "depth_weight": 0.0,
+      "min_depth": 2,
+      "max_depth": 16
+    },
+    {
+      "id": "tangle_mice_catch",
+      "type": "forage",
+      "category": "forage",
+      "text": "In the dense underbrush, you spot small mice with distinctive vine-like tails. You manage to catch a small group of Tangle-Mice.",
+      "effects": { "inventory_add": ["tangle_mice"], "inventory_add_count": [[2, 4]] },
+      "base_weight": 0.6,
+      "depth_weight": -0.05,
+      "min_depth": 1,
+      "max_depth": 15
+    },
+    {
+      "id": "burrow_puff_spores_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "Near a cave-mouth, you find puffball fungi releasing spores. Burrow-Puff Spores—they look unappetizing raw, but druids value them for their calming properties when processed.",
+      "effects": { "inventory_add": ["burrow_puff_spores"] },
+      "base_weight": 0.5,
+      "depth_weight": 0.2,
+      "min_depth": 10,
+      "max_depth": 22
+    },
+    {
+      "id": "ember_root_bulb_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "Near a ley-line fracture, you find a warm, glowing root bulb. An Ember-Root Bulb—it radiates heat and is essential for runestone repair mixes.",
+      "effects": { "inventory_add": ["ember_root_bulb"] },
+      "base_weight": 0.25,
+      "depth_weight": 0.2,
+      "min_depth": 8,
+      "max_depth": 20,
+      "checks": { "requires_runestone_repair": 1 }
+    },
+    {
+      "id": "wisp_petal_blossom_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "Where wisps gather, tiny shimmering petals catch the light. Wisp-Petal Blossoms—delicate and magical, valued by the Naiad and Astrin for their connection to water and memory.",
+      "effects": { "inventory_add": ["wisp_petal_blossom"] },
+      "base_weight": 0.2,
+      "depth_weight": 0.15,
+      "min_depth": 6,
+      "max_depth": 18,
+      "checks": { "requires_runestone_repair": 1 }
+    },
+    {
+      "id": "dreammilk_moss_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "On a moss-covered log, you find pale, glowing moss. Dreammilk Moss—when boiled, it creates a soothing tea. Highly valued by Astrin for its restorative properties.",
+      "effects": { "inventory_add": ["dreammilk_moss"] },
+      "base_weight": 0.3,
+      "depth_weight": 0.1,
+      "min_depth": 6,
+      "max_depth": 20,
+      "checks": { "requires_runestone_repair": 1 }
+    },
+    {
+      "id": "heartmore_shoot_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "Near a runestone, you spot a rare red-tipped shoot. A Heartmore Shoot—a high-tier herb that boosts stamina recovery, prized by Astrin.",
+      "effects": { "inventory_add": ["heartmore_shoot"] },
+      "base_weight": 0.15,
+      "depth_weight": 0.25,
+      "min_depth": 8,
+      "max_depth": 22,
+      "checks": { "requires_runestone_repair": 1 }
+    },
+    {
+      "id": "starlace_fungus_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "Under the clear night sky, small fungi appear, their caps shimmering like stars. Starlace Fungus—used for navigation clarity teas and valued by the Druid for night rituals.",
+      "effects": { "inventory_add": ["starlace_fungus"] },
+      "base_weight": 0.2,
+      "depth_weight": 0.15,
+      "min_depth": 10,
+      "max_depth": 24,
+      "checks": { "requires_runestone_repair": 1 }
+    },
+    {
+      "id": "veilgrass_tuft_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "Near a mystical landmark, you find soft gray grass. Veilgrass Tufts—when burned as incense or used in teas, they create a 'forest hush' effect.",
+      "effects": { "inventory_add": ["veilgrass_tuft"] },
+      "base_weight": 0.25,
+      "depth_weight": 0.2,
+      "min_depth": 8,
+      "max_depth": 20,
+      "checks": { "requires_runestone_repair": 1 }
+    },
+    {
+      "id": "glow_sap_resin_nodule_find",
+      "type": "forage",
+      "category": "forage",
+      "text": "On a tree frequented by Glow-Elk, you find sap nodules. Glow-Sap Resin Nodules—essential for runestone cement mixes and early snare crafting. They burn bright when needed.",
+      "effects": { "inventory_add": ["glow_sap_resin_nodule"] },
+      "base_weight": 0.3,
+      "depth_weight": 0.2,
+      "min_depth": 10,
+      "max_depth": 24,
       "checks": { "requires_runestone_repair": 1 }
     }
   ]

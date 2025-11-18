@@ -1,0 +1,355 @@
+name: "Lost Hiker - Forest NPCs Wave 1 (Echo, Hermit, Naiad, Druid, Fisher, Astrin)"
+
+description: |
+  Add and wire up the first wave of Forest NPCs, anchored to existing and
+  new landmarks, with basic dialogue, schedules, and small self-contained
+  “micro-quests” implemented via simple flags (not a full quest log yet).
+
+  NPCs in this wave:
+    - Echo (polish & extend early interactions)
+    - The Hermit
+    - Naiad (water spirit)
+    - The Druid
+    - Lizard-Folk Fisherman
+    - Astrin (half-dryad herbalist, lost then relocates to Glade)
+
+  The goal is to make the Forest feel socially alive and give players
+  several small but meaningful NPC interaction loops tied into:
+    - runestone/ley-line stability,
+    - landmarks,
+    - foraging/crafting,
+    - teas and survival.
+
+goals:
+  - Central NPC data & state
+      - Ensure there is a central data-driven definition for NPCs, e.g.:
+          - data/npcs_forest.json (or equivalent)
+        with fields such as:
+          - id, name, species/type,
+          - primary_landmark_ids,
+          - secondary_landmark_ids (optional),
+          - appearance rules (time-of-day, season, min_runestones_repaired),
+          - basic behavior tags (wandering, stationary, water-bound, etc.).
+      - Add a small NPC state structure in game state, e.g.:
+          - state.npc_state = {
+                "hermit_met": bool,
+                "naiad_met": bool,
+                "druid_met": bool,
+                "fisher_met": bool,
+                "astrin_status": "missing" | "found" | "at_glade",
+                ...
+            }
+        and extend as needed for simple progression flags.
+      - Integrate NPC state into save/load with safe defaults.
+
+  - Echo (polish & anchor)
+      - Review and lightly polish Echo’s early interactions to align with
+        the Forest’s expanded systems:
+          - mentions of runestones, ley-lines in simple terms,
+          - awareness of the Glade as “home base”,
+          - soft hint that other beings (hermit, Naiad, etc.) can help.
+      - Add at least:
+          - one early “getting to know you” conversation branch,
+          - one line that reacts when the player first stabilizes a runestone,
+          - one line that references Astrin after Astrin moves into the Glade.
+      - Keep Echo’s deeper story arcs out of this task; just ensure she fits
+        cleanly into the Wave 1 cast.
+
+  - The Hermit
+      - Implement the Hermit as a wandering NPC:
+          - primary landmarks:
+              - shallow/mid-forest areas (e.g. Whispering Birch Circle,
+                Old Creek Bend, Forgotten Trail Ruins).
+          - appearance rules:
+              - more likely in early days,
+              - available at least once in the first ~10 in-game days if the
+                player explores.
+      - Dialogue:
+          - Introduce:
+              - the concept of Forest “distortions” and damaged runestones.
+              - that repairing runestones will calm the Forest.
+          - Provide:
+              - at least one hint pointing the player toward a likely first
+                runestone or key landmark region.
+          - After the player has repaired at least one runestone:
+              - add a second-tier line acknowledging the change in the Forest.
+      - State:
+          - Add flags, e.g.:
+              - hermit_met (bool),
+              - hermit_explained_runestones (bool).
+          - Use them to gate dialogue variants.
+
+  - Naiad (Sunken Spring)
+      - Implement Naiad as a water spirit NPC bound to water landmarks:
+          - primary landmark:
+              - Sunken Spring.
+          - secondary appearances (stub hooks only in this task, optional):
+              - Old Creek Bend, Mossfall Sink pools, etc.
+      - Appearance rules:
+          - Naiad does not appear until:
+              - at least one runestone is stabilized/repaired.
+          - After that, she has a chance to appear when the player visits
+            Sunken Spring.
+      - Dialogue:
+          - Initial meeting:
+              - acknowledges the Forest’s water and ley-lines being disturbed.
+              - reinforces that mending runestones helps the flow.
+          - Provide:
+              - a simple water-related tea recipe (e.g. minor clarity or calm).
+              - a hint that caves and underground currents are connected to
+                what’s happening.
+          - Later:
+              - add one variant line once several runestones are repaired,
+                recognizing “steadier currents”.
+      - State:
+          - naiad_met (bool),
+          - naiad_share_recipe (bool) for the tea.
+
+  - The Druid
+      - Implement the Druid as a surface-focused Forest druid:
+          - primary landmark:
+              - Verdant Hollow (Shroomling-adjacent).
+          - secondary landmarks:
+              - Whispering Birch Circle,
+              - maybe Old Creek Bend.
+      - Appearance rules:
+          - moderate chance when visiting Verdant Hollow once Shroomlings
+            can spawn there.
+      - Dialogue:
+          - First meeting:
+              - Druid is perplexed that Shroomlings (cave fungi) are appearing
+                on the surface.
+              - explicitly states:
+                  - “They usually stay in the caves year-round.”
+              - this is the player’s first explicit “caves are weird now” hint.
+          - Provide:
+              - basic explanation of Shroomlings and their normal ecology.
+              - a small, practical tip about handling Shroomlings or spores.
+          - Simple micro-quest:
+              - ask the player to bring:
+                  - one spore puff + one chaga mushroom,
+                in exchange for:
+                  - a clarity or focus tea recipe.
+      - State:
+          - druid_met (bool),
+          - druid_shroomling_quest_started/completed (bool).
+
+  - Lizard-Folk Fisherman
+      - Implement the Fisherman as a creek-bound lizard-kin NPC:
+          - primary landmark:
+              - Old Creek Bend.
+          - secondary:
+              - possibly downstream or upstream variants if they exist later.
+      - Appearance rules:
+          - decent chance to be present at Old Creek Bend during daytime,
+            especially in fair weather.
+      - Dialogue:
+          - First meeting:
+              - introduces:
+                  - mussels as a reliable food source,
+                  - basic “how to look under rocks / in mud lines” advice.
+          - Simple micro-quest:
+              - ask the player to gather a small number of river mussels,
+                then demonstrate how to clean them.
+              - reward:
+                  - minor survival buff (e.g. recipe for a simple mussel stew)
+                  - or a small tool (e.g. better foraging knife / hook).
+          - Additional lines:
+              - a remark about caves or deeper pools being “too strange lately”.
+      - State:
+          - fisher_met (bool),
+          - fisher_mussel_quest_started/completed (bool).
+
+  - Astrin (Half-Dryad Herbalist)
+      - Implement Astrin as a lost, underprepared half-dryad herbalist:
+          - initial encounter landmark:
+              - Sunken Spring or Verdant Hollow (choose one and be consistent).
+          - later residence:
+              - Charred Tree Glade (after rescue).
+      - Initial encounter rules:
+          - She should be discoverable within a reasonable number of days
+            if the player explores the relevant landmark(s).
+      - Initial state:
+          - astrin_status = "missing".
+      - On first encounter:
+          - astrin_status moves to "found".
+          - Dialogue:
+              - she’s hungry, frazzled, and carrying too many samples.
+              - clearly not a survival expert.
+              - wants help getting somewhere safe (the Glade).
+          - Simple micro-quest:
+              - Option A:
+                  - escort-style: player chooses to guide her back.
+              - Option B:
+                  - “Give directions” abstraction if escorting is too heavy
+                    right now.
+              - On completion:
+                  - astrin_status = "at_glade".
+      - At Glade (once at_glade):
+          - Astrin sets up a small herbal workspace:
+              - offers to brew teas using player-provided herbs,
+              - can identify unknown herbs/items the player finds (basic IDs).
+          - Dialogue:
+              - shares one or two unique tea blends (e.g. soothe, rapport boost).
+              - comments occasionally on Forest changes (runestones, seasons).
+      - State:
+          - astrin_status as above,
+          - astrin_tea_unlocked flags for any special recipes.
+
+  - Minimal micro-quest framework (per-NPC flags, not full journal)
+      - Implement simple flag-based micro-quests for the Wave 1 NPCs:
+          - Hermit:
+              - “has explained runestones” vs not.
+          - Druid:
+              - “bring shroomling spore + chaga” quest, with start/completion.
+          - Fisher:
+              - “bring mussels” quest, with start/completion.
+          - Astrin:
+              - “found” vs “at_glade” rescue quest.
+      - This does not need to be a full quest log UI; dialogue can check
+        state flags and present:
+          - “Thanks again for…” lines on completion.
+          - alternative branches if requirements are not met.
+      - Keep logic localized:
+          - each NPC module checks its own flags and inventory conditions.
+
+  - Integration with exploration & landmarks
+      - Ensure the exploration loop:
+          - can surface NPC presence at landmarks in a clear way:
+              - "You see the Druid here",
+              - "You spot a lizard-folk fisherman by the creek",
+              - "Astrin is here, looking relieved to be at the Glade".
+      - Ensure:
+          - NPCs are only spawned where/when their rules allow (time-of-day,
+            runestone progress, etc.).
+          - multiple NPCs can co-exist logically at the Glade without
+            UI weirdness.
+
+deliverables:
+  - data/npcs_forest.json (or equivalent):
+      - Entries for:
+          - Echo (extended metadata),
+          - Hermit,
+          - Naiad,
+          - Druid,
+          - Lizard-Folk Fisherman,
+          - Astrin.
+      - Includes:
+          - ids, names, species,
+          - landmark associations,
+          - appearance rules,
+          - any simple behavior tags.
+
+  - data/dialogue_npcs_forest.json (or similar):
+      - Dialogue trees/snippets keyed by NPC id and simple state flags.
+      - Enough lines to cover:
+          - first meetings,
+          - post-runestone variants,
+          - quest start/completion,
+          - simple idle chatter.
+
+  - src/npcs.py / src/npc_*.py:
+      - Helper functions to:
+          - determine which NPCs are present at a location,
+          - advance simple NPC state flags,
+          - handle small micro-quest checks and state updates.
+      - Optional per-NPC modules if the codebase prefers that organization.
+
+  - src/engine.py / src/exploration.py / src/ui_curses.py:
+      - Integrations so that:
+          - NPC presence at a landmark is reported,
+          - the player can choose to “Talk to [NPC]” as an action,
+          - relevant dialogue and micro-quest actions fire correctly.
+
+  - Save/load:
+      - Extend save data to include:
+          - state.npc_state with all relevant flags:
+              - hermit_met, hermit_explained_runestones,
+                naiad_met, naiad_share_recipe,
+                druid_met, druid_shroomling_quest_*,
+                fisher_met, fisher_mussel_quest_*,
+                astrin_status, astrin_tea_unlocked_*.
+      - Older saves:
+          - default npc_state to a safe baseline:
+              - NPCs are considered “unmet”,
+              - Astrin as "missing",
+              - no quests started/completed.
+
+acceptance_criteria:
+  - Echo:
+      - Has at least one early conversation path and one line triggered by
+        first runestone repair.
+      - Acknowledges Astrin once Astrin lives at the Glade.
+
+  - Hermit:
+      - Can be met in the Forest within a reasonable time.
+      - Explains runestones and ley-line damage on first meeting.
+      - Reacts differently after at least one runestone is repaired.
+
+  - Naiad:
+      - Does not appear until at least one runestone is repaired.
+      - Appears at Sunken Spring thereafter with a reasonable chance.
+      - Shares a simple water-related tea/lore once met.
+
+  - Druid:
+      - Appears at Verdant Hollow (and possibly one other landmark).
+      - Explicitly notes that Shroomlings normally stay in caves.
+      - Has a simple “bring spore puff + chaga” micro-quest.
+
+  - Lizard-Folk Fisherman:
+      - Appears at Old Creek Bend with a reasonable chance.
+      - Explains mussels and basic river foraging.
+      - Has a simple “bring mussels” micro-quest that yields a minor recipe
+        or tool reward.
+
+  - Astrin:
+      - Can be found lost at the designated landmark.
+      - Can be helped back (or directed) to the Glade.
+      - Afterward:
+          - resides at the Glade,
+          - can brew teas from player herbs,
+          - identifies basic herbs,
+          - has at least one unique tea recipe.
+
+  - General:
+      - NPC presence is clearly surfaced in the UI.
+      - Micro-quests progress via simple flags and inventory checks.
+      - No crashes from missing npc_state in new or old saves.
+
+non_goals:
+  - Do NOT:
+      - Implement a full quest journal UI.
+      - Implement deep multi-stage story arcs for each NPC yet.
+      - Implement complex schedule simulation; keep appearances simple and
+        rule-based.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep NPC definitions and dialogue data-driven.
+  - Use small, explicit state flags instead of an over-engineered quest
+    framework at this stage.
+  - Keep dialogue short and modular so it’s easy to expand later.
+
+test_plan:
+  - New run:
+      - Confirm:
+          - Hermit, Druid, Fisher, and Astrin can all be encountered naturally
+            by exploring relevant landmarks.
+          - Naiad appears after first runestone stabilization.
+      - Complete:
+          - Druid’s shroomling/chaga quest,
+          - Fisher’s mussel quest,
+          - Astrin’s rescue and relocation to the Glade.
+      - Check:
+          - Echo has updated lines for runestones and Astrin.
+
+  - Existing saves:
+      - Load a mid-Forest save:
+          - confirm no crashes,
+          - NPCs default to unmet and can be discovered as usual.
+
+  - Regression:
+      - Exploration, runestones, hunger, seasons, encounters, and curses UI
+        still behave correctly with NPCs active.

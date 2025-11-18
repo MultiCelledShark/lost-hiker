@@ -1,11 +1,46 @@
 {
   "npcs": [
     {
+      "id": "echo",
+      "name": "Echo",
+      "description": "A massive forest serpent with scales that shimmer like polished stone. Her presence radiates warmth and ancient wisdom. The HT radio in your pack hums softly in her presence.",
+      "landmark_ids": ["glade"],
+      "tags": ["forest_npc", "non_town", "non_combatant", "glade_resident"]
+    },
+    {
       "id": "forest_hermit",
       "name": "Alder",
       "description": "A weathered figure in patched robes, sitting cross-legged near a small fire. Their eyes hold the weight of many seasons spent in this warped forest.",
-      "landmark_ids": ["whispering_hollow"],
+      "landmark_ids": ["whispering_hollow", "creek_bend", "stone_lantern_clearing"],
+      "tags": ["forest_npc", "non_town", "non_combatant", "wandering"]
+    },
+    {
+      "id": "naiad",
+      "name": "The Naiad",
+      "description": "A water spirit whose form seems to shift between mist and liquid. Her presence makes the water around her shimmer with an otherworldly light.",
+      "landmark_ids": ["sunken_spring"],
+      "tags": ["forest_npc", "non_town", "non_combatant", "water_bound"]
+    },
+    {
+      "id": "druid",
+      "name": "The Druid",
+      "description": "A figure in earth-toned robes, their hands stained with soil and their eyes sharp with concern. They move with the careful attention of someone who knows the forest intimately.",
+      "landmark_ids": ["verdant_hollow", "whispering_hollow"],
       "tags": ["forest_npc", "non_town", "non_combatant"]
+    },
+    {
+      "id": "fisher",
+      "name": "The Fisher",
+      "description": "A lizard-folk with scales the color of river stones, crouched by the water's edge. Their webbed hands move with practiced efficiency as they examine the creek.",
+      "landmark_ids": ["creek_bend", "old_creek_bend"],
+      "tags": ["forest_npc", "non_town", "non_combatant", "lizard_folk"]
+    },
+    {
+      "id": "astrin",
+      "name": "Astrin",
+      "description": "A half-dryad herbalist with leaves tangled in her hair and a satchel overflowing with plant samples. She looks frazzled but determined, her eyes bright with curiosity despite her obvious exhaustion.",
+      "landmark_ids": ["sunken_spring", "verdant_hollow", "glade"],
+      "tags": ["forest_npc", "non_town", "non_combatant", "herbalist", "glade_resident"]
     }
   ]
 }

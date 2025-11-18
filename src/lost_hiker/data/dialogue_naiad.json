@@ -1,0 +1,326 @@
+{
+  "nodes": [
+    {
+      "id": "naiad_start_elf",
+      "npc_id": "naiad",
+      "text": "The water around you shimmers, and a form emerges from the spring—mist and liquid coalescing into a graceful figure. Her voice flows like water over stones: 'Moon-lighted one. You hear the current's edges.' She studies you with ancient eyes. 'The currents feel steadier now. You've been mending the stones, haven't you? The ley-lines flow more clearly when the runestones are whole.'",
+      "conditions": {
+        "require_not_flag": "naiad_met",
+        "require_race": ["elf"]
+      },
+      "options": [
+        {
+          "text": "Who are you?",
+          "next_node_id": "naiad_intro",
+          "rapport_delta": 0,
+          "set_flags": {
+            "naiad_met": true
+          }
+        },
+        {
+          "text": "The runestones affect the water?",
+          "next_node_id": "naiad_ley_lines",
+          "rapport_delta": 1,
+          "set_flags": {
+            "naiad_met": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "naiad_start_deer",
+      "npc_id": "naiad",
+      "text": "The water around you shimmers, and a form emerges from the spring—mist and liquid coalescing into a graceful figure. Her voice flows like water over stones: 'Forest-child of river-blood… welcome.' She reaches toward you gently. 'The currents feel steadier now. You've been mending the stones, haven't you? The ley-lines flow more clearly when the runestones are whole.'",
+      "conditions": {
+        "require_not_flag": "naiad_met",
+        "require_race": ["deer_kin"]
+      },
+      "options": [
+        {
+          "text": "Who are you?",
+          "next_node_id": "naiad_intro",
+          "rapport_delta": 0,
+          "set_flags": {
+            "naiad_met": true
+          }
+        },
+        {
+          "text": "The runestones affect the water?",
+          "next_node_id": "naiad_ley_lines",
+          "rapport_delta": 1,
+          "set_flags": {
+            "naiad_met": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "naiad_start_dragonborn",
+      "npc_id": "naiad",
+      "text": "The water around you shimmers, and a form emerges from the spring—mist and liquid coalescing into a graceful figure. Her voice flows like water over stones: 'Scaled fire in my waters… curious.' She tilts her head, studying you. 'The currents feel steadier now. You've been mending the stones, haven't you? The ley-lines flow more clearly when the runestones are whole.'",
+      "conditions": {
+        "require_not_flag": "naiad_met",
+        "require_race": ["dragonborn"]
+      },
+      "options": [
+        {
+          "text": "Who are you?",
+          "next_node_id": "naiad_intro",
+          "rapport_delta": 0,
+          "set_flags": {
+            "naiad_met": true
+          }
+        },
+        {
+          "text": "The runestones affect the water?",
+          "next_node_id": "naiad_ley_lines",
+          "rapport_delta": 1,
+          "set_flags": {
+            "naiad_met": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "naiad_start",
+      "npc_id": "naiad",
+      "text": "The water around you shimmers, and a form emerges from the spring—mist and liquid coalescing into a graceful figure. Her voice flows like water over stones: 'The currents feel steadier now. You've been mending the stones, haven't you? The ley-lines flow more clearly when the runestones are whole.'",
+      "conditions": {
+        "require_not_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "Who are you?",
+          "next_node_id": "naiad_intro",
+          "rapport_delta": 0,
+          "set_flags": {
+            "naiad_met": true
+          }
+        },
+        {
+          "text": "The runestones affect the water?",
+          "next_node_id": "naiad_ley_lines",
+          "rapport_delta": 1,
+          "set_flags": {
+            "naiad_met": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "naiad_intro",
+      "npc_id": "naiad",
+      "text": "I am a guardian of these waters, bound to the springs and streams that flow through the forest. The ley-lines run deep here, connecting the runestones to the very currents that give life to this place. When the stones fracture, the water grows restless, the currents distorted. But you've been helping, haven't you?",
+      "options": [
+        {
+          "text": "I've repaired one runestone.",
+          "next_node_id": "naiad_ley_lines",
+          "rapport_delta": 1,
+          "conditions": {
+            "runestone_progress": "some"
+          }
+        },
+        {
+          "text": "Tell me more about the ley-lines.",
+          "next_node_id": "naiad_ley_lines",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_ley_lines",
+      "npc_id": "naiad",
+      "text": "The ley-lines are the forest's memory, the pathways that let the land remember itself. They flow through the earth, through the water, connecting everything. The runestones anchor these lines, and when they break, the memory fragments. The water feels it first—the currents grow confused, the springs become restless. But when you mend a stone, the flow steadies. The water remembers its purpose again.",
+      "options": [
+        {
+          "text": "Can you help me?",
+          "next_node_id": "naiad_recipe",
+          "rapport_delta": 0
+        },
+        {
+          "text": "The caves are connected to this?",
+          "next_node_id": "naiad_caves",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Thank you for explaining.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "naiad_recipe",
+      "npc_id": "naiad",
+      "text": "I can share a simple tea recipe that draws on the water's clarity. Gather fresh spring water and any calming herb—mint works well. Brew it with intention, and it will help you see through the forest's distortions. The water remembers, and it can help you remember too. If you find Creek Darters, Stoneback Trout, Silt Crabs, or Wisp-Petal Blossoms near the water, they carry the water's blessing and can enhance my teas.",
+      "options": [
+        {
+          "text": "Thank you. I'll try it.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "naiad_share_recipe": true
+          }
+        },
+        {
+          "text": "I'll remember that.",
+          "next_node_id": "END",
+          "rapport_delta": 0,
+          "set_flags": {
+            "naiad_share_recipe": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "naiad_caves",
+      "npc_id": "naiad",
+      "text": "The caves run deep beneath the forest, and the underground currents flow through them. What happens below affects what happens above. The distortions in the caves echo through the ley-lines, reaching even the surface springs. Something is wrong down there—something that shouldn't be. But that's a mystery for another day.",
+      "options": [
+        {
+          "text": "I'll keep that in mind.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can you tell me more?",
+          "next_node_id": "naiad_recipe",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_revisit",
+      "npc_id": "naiad",
+      "text": "The Naiad's form shimmers as you approach. 'The currents grow steadier with each stone you mend. The water remembers itself more clearly now.'",
+      "conditions": {
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "How many stones have I repaired?",
+          "next_node_id": "naiad_progress",
+          "rapport_delta": 0
+        },
+        {
+          "text": "The water feels calmer now.",
+          "next_node_id": "naiad_steadier",
+          "rapport_delta": 1,
+          "conditions": {
+            "runestone_progress": "some"
+          }
+        },
+        {
+          "text": "I'll keep working on the stones.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_progress",
+      "npc_id": "naiad",
+      "text": "The water tells me you've mended some of the stones, but more remain. Each repair strengthens the ley-lines, makes the currents flow more clearly. Keep at it, and the forest will remember itself fully once more.",
+      "options": [
+        {
+          "text": "I'll continue.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_steadier",
+      "npc_id": "naiad",
+      "text": "Yes. The currents are steadier now. The water flows with purpose again, and the springs remember their place in the forest's memory. I can feel the smoother currents—the ley-lines flow more clearly when the runestones are whole. You're doing good work. The forest notices, and so do I.",
+      "options": [
+        {
+          "text": "Thank you.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "naiad_act1_complete",
+      "npc_id": "naiad",
+      "text": "The water runs truer now. The currents flow with perfect clarity, and the springs pulse in harmony with the forest's restored memory. You've done something remarkable—the forest is whole again, and the water remembers its purpose. Thank you.",
+      "conditions": {
+        "require_flag": "naiad_met",
+        "runestone_progress": "act1_complete"
+      },
+      "options": [
+        {
+          "text": "I'm glad I could help.",
+          "next_node_id": "END",
+          "rapport_delta": 2
+        },
+        {
+          "text": "The forest feels different now.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "naiad_blessing_quest",
+      "npc_id": "naiad",
+      "text": "The water's clarity can be shared, but it requires certain ingredients. If you bring me a chaga mushroom, two river mussels, and some glow-dust from the Glow-Moths, I can brew a special tea for you—one that helps the mind see through the forest's distortions and remember paths more clearly. Wisp-Petal Blossoms or Ember-Root Bulbs from the water's edge would also enhance the brew.",
+      "conditions": {
+        "require_flag": "naiad_met",
+        "require_not_flag": "naiad_blessing_quest_started"
+      },
+      "options": [
+        {
+          "text": "I'll gather those ingredients.",
+          "next_node_id": "END",
+          "rapport_delta": 1,
+          "set_flags": {
+            "naiad_blessing_quest_started": true
+          }
+        },
+        {
+          "text": "What will this tea do?",
+          "next_node_id": "naiad_blessing_explanation",
+          "rapport_delta": 0,
+          "set_flags": {
+            "naiad_blessing_quest_started": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "naiad_blessing_explanation",
+      "npc_id": "naiad",
+      "text": "The tea draws on the water's memory—the way it remembers its paths, its purpose. When you drink it, your mind becomes clearer, and you remember the forest's paths more easily. It's a small gift, but it might help you navigate the distortions.",
+      "options": [
+        {
+          "text": "I'll gather the ingredients.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "naiad_blessing_complete",
+      "npc_id": "naiad",
+      "text": "Perfect. Here is the recipe for Water-Clarity Tea. Brew it with intention, and it will help you see through the forest's distortions. The water remembers, and it can help you remember too. As the runestones are repaired, the ley-lines respond—the water flows more clearly, and the forest's memory strengthens.",
+      "conditions": {
+        "has_items": {"chaga_mushroom": 1, "mussel": 2, "glow_dust": 1},
+        "require_flag": "naiad_blessing_quest_started",
+        "require_not_flag": "naiad_blessing_quest_completed"
+      },
+      "options": [
+        {
+          "text": "Thank you. This will be very helpful.",
+          "next_node_id": "END",
+          "rapport_delta": 2,
+          "set_flags": {
+            "naiad_blessing_quest_completed": true
+          }
+        }
+      ]
+    }
+  ]
+}
+

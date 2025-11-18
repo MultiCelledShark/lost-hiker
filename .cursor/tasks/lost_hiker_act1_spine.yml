@@ -1,0 +1,168 @@
+name: "Lost Hiker – Act I Forest Spine (Runestone Progress + Exit Blockers + NPC Reactions)"
+
+description: |
+  Implement the full Act I “Forest Stabilization” spine.
+
+  This task creates:
+    - A unified Act I state object that tracks runestone progress.
+    - A simple UI line showing Forest stability progression.
+    - Encounter weighting that softens as the Forest stabilizes.
+    - Small NPC dialogue changes based on Act I progress.
+    - Descriptive, lore-consistent blockers at each major exit
+      (Plains, Mountain, Riverside Road, Caves) that prevent leaving
+      the Forest without adding new mechanics or stats.
+    - A clean way for the player to understand that they’ve *finished*
+      Act I even though the Forest remains fully explorable.
+
+  No feature creep:
+    - No physical stats.
+    - No new map geometry.
+    - No new systems besides simple flags & UI display.
+    - Existing cave-mouth landmarks are used as-is.
+
+goals:
+  - Add Forest Act I state tracking:
+      - Add a data structure in game state:
+            state.forest_act1 = {
+                "runestones_total": <int>,
+                "runestones_repaired": <int>,
+                "first_repair_done": bool,
+                "completed": bool
+            }
+      - runstones_total = number of Forest runestones defined in data.
+      - Update runestones_repaired when the player stabilizes stones.
+      - When runestones_repaired >= threshold (suggest 3 or all),
+        set completed = True.
+
+  - UI feedback for Forest stability:
+      - Add a simple line to the status display:
+          "Forest Ley-Lines: X / Y stabilized"
+        If completed:
+          "Forest Ley-Lines: Stabilized"
+      - This should appear anywhere the status block appears.
+
+  - Encounter tuning based on stability:
+      - Before any runestones repaired:
+          - slightly higher threat weighting
+          - slightly lower positive encounter weighting
+      - After first repair:
+          - balance shifts a little toward neutral encounters
+      - After Act I completion:
+          - low-level threats soften
+          - mystical creatures (Moss-Treader, Glow-Elk) appear
+            slightly more often as gentle encounters
+      - These should be *subtle*, not sweeping changes.
+
+  - NPC reactions to Act I progress:
+      - Echo:
+          - After first repair: one acknowledging line.
+          - After Act I complete: one stabilization line.
+      - Hermit:
+          - Before repair: "Forest is bent out of shape."
+          - After first repair: "Feels like the woods can breathe again."
+          - After completion: "You've done the Forest a real kindness."
+      - Druid:
+          - Before: Shroomlings rising is “a bad sign”.
+          - After repair: “They’re easing back again.”
+      - Naiad:
+          - After first repair: recognizes smoother currents.
+          - After completion: “Water runs truer now.”
+      - Fisher:
+          - Optional small reaction line when stability rises.
+      - Astrin:
+          - After completion: Forest “buzz” feels calmer for tea brewing.
+
+      Dialogue can be lightweight—1–2 new lines per NPC, triggered by checks
+      of forest_act1 state.
+
+  - Add exit blockers at each major outbound route:
+      - Plains Pass:
+          - Add an examine text describing fallen oaks, twisted roots,
+            and unstable debris.
+          - Player cannot pass.
+      - Mountain Route:
+          - Add text describing the rockslide burying the switchback.
+          - Player cannot pass.
+      - Riverside Road:
+          - Add text describing the washed-out banks and dangerous current.
+          - Player cannot pass.
+      - Cave Entrances (existing cave-mouth landmarks):
+          - Add examine text describing unsafe descents and lack of gear.
+          - Player cannot pass.
+
+      Each closure should:
+          - Trigger on examining landmark exit directions.
+          - Never teleport the player.
+          - Never rely on physical stats.
+          - Use only descriptive, lore-driven blocks.
+
+  - Act I completion moment (soft):
+      - When forest_act1.completed becomes True:
+          - Trigger a lightweight message:
+              "The Forest steadies around you. The worst distortions have faded."
+          - NPC dialogue variants become available.
+          - No travel is unlocked yet.
+      - Player is encouraged to continue exploring the Forest.
+
+  - Save/load integration:
+      - Add forest_act1 to save data.
+      - Ensure old saves initialize runstones_total and runstones_repaired
+        using existing runestone definitions.
+      - completed should start False unless the save already meets threshold.
+
+deliverables:
+  - src/engine.py, src/exploration.py:
+      - Act I state object,
+      - stability-based encounter weighting,
+      - exit blocker detection & examine text.
+
+  - src/ui_curses.py (or equivalent):
+      - Forest stability UI line.
+
+  - data/runestones_forest.json:
+      - Ensure total count is referenced for forest_act1.runstones_total.
+
+  - data/dialogue_npcs_forest.json:
+      - Add small state-checked lines for each Wave 1 NPC.
+
+  - data/landmarks_forest.json:
+      - Add exit-blocker examine text to:
+          - Plains-pass landmark,
+          - Mountain-route landmark,
+          - Riverside-road landmark,
+          - Cave-mouth landmarks.
+
+acceptance_criteria:
+  - The status UI shows Forest Ley-Line progress.
+  - Repairing a runestone updates forest_act1.runstones_repaired.
+  - Completing Act I flips completed = True and triggers the stabilization message.
+  - NPCs deliver alternate lines based on progress flags.
+  - All exit landmarks clearly describe why the player cannot proceed.
+  - No physical stats introduced.
+  - No new map geometry added.
+  - Game remains fully playable for old and new saves.
+
+non_goals:
+  - No town travel.
+  - No Act II cave exploration.
+  - No new questlines.
+  - No new mechanics beyond flags, text, and encounter weighting.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep all state changes simple and strictly additive.
+  - Use explicit flags rather than complex quest systems.
+  - NPC dialogue must remain data-driven and state-checked.
+
+test_plan:
+  - New run:
+      - Encounter Hermit → learn runestones.
+      - Stabilize one runestone → Echo/Hermit/Naiad/Druid react.
+      - Stabilize enough runestones → Act I completes → message fired.
+      - Try all exits → blockers appear correctly.
+  - Existing saves:
+      - Act I initializes correctly.
+      - Exits blocked normally.
+      - No crashes from missing forest_act1.

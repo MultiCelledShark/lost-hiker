@@ -1,0 +1,101 @@
+name: "Lost Hiker – Tea & Brew Flavor (Race-Aware, No Mechanics)"
+
+description: |
+  Enrich tea and brew descriptions with race-aware flavor text, without
+  introducing any mechanical differences. Integrate with existing and
+  planned teas (Dreammilk Moss, Ember-Root, Heartmore, Starlace, etc.)
+  and with Astrin’s brewing and related NPC commentary.
+
+goals:
+  - Identify core tea/brew types:
+      - calming/sleep teas:
+          - e.g. Dreammilk Moss, Veilgrass-based blends.
+      - stamina/energy teas:
+          - e.g. Ember-Root Bulbs, Heartmore Shoot.
+      - clarity/navigation teas:
+          - e.g. Starlace Fungus, Wisp-Petal Blossoms.
+      - warmth/comfort teas:
+          - e.g. Ember-Root + Glow-Sap combinations.
+      - mystical/attunement teas:
+          - e.g. rare herbs (later Echo-Leaf, etc.).
+
+  - Add race-aware flavor overlays:
+      - For each race, define short, reusable “how tea feels” snippets.
+        Examples:
+          - elf:
+              - teas feel “crisper” and “botanical”; “you feel the forest
+                breathing with you.”
+          - dwarf:
+              - teas feel “earthy, grounding”; “solid warmth spreads
+                through your limbs.”
+          - lizard_folk:
+              - warm teas feel especially blissful; “heat seeps into
+                stiff scales.”
+          - cow_kin:
+              - descriptions emphasize steady, filling comfort.
+          - wolf_kin:
+              - sharper aromatic notes; “herbs hit your senses like fresh
+                winter air.”
+          - deer_kin:
+              - teas feel calming, heart-slowing; “your pulse settles into
+                a forest rhythm.”
+          - fox_kin:
+              - a little tingle/spark; “your tongue tingles with mischief.”
+          - gryphon_folk:
+              - airy, bright; “steam curls around your beak; feathers fluff.”
+          - dragonborn:
+              - teas play off internal warmth; “the brew awakens something
+                glowing inside you.”
+      - Implement this as:
+          - a small helper that takes (base_tea_effect, race_flavor_tags)
+            and appends a short, race-specific sentence.
+
+  - Integrate with Astrin’s brewing:
+      - When Astrin serves a tea or comments on it:
+          - allow her to make occasional race-aware remarks, e.g.:
+              - to dragonborn: “This one plays nicely with your inner fire.”
+              - to dwarf: “Grounding, isn’t it?”
+              - to elf: “Fine-tuned for forest ears and hearts.”
+      - Only a few lines needed; keep it light.
+
+  - Keep all differences purely cosmetic:
+      - No numerical differences in stamina, hunger, buffs, etc.
+      - Only text and “feel.”
+
+deliverables:
+  - Updated tea/brew description logic:
+      - functions or data that:
+          - define base tea descriptions by type,
+          - optionally append race-specific flavor sentences.
+  - Updated Astrin dialogue:
+      - a handful of lines that reference races in the context of brews.
+
+acceptance_criteria:
+  - When drinking teas:
+      - the player sometimes sees race-aware flavor lines (“how it feels”
+        for their body), but base descriptions remain.
+      - there are no mechanical differences; buffs and effects remain
+        identical across races.
+  - Astrin:
+      - occasionally comments on teas in a race-aware way that fits her
+        personality and doesn’t spam the player.
+  - No crashes if race_id is unknown; generic tea descriptions still work.
+
+non_goals:
+  - No new teas or mechanical effects.
+  - No new UI or brewing systems.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep tea flavor overlays small and modular.
+  - Use race flavor_tags rather than hard-coding all race_ids where possible.
+
+test_plan:
+  - Create characters of multiple races and:
+      - drink different types of teas (calming, stamina, clarity, warmth).
+      - confirm that race-aware flavor lines appear sometimes and that
+        base descriptions still make sense.
+      - talk to Astrin about brews to see occasional race-aware comments.
+  - Confirm that no mechanical stats differ between races; only text.

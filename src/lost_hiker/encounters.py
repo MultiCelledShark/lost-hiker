@@ -160,6 +160,20 @@ class EncounterEngine:
         if preferred_seasons and season not in preferred_seasons:
             return False
         
+        # Check time of day
+        preferred_time_of_day = conditions.get("preferred_time_of_day")
+        if preferred_time_of_day:
+            from .time_of_day import get_time_of_day
+            current_time = get_time_of_day(state).value
+            if current_time not in preferred_time_of_day:
+                return False
+        
+        # Check required landmark
+        required_landmark = conditions.get("required_landmark")
+        if required_landmark:
+            if not state.current_landmark or state.current_landmark != required_landmark:
+                return False
+        
         # Check rapport tier
         required_tier = conditions.get("required_rapport_tier")
         if required_tier:

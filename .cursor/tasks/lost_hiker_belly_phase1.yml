@@ -1,0 +1,254 @@
+name: "Lost Hiker – Belly Interaction System Phase 1 (Non-lethal Shelter/Struggle Loop)"
+
+description: |
+  Implement the first-pass belly interaction system for non-lethal, vore-enabled
+  outcomes during encounters and Echo’s sheltering. This is a small state machine
+  that takes over after a swallow event and lets the player choose how to respond
+  (soothe, struggle/escape, relax, or call on the radio if available).
+
+  Scope:
+    - Only non-lethal, non-digestive outcomes in Act I.
+    - No timers, no directional QTEs, no Phase 2 "arrow flash" mechanics.
+    - Integrate with the existing vore toggle and encounter outcomes
+      (e.g. SHELTERED / TRANSPORTED), plus Echo’s protective shelter swallow.
+
+  Goals:
+    - Make predator swallow outcomes feel interactive and distinct.
+    - Make Echo’s belly-shelter feel cozy and safe, not game-breaking.
+    - Lay a clean foundation for Phase 2 (directional QTEs and deeper predator
+      behavior) without touching Act II or dens yet.
+
+goals:
+  - Belly state model:
+      - Add a simple belly interaction state to game state, e.g.:
+            state.belly = {
+                "active": bool,
+                "creature_id": Optional[str],
+                "mode": "predator" | "friend" | "echo",
+                "depth_before": Optional[int],
+                "landmark_before": Optional[str],
+                "turns_inside": int
+            }
+      - When belly.active is True:
+          - normal exploration input is suspended,
+          - a dedicated belly interaction loop runs until it resolves back
+            to the world.
+
+  - Entry points into belly state:
+      - Predator encounters:
+          - For vore-enabled, non-lethal swallow outcomes, instead of
+            immediately resolving to SHELTERED/TRANSPORTED text, enter
+            belly state:
+                - mode = "predator"
+                - creature_id = predator id
+                - depth_before, landmark_before recorded from current state.
+          - This should only happen when:
+                - global vore is ON,
+                - the encounter outcome is specifically flagged as non-lethal
+                  swallow (shelter/transport), not generic threat.
+      - Echo shelter:
+          - When Echo "bellies" the player for shelter (e.g. Blue Fireflies
+            event or camp choice), also enter belly state:
+                - mode = "echo"
+                - creature_id = "echo"
+                - record depth/landmark as Glade (home).
+          - Echo’s belly is always safe in Phase 1; no threat, no struggle
+            required unless the player explicitly chooses to.
+
+  - Belly interaction loop (core actions):
+      - While belly.active is True, present a simple text menu and prompt
+        for commands such as:
+          - "soothe"  (or similar: calm, gently, etc.)
+          - "struggle" (or escape/force)
+          - "relax"   (give in / rest)
+          - "call"    (only if player has HT radio; optional in Phase 1)
+      - Implement as a normal input loop (no timers, no arrow QTEs).
+
+      - For mode == "predator":
+          - soothe:
+              - The game picks a simple internal "mood" or tension description
+                (e.g. the belly clenches, the creature growls faintly, etc.).
+              - Soothe attempts have a chance to:
+                  - calm the creature,
+                  - maintain current location and end the belly scene with a
+                    gentle release near where the swallow occurred,
+                  - slightly increase rapport/comfort with that creature type
+                    if such tagging exists.
+              - Failed soothe attempts can:
+                  - jostle the player,
+                  - cost a small amount of stamina,
+                  - or nudge toward a transport-style outcome (spit out at a
+                    nearby landmark) without killing the player.
+          - struggle:
+              - For some predators (smaller mouths, weaker jaws), struggling
+                can:
+                  - force an early release in roughly the same depth region.
+              - For larger/stronger predators (bear, panther, Broodmother),
+                struggling is mostly:
+                  - a way to get shaken up,
+                  - costs stamina,
+                  - and may encourage the creature to relocate the player
+                    (basic transport) rather than gracefully release them.
+              - No death, no injury in Phase 1; only stamina and where-you-end-up.
+          - relax:
+              - The player “gives in” and lets the creature carry them:
+                  - after a short descriptive sequence, resolve to a
+                    TRANSPORTED-style outcome:
+                      - player is released at:
+                          - a nearby landmark in the same depth band,
+                          - OR a safer adjacent area if appropriate.
+                  - Optionally, grant a small stamina recovery to reflect
+                    warm-rest if the creature is tagged as shelter-friendly
+                    (e.g. Moss-Treader, Glow-Elk).
+              - For typical predators (wolf/bear), relax is more neutral:
+                  - player wakes up somewhere else, mildly disoriented but
+                    not harmed.
+          - call:
+              - If the HT radio is present and functional:
+                  - let the player attempt a call-out.
+                  - In Phase 1, Echo’s "response" can be purely narrative:
+                      - some reassuring lines,
+                      - possibly a tiny stamina/morale bump,
+                      - hints like “You’re being carried deeper” without
+                        actual rescue yet.
+                  - Real rescue logic can be introduced in Phase 2+.
+
+      - For mode == "echo":
+          - soothe:
+              - Echo is already calm; treat this as a bit of affectionate,
+                reassuring flavor text.
+          - struggle:
+              - Allowed, but mostly results in Echo gently pinning the
+                player still or teasing them; no mechanical benefit.
+          - relax:
+              - The default and recommended option:
+                  - quickly concludes the scene as a restful night.
+                  - apply:
+                      - normal Glade rest recovery,
+                      - plus any small bonus Echo’s shelter is already
+                        supposed to provide (if defined).
+          - call:
+              - Mostly flavor; Echo’s “voice” is already with the player.
+
+      - For mode == "friend" (reserved for future friendly non-Echo bellies):
+          - treat similar to predator, but with much higher soothe and relax
+            success rates and fewer negative jolts.
+          - This mode can be stubbed now or left for Phase 2+.
+
+      - Belly loop exit:
+          - All action paths must eventually:
+              - clear belly.active,
+              - restore normal exploration at a specific depth/landmark,
+              - respect stamina changes performed inside.
+
+  - Integration with encounter outcomes:
+      - For non-lethal vore outcomes that previously used textual
+        SHELTERED/TRANSPORTED results:
+          - route through belly state first,
+          - then resolve to the existing outcome framework so any downstream
+            logic that expects SHELTERED/TRANSPORTED still works.
+      - Echo shelter:
+          - should also use this path, but:
+              - always resolves to a safe Glade wake-up,
+              - with improved rest compared to a normal camp.
+
+  - Vore toggle respect:
+      - Ensure:
+          - If vore is OFF:
+              - predator encounters never route into belly state;
+              - choose alternate non-swallow outcomes (threat, shove, flee).
+              - Echo’s camp shelter should fall back to a non-vore “curl up
+                beside Echo” scene instead of a swallow.
+          - If vore is ON:
+              - belly state is allowed when the chosen encounter outcome is a
+                non-lethal swallow/shelter.
+      - Belly system must be fully disabled (never entered) if vore is off.
+
+  - Minimal data hooks for future phases:
+      - Optionally add simple creature flags to data, e.g.:
+          - can_shelter_in_belly: bool
+          - is_friendly_belly: bool
+      - Use these in Phase 1 in a basic way:
+          - friendly bellies: more effective relax/soothe, slightly better
+            stamina returns.
+          - typical predators: more neutral or mildly rough.
+      - Do NOT implement dens or bag-recovery mechanics yet; only leave
+        data space for them if it’s straightforward.
+
+deliverables:
+  - src/engine.py / src/exploration.py / src/encounters.py:
+      - Belly state structure and loop.
+      - Wiring for entering and exiting belly interactions.
+      - Integration with existing encounter outcome flow.
+
+  - src/ui_curses.py:
+      - A simple interaction screen or prompt for belly mode that:
+          - clearly describes the situation,
+          - lists valid actions (soothe, struggle, relax, call),
+          - reads player input and dispatches to the belly logic.
+
+  - data/encounters_forest.json (or equivalent):
+      - Mark or confirm which encounter outcomes for predators will now
+        use the belly loop when vore is ON.
+      - Ensure Echo’s swallow-for-shelter path is also represented where
+        appropriate.
+
+  - Save/load:
+      - Include belly state in save data:
+          - if a save is made during belly mode (rare, but possible),
+            reload should either:
+                - resume belly mode safely, OR
+                - safely resolve to a reasonable “woken up and released”
+                  state to avoid weirdness.
+      - Old saves should default to belly.active = False.
+
+acceptance_criteria:
+  - With vore OFF:
+      - The game behaves exactly as before regarding predator encounters and
+        Echo shelter; no belly interactions occur.
+  - With vore ON:
+      - Non-lethal swallow outcomes from predators enter the belly loop.
+      - Echo’s shelter swallow uses the belly loop in a safe, restful mode.
+      - The player can choose to soothe, struggle, relax, or call (if HT)
+        and see different descriptive results.
+      - All belly paths eventually return the player to a normal exploration
+        state at some depth/landmark with reasonable stamina changes.
+  - No digestion, injury, or death occurs inside bellies in Phase 1.
+  - No crashes or softlocks when entering/exiting belly mode.
+  - Existing systems (hunger, stamina, seasons, NPCs, runestones, Forest
+    Act I spine, micro-quests) continue to function normally.
+
+non_goals:
+  - No timed or directional QTE mechanics (arrow flashes) in this phase.
+  - No predator den / bag recovery implementation.
+  - No lethal digestion or complex damage modeling.
+  - No deep Act II or combat integration; this is Act I-focused.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep belly logic modular and isolated so Phase 2 can extend it without
+    rewriting Act I.
+  - Use clear, readable code and comments describing where Phase 2 (QTE)
+    would hook in later.
+
+test_plan:
+  - With vore ON:
+      - Trigger:
+          - at least one predator swallow event that enters belly mode,
+          - an Echo shelter swallow (e.g. Blue Fireflies night or camp).
+      - Test each belly action:
+          - soothe, struggle, relax, call (if HT available).
+      - Confirm:
+          - different narrative outcomes,
+          - plausible changes to stamina/position,
+          - eventual clean return to the overworld.
+  - With vore OFF:
+      - Confirm that the same encounters never enter belly mode.
+  - Save/load:
+      - If possible, save while in belly mode and reload:
+          - confirm either safe resume or clean resolution to being outside.
+  - Regression:
+      - Ensure exploration, encounters, camp, NPC interactions, and
+        Act I spine still behave correctly.
