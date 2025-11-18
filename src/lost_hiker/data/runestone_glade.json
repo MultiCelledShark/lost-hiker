@@ -1,0 +1,13 @@
+{
+  "id": "glade_rune_intro",
+  "max_attempts": 3,
+  "sequence": ["ember", "root", "home"],
+  "clues": [
+    "The rune grooves shimmer like embers catching on bark.",
+    "A coiled root embraces a tiny doorway carved into the stone.",
+    "Home waits through the glowing threshold if you guess true."
+  ],
+  "success_text": "The runes flare, whispering a promise of guidance.",
+  "failure_text": "The stone cools and the echoes fade for now."
+}
+

@@ -1,0 +1,9 @@
+{
+  "seasons": [
+    { "name": "spring", "length": 30 },
+    { "name": "summer", "length": 30 },
+    { "name": "fall", "length": 30 },
+    { "name": "winter", "length": 30 }
+  ]
+}
+

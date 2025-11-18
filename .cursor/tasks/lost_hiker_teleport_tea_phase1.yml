@@ -1,0 +1,295 @@
+name: "Lost Hiker - Wayfinding Tea Phase 1 (Short-Range Teleport via Forest Memory)"
+
+description: |
+  Implement a rare "wayfinding" tea that lets the player perform a one-time,
+  short-range teleport to a known landmark in the Forest.
+
+  The tea should:
+    - Use existing brewing/crafting systems.
+    - Rely on forest_memory (path stability) and runestone stabilization.
+    - Be clearly weaker and more limited than Kirin travel.
+    - NOT require a time-of-day system (no day/night tracking yet).
+
+  The goal is a flavorful, mid-game utility option that folds the Forest map
+  slightly, without turning into a full fast-travel replacement.
+
+goals:
+  - New ingredients & items:
+      - Add 2–3 special ingredients used for the wayfinding tea:
+          - "dream_fern" (rare herb).
+          - "mooncap_mushroom" (rare mushroom).
+          - Optionally re-use an existing "fresh creek water" or generic
+            "clean_water" item if it already exists; otherwise, define a simple
+            water ingredient obtainable at Creek Bend or camp.
+      - Define the final tea item:
+          - Suggested id: "wayfinding_tea" or "ley_slip_tea".
+          - Item type should be consistent with other teas (consumable, single-use).
+          - Description should hint at bending paths and following remembered places.
+
+  - Ingredient acquisition (no time-of-day system):
+      - Do NOT implement time-of-day or night-only logic.
+      - Instead, gate ingredients by:
+          - Landmark and progression:
+              - dream_fern:
+                  - Rarely found at specific mystical landmarks (e.g. around
+                    runestone sites after at least 1 stone is repaired, or a
+                    dedicated "fern grove" landmark if that already exists).
+              - mooncap_mushroom:
+                  - Rarely found at specific landmarks (e.g. Stone Lantern
+                    Clearing, Whispering Hollow, or similar locations with a
+                    mystical tone).
+          - Runestone progress:
+              - Both ingredients should only start appearing once the player
+                has repaired at least 1 runestone in the Forest.
+          - Rarity:
+              - For Phase 1, maintain a low spawn rate (treat these as special,
+                not everyday forage), but it should be possible to acquire the
+                ingredients with some focused effort and forest_memory aiding
+                revisits.
+      - If necessary, add a small "pity" mechanic similar to other rare items:
+          - After N visits to eligible landmarks without seeing the ingredient,
+            slightly increase its chance of appearing.
+
+  - Brewing the wayfinding tea:
+      - Add a recipe to the existing brewing/crafting system:
+          - Inputs:
+              - 1x dream_fern.
+              - 1x mooncap_mushroom.
+              - 1x water component (if required by your tea system).
+          - Output:
+              - 1x wayfinding_tea.
+      - Context:
+          - Brewable only at camp, consistent with other teas.
+      - The recipe should be presented and handled in the same data-driven
+        manner as other teas (not hard-coded).
+
+  - Wayfinding effect (short-range teleport):
+      - When the player drinks the wayfinding_tea:
+          - Consume the tea item.
+          - Set a temporary state flag for that day:
+              - e.g. state.effects.wayfinding_ready = true.
+          - Optionally provide short flavor text about the Forest "tilting"
+            or paths overlapping.
+      - While wayfinding_ready is true:
+          - Allow exactly one wayfinding teleport in that same day.
+          - Add a command such as:
+              - "wayfind" or "wayfind to [landmark]"
+              - or a small menu at camp/Glade: "Use wayfinding sense" that
+                lists eligible targets.
+      - After a successful teleport:
+          - Clear wayfinding_ready.
+          - Apply an appropriate stamina cost (see next goal).
+
+  - Teleportation rules & constraints:
+      - Scope and rules for Phase 1:
+          - Only usable in the Forest zone (no cross-zone teleport).
+          - Only valid destinations:
+              - Landmarks that:
+                  - have been discovered,
+                  - have path stability >= 2 ("familiar" / "well-worn" path),
+                  - and are in the same zone.
+              - Use forest_memory helpers to determine valid targets.
+          - Require minimal runestone progress:
+              - e.g. at least 1 fully repaired runestone in the Forest.
+          - Depth / progression constraints:
+              - Do NOT allow wayfinding to bypass runestone-based depth gating:
+                  - Only allow teleport to landmarks in depth bands that
+                    would already be reachable given current progression.
+              - If needed, call into forest_effects / existing depth logic to
+                validate.
+      - If the player tries to wayfind to an invalid target:
+          - Show gentle flavor text about the Forest resisting the attempt.
+          - Do not consume the one teleport (or consume at your discretion, but
+            be consistent).
+      - Stamina and hunger impact:
+          - Teleporting should cost some stamina:
+              - e.g. a flat cost or a % of max stamina (e.g. ~15–25%).
+          - Do NOT bypass hunger; treat wayfinding as a movement-equivalent
+            action for hunger/stamina purposes.
+      - Frequency:
+          - For Phase 1, limit wayfinding_tea to being a per-dose mechanic:
+              - One tea = one teleport.
+              - No built-in daily limit beyond how many teas the player brewed.
+
+  - Interaction with Kirin travel:
+      - Ensure wayfinding tea is strictly weaker and more conditional than
+        Kirin travel:
+          - Kirin:
+              - More flexible destination list.
+              - Tied to trust and Act I completion.
+              - Limited to once per day, but safe and reliable.
+          - Wayfinding tea:
+              - Requires brewing and rare ingredients.
+              - Only reaches landmarks your paths "remember" clearly
+                (stability >= 2).
+              - Still consumes stamina and is limited by progression/depth
+                constraints.
+      - Do NOT let wayfinding access destinations that Kirin explicitly
+        cannot reach in Phase 1 (if any).
+      - Wayfinding and Kirin should feel complementary:
+          - Tea is personal, ritual, and short-range.
+          - Kirin is external help and more robust travel.
+
+  - Messaging and feedback:
+      - When brewing the tea:
+          - Show text that highlights this is a special, memory-following brew.
+      - When drinking:
+          - Briefly describe a sense of paths folding or overlapping.
+      - When using wayfinding:
+          - Show which landmarks are valid targets.
+          - On success, describe the transition in a way that matches the
+            Forest’s ley-line and runestone lore.
+
+  - Save/load:
+      - Persist inventory state for new ingredients and wayfinding_tea.
+      - Persist any temporary state required if the player saved after
+        drinking the tea but before teleporting:
+          - e.g. wayfinding_ready flag and any other necessary context.
+      - Ensure older saves:
+          - Do not crash.
+          - Start with no wayfinding_tea and no wayfinding_ready flag.
+
+deliverables:
+  - data/items_herbs.json / items_food.json / items.json (depending on existing structure):
+      - New items:
+          - dream_fern
+          - mooncap_mushroom
+          - wayfinding_tea
+          - Any water item needed if not already present (or reuse existing).
+      - Each should have:
+          - appropriate category tags (e.g. herb, mushroom, tea, consumable).
+          - short and long descriptions.
+
+  - data/brewing_recipes.json or equivalent:
+      - Add a recipe for wayfinding_tea:
+          - Inputs: dream_fern + mooncap_mushroom (+ water if applicable).
+          - Output: wayfinding_tea.
+          - Context: brewable at camp.
+
+  - src/foraging/events or equivalent:
+      - Add rare forage or event hooks for:
+          - dream_fern:
+              - Appears at specific mystic landmarks, gated behind at least 1
+                repaired runestone.
+          - mooncap_mushroom:
+              - Appears at specific landmarks (e.g. Stone Lantern Clearing or
+                another appropriate site), also gated behind some progress.
+      - Integrate with existing event/forage system without disrupting
+        general balance.
+
+  - src/effects.py or equivalent (if such a module exists) OR src/consumables.py:
+      - Implement the logic for:
+          - Drinking wayfinding_tea → sets wayfinding_ready flag and any
+            internal effect representation.
+
+  - src/wayfinding.py (new helper module) or integrate into an existing travel/system module:
+      - Implement:
+          - Finding valid wayfinding targets based on:
+              - forest_memory (path stability),
+              - zone (Forest only),
+              - runestone/depth gating.
+          - Handling the "wayfind" command or menu action:
+              - listing valid destinations,
+              - resolving teleport,
+              - applying stamina cost,
+              - clearing wayfinding_ready.
+
+  - src/engine.py:
+      - Hook:
+          - wayfinding_ready state into the daily flow so it:
+              - persists correctly through normal actions for that day,
+              - is cleared appropriately at day end or after use.
+      - Integrate:
+          - wayfinding invocation into camp/Glade actions or general command
+            handling.
+
+  - src/commands.py and/or src/ui.py:
+      - Add support for:
+          - "drink wayfinding tea" (if not already handled generically).
+          - "wayfind" / "wayfind to [landmark]" OR a menu option "Use
+            Wayfinding" at an appropriate time.
+      - Display the list of valid targets when wayfinding is invoked.
+
+  - Save/load logic:
+      - Persist:
+          - new items in inventory,
+          - wayfinding_ready state if active.
+
+acceptance_criteria:
+  - Ingredients:
+      - After repairing at least one runestone, the player can (with some
+        effort) find dream_fern and mooncap_mushroom at intended landmarks.
+      - These ingredients are noticeably rare but not effectively impossible
+        to acquire.
+
+  - Brewing:
+      - At camp, the recipe for wayfinding_tea is visible and usable when the
+        player has the correct ingredients.
+      - Brewing produces a wayfinding_tea item.
+
+  - Drinking & teleport:
+      - Drinking the tea sets wayfinding_ready.
+      - While wayfinding_ready is true:
+          - The player can invoke wayfinding and see a list of eligible
+            landmarks based on path stability and progression.
+          - Choosing a valid target moves the player to that landmark,
+            consumes the effect, and costs stamina.
+      - After teleport:
+          - wayfinding_ready is cleared.
+      - Invalid targets are handled gracefully with a clear flavor message.
+
+  - Constraints:
+      - Wayfinding works only in the Forest zone.
+      - It cannot bypass runestone-based depth gating.
+      - It does not ignore hunger or stamina systems.
+
+  - Integration:
+      - Kirin travel still works and is clearly the more robust, flexible
+        travel option.
+      - Forest_memory and runestone logic remain intact and cooperate with
+        wayfinding.
+
+  - Save/load:
+      - Inventory and wayfinding state persist correctly.
+      - No crashes or weird behavior on old saves.
+
+non_goals:
+  - Do NOT:
+      - Implement time-of-day or night-only mechanics in this task.
+      - Implement teleport teas that cross zones or move into new Acts.
+      - Implement stacking or chain teleports in a single day.
+      - Overhaul all forage events; just add what is necessary for these
+        ingredients.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep wayfinding logic self-contained and data-driven where possible.
+  - Build on existing brewing, forest_memory, and runestone/depth logic rather
+    than duplicating systems.
+  - Make the tea feel rare and special via gating and rarity, not via
+    opaque or punishing mechanics.
+
+test_plan:
+  - Start a new game or load mid-game:
+      - Repair at least one Forest runestone.
+      - Visit the intended landmarks until dream_fern and mooncap_mushroom
+        are found at least once.
+      - Brew wayfinding_tea and drink it.
+      - Confirm:
+          - wayfinding_ready is set.
+          - "wayfind" (or equivalent action) lists valid landmarks with
+            path stability >= 2 in the Forest.
+          - Using wayfinding:
+              - Moves the player to the chosen landmark.
+              - Applies stamina cost.
+              - Clears wayfinding_ready.
+      - Confirm Teleport tea cannot be used:
+          - outside the Forest.
+          - to bypass depth gating.
+      - Save after drinking but before using wayfinding, reload, and confirm
+        the effect still works.
+  - Regression:
+      - Confirm Kirin travel, forest_memory, hunger, runestones, and
+        exploration still behave as expected.

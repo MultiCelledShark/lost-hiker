@@ -1,0 +1,306 @@
+name: "Lost Hiker - Echo Vore Phase 1 (Safe Belly Shelter from Hugs/Boops)"
+
+description: |
+  Add a limited, consensual, non-lethal vore mechanic for Echo at camp/Glade,
+  using the existing encounter outcome framework and vore toggles.
+
+  Scope:
+    - Only Echo.
+    - Only at camp/Glade.
+    - Only when vore is enabled and rapport is high enough.
+    - Safe, shelter-style swallowing (no digestion, no death, no explicit
+      sexual content).
+    - Triggered as a rare, escalating chance when the player hugs or boops
+      Echo, with the probability decaying over three in-game days.
+
+goals:
+  - Vore toggles & gating:
+      - Use the existing helpers (or add them if not yet implemented):
+          - is_vore_enabled(state/config)
+          - is_pred_enabled(state/config)  # can be used later; Phase 1 can
+                                           # ignore it if not needed.
+      - Echo vore behavior must only trigger when:
+          - vore is enabled,
+          - the player and Echo have sufficiently high rapport:
+              - use the highest rapport tier (e.g. "bonded") or a numeric
+                threshold (e.g. 4 or 5) as the gate.
+      - If vore is disabled or rapport is too low:
+          - hugging/booping still work as normal affection interactions
+            (flavor + small rapport), with zero chance of swallowing.
+
+  - New Echo camp actions: "Hug Echo" and "Boop Echo":
+      - At Glade/camp, when Echo is present:
+          - Add menu/command options:
+              - "Hug Echo"
+              - "Boop Echo"
+          - These are in addition to existing "Talk to Echo" / "Pet Echo".
+      - Hug behavior:
+          - Show a short, non-graphic, non-sexual description appropriate for
+            hugging a giant snake (comforting, enveloping coils, etc.).
+          - Increase Echo rapport by a modest amount, especially at low/mid
+            rapport.
+          - Have a base vore trigger chance of 1% when vore is enabled and
+            gating conditions (rapport, etc.) are met.
+      - Boop behavior:
+          - Show a playful description (tapping her snout, her reaction).
+          - May give a smaller or more playful rapport effect.
+          - Have a base vore trigger chance of 10% when vore is enabled and
+            gating conditions are met.
+      - Both actions should:
+          - still be useful as pure affection even if vore never triggers.
+          - respect any per-day rapport caps you’ve already set up to avoid
+            infinite grinding.
+
+  - Vore trigger probability with escalation & decay:
+      - Implement a small "tension" or "playful risk" model for Echo vore:
+          - Maintain one or more fields in state, for example:
+              - state.echo_vore_tension (float or int).
+              - state.echo_last_vore_tension_day (int) to track decay.
+          - Each time the player uses a vore-eligible action (Hug/Boop) and
+            vore is enabled:
+              - increase echo_vore_tension by a small amount
+                (implementation detail up to you, e.g. +0.1 per action),
+                clamped to a reasonable max.
+          - Effective vore chances:
+              - Hug:
+                  - base_chance_hug = 0.01 (1%).
+              - Boop:
+                  - base_chance_boob = 0.10 (10%).
+              - Actual chance each time:
+                  - chance = base_chance * (1.0 + tension_factor)
+                  - where tension_factor is derived from echo_vore_tension.
+                Exact math is flexible, but:
+                  - more hugs/boops in the last few days → higher chance.
+          - Decay over three days:
+              - On each new in-game day, decay echo_vore_tension toward zero
+                over ~3 days of no interaction.
+                Examples (implementation choice, but document it in code):
+                  - multiply tension by a factor like 2/3 each day, OR
+                  - subtract a fixed fraction so that after 3 days of no
+                    hugs/boops it hits 0.
+              - Ensure the decay is only applied once per day increment.
+
+      - The net effect should be:
+          - First hug/boop: 1% / 10% base.
+          - Repeated hugs/boops over a short period:
+              - the vore chance rises somewhat above base.
+          - If the player leaves it alone for ~3 days:
+              - the chance returns back down close to base.
+
+  - Echo vore outcome: safe belly shelter:
+      - When the vore trigger activates:
+          - Immediately run a short, non-graphic, non-sexual description:
+              - Echo pulling the player into coils,
+              - opening her jaws,
+              - and swallowing them in a fade-to-black sort of way.
+              - Emphasis on:
+                  - warmth,
+                  - pressure,
+                  - safety,
+                  - being enveloped,
+                but avoid explicit internal body detail or sexualized language.
+          - Then:
+              - transition the player into a dedicated "Echo belly shelter"
+                state, using the existing SHELTERED outcome semantics:
+                  - use resolve_encounter_outcome(state, SHELTERED, context)
+                    or an equivalent helper, with context indicating that the
+                    shelter is Echo.
+              - Set:
+                  - state.is_sheltered = True (or equivalent),
+                  - and a belly-specific flag, e.g.:
+                      - state.belly_state = { "predator_id": "echo",
+                                              "mode": "shelter" }
+                        for future tasks to reference.
+
+      - Mechanics of belly shelter (Phase 1):
+          - Time passage:
+              - Treat this like a forced, safe rest:
+                  - advance time_of_day appropriately (e.g. to next day
+                    or by one major time slot),
+                  - hunger advances as if resting,
+                  - stamina is partially restored.
+              - This can reuse the same logic as camp sleep/collapse but with
+                slightly gentler penalties if desired.
+          - Condition/strain:
+              - Being in Echo’s belly should NOT injure the player.
+              - It may:
+                  - leave condition unchanged, OR
+                  - slightly improve condition (so it feels safe, not harmful).
+          - Location:
+              - After the belly rest finishes, the player should re-emerge at:
+                  - the Glade camp,
+                  - or wherever Echo is defined to be "based" in the design doc.
+              - This can be treated as a TRANSPORTED or SHELTERED resolution
+                internally; pick the one that fits best with existing code.
+
+      - Player interaction while sheltered:
+          - For Phase 1, full interactive "belly mode" is optional.
+          - Minimum requirement:
+              - treat the belly shelter as a single resolution event:
+                  - show narrative of being swallowed,
+                  - apply a SHELTERED-style rest,
+                  - then wake up outside with a line acknowledging that Echo
+                    has let you back out.
+          - Optional (nice to have, but not required if too heavy):
+              - a tiny belly-mode where:
+                  - state.is_sheltered and belly_state pred=echo is active,
+                  - "check sky" responds with the enclosed message,
+                  - a simple "rest" or "wait" action resolves the shelter and
+                    returns the player to camp.
+              - If implemented, keep commands limited and simple.
+
+  - "Check sky" interaction when sheltered:
+      - Ensure:
+          - while state.is_sheltered (inside Echo or other shelter), the
+            existing "check sky" command reports that the sky can’t be seen.
+          - This should already be true from the earlier time-of-day task, but:
+              - confirm that Echo belly shelter sets the same sheltered flag
+                used there, so the gag "You can’t see the sky from in here."
+                naturally applies.
+
+  - Echo state & tension reset:
+      - After a successful swallow + release:
+          - consider reducing echo_vore_tension significantly or resetting it
+            to avoid instant retrigger:
+              - e.g. set tension to 0 or a low baseline.
+      - Ensure:
+          - tension handling does not break when reloading saves mid-way.
+
+  - Save/load:
+      - Persist:
+          - echo_vore_tension,
+          - any last-day fields (e.g. echo_last_vore_tension_day),
+          - belly_state (if you create it),
+          - and is_sheltered as already handled by the outcome system.
+      - Old saves:
+          - must work fine with:
+              - echo_vore_tension defaulting to 0,
+              - no belly_state,
+              - is_sheltered = False.
+
+deliverables:
+  - src/echo_vore.py or equivalent helper module (optional but preferred):
+      - Encapsulate:
+          - Echo vore gating (vore enabled, rapport threshold, etc.).
+          - tension/timing logic for hug/boop-triggered vore.
+          - the function(s) that actually trigger the belly shelter outcome.
+
+  - data/dialogue_echo.json or existing Echo dialogue file:
+      - Add any necessary flavor lines for:
+          - hugging and booping (non-vore outcomes).
+          - a brief description of Echo’s swallowing when vore triggers
+            (safe, fade-to-black, non-graphic).
+
+  - src/engine.py / src/camp.py / src/commands.py / UI:
+      - Add:
+          - "Hug Echo" and "Boop Echo" to camp/Glade menus and command
+            handling when Echo is present.
+      - Wire:
+          - these actions to:
+              - normal hug/boop effects and rapport changes,
+              - the vore gating/checks and possible trigger.
+      - Ensure:
+          - in curses and non-curses modes, the descriptions and any swallow
+            event text display properly and re-use the rolling log behavior.
+
+  - src/encounter_outcomes.py:
+      - Ensure:
+          - Echo swallow uses the SHELTERED outcome (and/or TRANSPORTED if
+            appropriate), with context that this was Echo shelter.
+      - Confirm:
+          - state.is_sheltered and any belly_state flags get set/reset
+            correctly.
+
+  - Save/load logic:
+      - Extend existing save data to include:
+          - echo_vore_tension,
+          - echo_last_vore_tension_day (or equivalent),
+          - belly_state (if added).
+      - Ensure:
+          - older saves default these fields safely.
+
+acceptance_criteria:
+  - Gating:
+      - Hug/Boop commands are available at camp when Echo is present.
+      - If vore is disabled (or rapport is below threshold), no swallowing
+        ever occurs—only normal hug/boop behavior.
+      - If vore is enabled and rapport is high:
+          - Hug has at least a base 1% chance to trigger vore.
+          - Boop has at least a base 10% chance to trigger vore.
+          - Repeated hugs/boops over a short interval:
+              - increase the swallow chance via the tension logic.
+          - Three days of no interactions:
+              - decay that extra risk back toward base.
+
+  - Swallow event:
+      - When the RNG says vore happens:
+          - The player gets a short, non-graphic narrative of Echo swallowing
+            them.
+          - Then:
+              - the game applies a SHELTERED-style rest:
+                  - time passes,
+                  - stamina recovers somewhat,
+                  - hunger and condition adjust reasonably,
+              - the player returns to an appropriate safe location with a brief
+                line acknowledging Echo letting them out.
+      - No digestion, no death, no injury due to being swallowed.
+
+  - Check sky:
+      - While in any sheltered state (including Echo belly shelter), "check sky"
+        properly uses the enclosed response.
+
+  - Stability:
+      - Hugging/booping many times doesn’t crash the game.
+      - echo_vore_tension behaves as expected across days and saves.
+      - Old saves load without issue; Echo vore simply doesn’t trigger until
+        new data/state is established.
+
+non_goals:
+  - Do NOT:
+      - Implement digestion, harm, or lethal outcomes inside Echo.
+      - Implement vore with any other creature yet.
+      - Implement predatory/non-consensual vore sequences.
+      - Add explicit sexual content; keep this framed as safety, affection,
+        and mystical shelter.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep Echo vore logic clearly separated and toggle-respecting so it’s easy
+    to disable completely.
+  - Keep all text non-graphic and non-sexual.
+  - Use the encounter_outcomes framework instead of inventing new ad-hoc
+    teleport/rest paths.
+
+test_plan:
+  - New game or mid-game save with high Echo rapport:
+      - Turn vore ON.
+      - Hug Echo several times:
+          - verify normal hugs work most of the time.
+          - confirm that eventually the 1%+tension chance can trigger a
+            swallow.
+      - Boop Echo several times:
+          - confirm the higher (10%+tension) chance behaves as expected.
+      - After a swallow:
+          - confirm:
+              - time/stamina/hunger/condition update like a safe rest.
+              - player reappears at camp with a line about Echo releasing
+                them.
+              - echo_vore_tension is reset or reduced.
+      - Wait three in-game days without hugging/booping:
+          - confirm that the swallow chance returns to baseline levels.
+
+  - With vore OFF:
+      - Hug/Boop never trigger swallowing, regardless of repetitions.
+
+  - Save/load:
+      - Save before and after building up tension; reload to ensure tension
+        persists.
+      - Save inside/outside a shelter event if any extended belly mode is
+        implemented; ensure no stuck states or crashes.
+
+  - Regression:
+      - Echo’s normal talk/pet interactions still work.
+      - NPC dialogue, encounters, hunger, seasons, runestones, Kirin, and
+        curses UI all remain intact.

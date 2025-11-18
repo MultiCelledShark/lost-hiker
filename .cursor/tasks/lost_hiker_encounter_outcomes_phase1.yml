@@ -1,0 +1,277 @@
+name: "Lost Hiker - Encounter Outcomes Phase 1 (Retreat, Collapse, Shelter, Transport)"
+
+description: |
+  Introduce a unified encounter outcome framework so all encounters
+  (non-combat, threat/combat, future vore, Kirin, and special events) can use
+  the same set of resolution modes.
+
+  Phase 1 goals:
+    - Define a small set of standardized encounter outcomes (e.g. NORMAL,
+      RETREAT, COLLAPSE, SHELTERED, TRANSPORTED).
+    - Implement a central handler that:
+        - updates location, time, stamina, condition, etc. based on outcome.
+        - coordinates with existing collapse/return-to-Glade logic.
+    - Refactor existing threat encounters and any special retreat/collapse
+      behavior to use this framework.
+    - Add non-vore "sheltered" and "transported" outcomes as groundwork for
+      vore and Kirin/belly travel in later tasks, without implementing vore
+      content yet.
+
+goals:
+  - Define encounter outcome types:
+      - Introduce a small enum-like structure (can be strings or constants)
+        for encounter outcomes, for example:
+          - "NORMAL": encounter ends, player remains where they are and play
+            resumes normally.
+          - "RETREAT": forced retreat to a safer location (e.g. shallower
+            depth or Glade/camp).
+          - "COLLAPSE": player blacks out, wakes later in a safe place with
+            heavier penalties.
+          - "SHELTERED": player ends up in a safe, protected state for a
+            time; mechanically similar to collapse or sleeping at camp but
+            associated with being hidden/protected (e.g. belly-rest or
+            magical shelter in future tasks).
+          - "TRANSPORTED": player ends up moved to a different landmark/zone
+            as part of the resolution (e.g. Kirin travel, future belly
+            travel, magical displacement).
+      - These can be implemented as:
+          - simple string constants,
+          - or an Enum class, as long as they are centralized and reused.
+
+  - Central outcome handler:
+      - Add a central function or small module to handle these outcomes, e.g.:
+          - resolve_encounter_outcome(state, outcome, context)
+        where context can include:
+          - source creature_id / npc_id (who caused it),
+          - target landmark_id for TRANSPORTED,
+          - optional flags (e.g. "was_safe_shelter" vs "collapse").
+      - The handler should:
+          - For NORMAL:
+              - do minimal/no special handling; just end the encounter.
+          - For RETREAT:
+              - decide and apply where the player retreats to:
+                  - default could be:
+                      - one step toward shallower depth if such a concept
+                        exists,
+                      - or straight back to the Glade/camp.
+              - adjust stamina / condition appropriately (loss from retreat).
+          - For COLLAPSE:
+              - move the player to a safe location (usually the Glade or a
+                known "safe" camp).
+              - advance the day (or time chunk) in a way consistent with
+                existing collapse/exhaustion behavior.
+              - set stamina to a low but non-zero value (or existing collapse
+                rules).
+              - possibly bump condition/strain.
+          - For SHELTERED:
+              - mechanically act like:
+                  - a controlled version of collapse or a camp sleep:
+                      - time passes,
+                      - stamina partially restored,
+                      - hunger progressed,
+                      - condition may improve or worsen depending on how we
+                        treat "shelter".
+              - but do not tie it specifically to vore in this phase:
+                  - treat it as generic "safe but forced rest" (e.g. hidden
+                    burrow, tree hollow, magical ward).
+              - set state in a way that a later task can flavor it as belly-
+                rest without changing the core mechanics.
+          - For TRANSPORTED:
+              - move the player to the target landmark/zone specified in
+                context.
+              - adjust time, stamina, hunger in a way that matches:
+                  - Kirin travel,
+                  - future belly travel,
+                  - teleport teas, etc.
+              - If no target is specified, fail safely and fall back to a
+                sane default (e.g. Glade) with a logged warning.
+      - The handler must re-use existing day/stamina/hunger logic where
+        possible, not duplicate it.
+
+  - Integrate with existing collapse/return logic:
+      - Identify current code paths that:
+          - send the player back to the Glade on collapse or exhaustion,
+          - advance the day after collapse,
+          - move the player via special travel (like Kirin or wayfinding).
+      - Refactor those paths to:
+          - call resolve_encounter_outcome with appropriate outcomes:
+              - collapse/exhaustion → COLLAPSE.
+              - forced retreat (from threat encounter) → RETREAT.
+              - Kirin travel / teleport tea:
+                  - can call TRANSPORTED internally, with their own context.
+          - Avoid duplicating location/time/stamina handling in many places.
+
+  - Update threat encounters to use outcomes:
+      - Extend threat encounter definitions (from Combat Phase 1) so each
+        branch explicitly returns:
+          - an outcome type,
+          - and any needed context (target landmark, etc.).
+      - Replace hard-coded retreat / collapse logic in those encounters with:
+          - calls to the central outcome handler.
+      - Ensure that:
+          - "bad" branches can cause RETREAT or COLLAPSE (as per design).
+          - "good" branches usually return NORMAL, potentially with rapport
+            changes and minor stamina costs.
+
+  - Non-vore SHELTERED and TRANSPORTED groundwork:
+      - Implement SHELTERED and TRANSPORTED outcomes in a vore-agnostic way:
+          - SHELTERED for now should be described generically:
+              - “You spend time hidden/sheltered; when you emerge…”
+          - TRANSPORTED should be used for:
+              - Kirin’s current travel,
+              - any existing teleport/wayfinding logic,
+              - but described in those systems’ own flavor.
+      - Ensure:
+          - nothing in this task mentions "stomach", "swallowed", etc.
+          - future tasks can re-use SHELTERED/TRANSPORTED to flavor them as
+            vore outcomes when toggles/consent allow.
+
+  - Outcome + toggles hooks (no vore yet):
+      - If vore/pred toggles exist in the config/state:
+          - Add simple helper functions for future use:
+              - is_vore_enabled(state)
+              - is_pred_enabled(state)
+          - These don’t need to be fully used here, but having a clear place
+            for them will help next phase.
+      - Do not implement any vore-specific resolution in this task.
+        Just ensure the outcome framework is flexible enough to support it.
+
+  - Save/load:
+      - Ensure that:
+          - relevant state changes from outcomes (location, stamina, condition,
+            day, etc.) are already persisted via existing save logic.
+      - If any new flags or fields are introduced for outcome context, ensure
+        they are saved and loaded safely, with defaults for old saves.
+
+deliverables:
+  - src/encounter_outcomes.py or equivalent:
+      - Define constants or an Enum for:
+          - NORMAL, RETREAT, COLLAPSE, SHELTERED, TRANSPORTED.
+      - Implement:
+          - resolve_encounter_outcome(state, outcome, context=None).
+      - Optionally provide:
+          - helper functions like:
+              - do_retreat(state, context)
+              - do_collapse(state, context)
+              - do_sheltered_rest(state, context)
+              - do_transport(state, context)
+        to keep logic organized.
+
+  - src/engine.py / src/exploration.py / src/combat.py:
+      - Refactor:
+          - threat encounter resolution to call resolve_encounter_outcome
+            instead of manually shuffling state.
+          - collapse/exhaustion paths to use COLLAPSE outcome (or call the
+            same helper used by COLLAPSE).
+      - Integrate:
+          - Kirin travel and wayfinding tea (if not too invasive) so they
+            optionally use TRANSPORTED via the central handler.
+
+  - data/encounters_forest.json (or equivalent):
+      - Update threat encounter definitions to:
+          - include an "outcome" field or equivalent for each branch:
+              - "NORMAL"
+              - "RETREAT"
+              - "COLLAPSE"
+              - "SHELTERED"
+              - "TRANSPORTED" (if appropriate)
+          - include any extra context fields needed for TRANSPORTED
+            (e.g. target_landmark_id).
+      - For non-threat encounters, NORMAL is sufficient for now.
+
+  - src/config.py or similar (if applicable):
+      - Add simple helpers for vore/pred toggles:
+          - is_vore_enabled(state/config)
+          - is_pred_enabled(state/config)
+        without using them yet in outcomes.
+
+  - Save/load modules:
+      - Confirm:
+          - No new fields break old saves.
+          - Any new fields are optional with safe defaults.
+
+acceptance_criteria:
+  - Encounter outcomes:
+      - Threat encounters and collapse/exhaustion paths now resolve through
+        resolve_encounter_outcome (or its helper functions).
+      - The codebase has a single, clearly defined place to handle:
+          - retreats,
+          - collapses,
+          - sheltered rest,
+          - transported movement.
+
+  - Behavior:
+      - RETREAT:
+          - Moves the player to a safer place and applies appropriate stamina
+            penalties.
+      - COLLAPSE:
+          - Moves the player to a safe location (e.g. Glade),
+          - advances time/day as per existing collapse logic,
+          - leaves them drained but alive.
+      - SHELTERED:
+          - Acts like a controlled rest:
+              - time advances,
+              - stamina/hunger/condition adjust in a reasonable way.
+          - Uses non-vore flavor text (hidden grove, burrow, tree hollow,
+            protective magic, etc.) for now.
+      - TRANSPORTED:
+          - Moves the player to a target location and applies reasonable
+            costs/effects.
+          - Kirin/wayfinding can use this internally (if wired in this task)
+            without changing their outward behavior.
+
+  - No regressions:
+      - Existing Kirin travel and wayfinding tea still work as before (or are
+        slightly cleaner internally).
+      - Threat encounters still function and feel the same or better.
+      - Collapse/exhaustion behavior is intact or slightly more coherent.
+
+  - Vore-ready but vore-free:
+      - The outcome framework is clearly capable of representing:
+          - belly shelter (via SHELTERED),
+          - belly travel (via TRANSPORTED),
+        but:
+          - no vore descriptions or content are implemented in this phase.
+          - all flavor text remains generic.
+
+  - Stability:
+      - No crashes due to missing outcome handling.
+      - Old saves load fine; if any new flags/fields were added, they default
+        correctly.
+
+non_goals:
+  - Do NOT:
+      - Implement vore scenes, stomach descriptions, or digestion.
+      - Implement lethal combat or full HP bars.
+      - Implement town-related encounter outcomes.
+      - Rewrite every event; only update enough to prove and use the new
+        outcome framework.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep outcome logic centralized and well-named so it’s obvious where to
+    plug in new behaviors (e.g. vore, advanced Kirin behaviors) later.
+  - Avoid copy-pasting day/stamina/location logic in many places; delegate to
+    helper functions in encounter_outcomes.py wherever possible.
+  - Keep all flavor text in this phase non-vore and generic; vore will be
+    wired in a dedicated follow-up task.
+
+test_plan:
+  - Use an existing mid-game save:
+      - Trigger a threat encounter:
+          - confirm that its resolution uses the new outcome functions.
+          - confirm that RETREAT and COLLAPSE outcomes behave correctly.
+      - Force a collapse via exhaustion:
+          - confirm it now routes through the outcome handler.
+      - Use Kirin travel and wayfinding tea:
+          - if wired to TRANSPORTED, confirm behavior is unchanged from the
+            player’s perspective.
+  - Regression:
+      - Ensure exploration, encounters, Echo interactions, NPC dialogue,
+        hunger, seasons, runestones, and curses UI are all still intact.
+  - Sanity:
+      - Confirm that SHELTERED and TRANSPORTED can be called from at least
+        one test hook or debug path without crashing, even if content using
+        them is minimal in this phase.

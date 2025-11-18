@@ -1,0 +1,23 @@
+{
+  "runestones": [
+    {
+      "id": "forest_stone_lantern",
+      "landmark_id": "stone_lantern_clearing",
+      "name": "Stone Lantern Runestone",
+      "initial_state": "fractured"
+    },
+    {
+      "id": "forest_split_boulder",
+      "landmark_id": "split_boulder",
+      "name": "Split Boulder Runestone",
+      "initial_state": "fractured"
+    },
+    {
+      "id": "forest_fallen_giant",
+      "landmark_id": "fallen_giant",
+      "name": "Fallen Giant Runestone",
+      "initial_state": "fractured"
+    }
+  ]
+}
+

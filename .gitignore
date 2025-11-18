@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.uv/
+.env
+.env.*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Archives & assets
+*.zip
+*.tar
+*.gz
+*.xz
+*.bak
+assets/cache/

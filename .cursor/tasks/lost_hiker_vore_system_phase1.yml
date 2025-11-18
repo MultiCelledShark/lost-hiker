@@ -1,0 +1,323 @@
+name: "Lost Hiker - Vore System Phase 1 (Opt-In, Safe, Systemic)"
+
+description: |
+  Implement a unified, opt-in vore system that:
+    - Asks explicit questions during character creation to enable vore and
+      player-as-pred behavior (instead of a settings toggle),
+    - Centralizes vore-related configuration and helpers,
+    - Wires existing Echo vore behavior into that system,
+    - Adds basic support for other vore-capable interactions (e.g. Kirin
+      shelter/travel, a simple wild predator case, and a minimal
+      player-as-pred stub),
+    - Uses the existing encounter outcome framework for shelter/transport,
+    - Keeps all vore content non-lethal, non-graphic, and non-sexual.
+
+goals:
+  - Character creation: vore opt-in questions
+      - After the player enters their name (and before the game truly starts):
+          - Prompt with two explicit questions:
+              1) Vore toggle:
+                  - Example wording (adapt to tone, but keep clear):
+                    - "Do you want to enable swallowing-based shelter and
+                       travel scenes in this playthrough? (y/n)"
+                  - Store the result as a boolean, e.g.:
+                    - state.settings.vore_enabled
+              2) Player-as-pred toggle:
+                  - Only ask this if vore_enabled is True.
+                  - Example wording:
+                    - "Do you want your character to be able to act as a
+                       predator in these scenes? (y/n)"
+                  - Store as:
+                    - state.settings.player_pred_enabled
+          - Provide simple validation (only accept y/n or equivalent).
+          - Make it clear this is a content preference, not difficulty.
+
+      - These choices must:
+          - be stored in the save file and respected for the entire run.
+          - NOT default to "yes"; require explicit opt-in.
+          - Replace any existing in-game settings toggles used to enable vore
+            or player-as-pred:
+              - If a settings UI exists, it should:
+                  - show the current vore/player_pred status as read-only
+                    for now, OR
+                  - be updated to not offer toggles for these at all.
+              - Implementation detail is up to you, but:
+                  - the source of truth must be the character creation
+                    answers.
+
+  - Central vore configuration & helper API:
+      - Create a small vore helper module, e.g. src/vore.py:
+          - Functions:
+              - is_vore_enabled(state) -> bool
+              - is_player_pred_enabled(state) -> bool
+              - can_pred_swallow(state, predator_id, prey_id=None) -> bool
+                  - For Phase 1, at minimum:
+                      - check vore_enabled,
+                      - check rapport thresholds for specific predators (Echo,
+                        Kirin, etc),
+                      - for player-as-pred, also check player_pred_enabled.
+              - is_vore_allowed_in_context(state, context) -> bool
+                  - e.g. respect things like:
+                      - current location (camp vs wild),
+                      - current outcome type (threat vs friendly),
+                      - rapport tiers.
+
+      - All vore logic (Echo, Kirin, wild predator, player-as-pred) MUST go
+        through these helpers rather than directly reading settings fields.
+
+  - Echo vore integration with central system:
+      - Update the existing Echo vore implementation to:
+          - Use is_vore_enabled(state) and can_pred_swallow(...) instead of
+            any ad-hoc checks.
+          - Check:
+              - vore_enabled is True,
+              - Echo rapport is at/above the intended threshold (e.g. bonded).
+          - Respect the new tension/decay system for Hug/Boop that was already
+            implemented (Echo Vore Phase 1).
+      - Ensure:
+          - If vore is disabled at character creation, Echo Hug/Boop never
+            swallow the player; they remain pure affection actions.
+          - If vore is enabled but player_pred_enabled is irrelevant for Echo
+            (she is the predator), only vore_enabled and rapport gate it.
+
+      - Confirm Echo swallowing:
+          - continues to use the SHELTERED outcome (and/or TRANSPORTED if
+            appropriate) via the encounter outcomes framework.
+          - still sets is_sheltered and belly_state (predator_id="echo"),
+            so "check sky" behaves correctly while inside.
+
+  - Kirin vore-compatible travel (non-graphic, optional path):
+      - Without changing existing Kirin fast-travel behavior, add an
+        alternative vore-flavored path **only when**:
+          - vore_enabled is True,
+          - rapport/trust with the Kirin is high enough (use rapport system),
+          - and the player chooses it voluntarily.
+      - Example behavior:
+          - At a Kirin landmark or when interacting with the Kirin:
+              - Offer a new option if gated conditions are met, such as:
+                  - "Ask [KirinName] to carry you inside for the journey."
+              - If selected:
+                  - Show a short, non-graphic, non-sexual description of
+                    being swallowed and safely carried.
+                  - Use TRANSPORTED and/or SHELTERED outcomes via the outcome
+                    framework to:
+                      - move the player to the target landmark,
+                      - optionally apply a rest-like effect.
+              - If vore is disabled, this option must not appear; only the
+                normal horn/portal/stride travel remains.
+
+      - As with Echo:
+          - No harm, digestion, or death.
+          - Emphasis on mystical transport and safety.
+
+  - Simple wild predator vore case (non-lethal, threat flavor):
+      - Using the existing threat encounter system (e.g. red wolf or other
+        predator), add:
+          - A rare, gated branch where a predator may swallow the player if:
+              - vore_enabled is True,
+              - context is appropriate (deep forest, high tension, low
+                stamina, or similar),
+              - and the narrative justifies it.
+      - Behavior:
+          - The encounter plays as a threat:
+              - tension, danger, survival framing, not sexual.
+          - On the swallow branch:
+              - non-graphic description of being gulped down and squeezed,
+                with emphasis on fear/safety rather than eroticism.
+              - Use SHELTERED or TRANSPORTED outcome to:
+                  - move the player to a den/safe hollow and/or treat it as a
+                    forced, somewhat rough rest.
+          - After the event:
+              - The player wakes up outside (or in a den-like landmark) with:
+                  - condition/strain reflecting a stressful experience, but
+                    still non-lethal.
+                  - no gore, no digestion.
+
+      - Ensure:
+          - this branch is rare and only exists when vore is enabled.
+          - same threat encounters function without it when vore is disabled.
+
+  - Minimal player-as-pred stub:
+      - Implement a very small, clearly bounded player-as-pred behavior, only
+        when:
+          - vore_enabled is True,
+          - player_pred_enabled is True.
+      - Use one simple prey scenario as a testbed:
+          - For example, a small forest creature encounter where the player
+            may (optionally) choose a "swallow" action if all gates are met.
+      - Behavior:
+          - Non-graphic, non-sexual description of the act:
+              - no gore, no explicit internal detail.
+          - Outcome:
+              - treat it as:
+                  - a resolved encounter,
+                  - possibly small mechanical effects (e.g. a small stamina
+                    bump or minor resource gain), OR
+                  - purely flavor plus rapport impact with that creature type.
+          - The point is to prove the pipeline:
+              - gating,
+              - player_pred flag use,
+              - using encounter outcomes as needed.
+
+      - If vore is disabled or player_pred_enabled is False:
+          - this option never appears.
+          - the encounter resolves via non-vore branches only.
+
+  - UI & status display of vore settings:
+      - Update any relevant status/debug UI to include a simple summary:
+          - e.g. in a "settings" or "about this run" view:
+              - "Vore scenes: Enabled/Disabled"
+              - "Player as predator: Enabled/Disabled"
+      - These should be read-only for now (or, if you allow changing mid-run,
+        make sure it is done carefully and consistently through the same
+        settings fields).
+      - Do NOT re-add a toggle that bypasses character creation; the canonical
+        source remains the initial questions.
+
+  - Save/load:
+      - Ensure:
+          - vore_enabled and player_pred_enabled are stored in the save file
+            (and/or config saved with the run).
+          - any new vore-related state:
+              - belly_state,
+              - echo_vore_tension,
+              - predator vore flags,
+            is persisted as already set up in previous tasks or newly added.
+      - Older saves:
+          - If they lack vore settings:
+              - default vore_enabled and player_pred_enabled to False.
+              - Echo and Kirin revert to non-vore behavior until a new run.
+
+deliverables:
+  - src/vore.py (new module):
+      - Centralize:
+          - is_vore_enabled,
+          - is_player_pred_enabled,
+          - can_pred_swallow,
+          - is_vore_allowed_in_context.
+      - Provide a single place to implement all gating logic.
+
+  - Character creation module (e.g. src/character_creation.py or equivalent):
+      - Add:
+          - the explicit vore and player-as-pred questions after name entry.
+      - Wire answers into:
+          - state.settings.vore_enabled,
+          - state.settings.player_pred_enabled.
+
+  - src/echo_vore.py, src/echo.py, src/camp.py, src/commands.py, and UI:
+      - Update Echo vore:
+          - to use src/vore.py helpers for gating.
+      - Extend camp menu:
+          - ensure Hug/Boop actions are present,
+          - ensure swallowing only occurs when vore_enabled and gating
+            conditions are satisfied.
+
+  - src/kirin.py / relevant travel code:
+      - Add:
+          - an optional vore-based travel branch (only when vore_enabled and
+            rapport allows).
+      - Use encounter outcomes:
+          - SHELTERED/TRANSPORTED.
+
+  - src/encounters.py / src/combat.py / data/encounters_forest.json:
+      - Define at least one vore-capable predator threat branch:
+          - gated by vore_enabled.
+          - non-graphic, non-lethal, uses SHELTERED/TRANSPORTED.
+
+  - src/encounters_player_pred.py or equivalent:
+      - Implement:
+          - a minimal player-as-pred interaction in one small-prey scenario.
+      - Respect:
+          - vore_enabled and player_pred_enabled.
+
+  - Save/load modules:
+      - Update:
+          - to persist vore_enabled, player_pred_enabled, and any new vore
+            state safely.
+      - Ensure:
+          - old saves default to disabled.
+
+acceptance_criteria:
+  - Character creation:
+      - After entering a name:
+          - Player is explicitly asked whether to enable vore scenes.
+          - If yes, they are asked whether to allow player-as-pred.
+          - Answers persist across the run and in saves.
+      - If the player chooses "no" for vore:
+          - No swallowing scenes from any creature (Echo, Kirin, predators)
+            occur.
+      - If the player chooses "yes" but "no" for player-as-pred:
+          - Creature vore (Echo, Kirin, predators) can occur.
+          - Player-as-pred options never appear.
+
+  - Echo:
+      - Hug/Boop vore triggers still work when vore is enabled and rapport
+        is high.
+      - They never trigger when vore is disabled.
+      - Belly shelter uses SHELTERED outcome and respects "check sky".
+
+  - Kirin:
+      - Normal fast travel still works as before.
+      - When vore is enabled and trust is high:
+          - an additional "carry me inside" style travel appears.
+          - It uses SHELTERED/TRANSPORTED outcomes and is non-graphic and
+            non-lethal.
+
+  - Predator case:
+      - With vore disabled:
+          - threat encounters operate as previously, without swallowing.
+      - With vore enabled:
+          - a rare branch exists where a predator swallows the player as a
+            non-lethal threat resolution.
+          - The outcome uses SHELTERED/TRANSPORTED, leaves the player alive
+            and out of the predator afterward.
+
+  - Player-as-pred:
+      - With vore_enabled and player_pred_enabled:
+          - in at least one small-prey encounter, a "swallow" option appears
+            and resolves as designed.
+      - With vore disabled or player_pred_enabled False:
+          - that option never appears.
+
+  - Stability & safety:
+      - No crashes when toggles are off.
+      - Old saves load with vore disabled by default and remain playable.
+      - All vore content remains non-graphic and non-sexual in wording.
+
+non_goals:
+  - Do NOT:
+      - Implement digestion, harm, death, or explicit sexual content.
+      - Flesh out a full catalog of vore scenes for all creatures; focus on
+        core system and a few representative interactions.
+      - Allow mid-run enable/disable of vore in a way that breaks state; for
+        now, treat it as a per-run content choice.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Centralize gating logic in src/vore.py, not scattered across modules.
+  - Always guard vore events behind is_vore_enabled and any context checks.
+  - Keep text restrained: focus on emotion, safety, and mystical weirdness,
+    not graphic anatomy.
+
+test_plan:
+  - Start a new game:
+      - Choose vore = no:
+          - Confirm no vore content appears from Echo, Kirin, or predators.
+      - Start another game, vore = yes, player-as-pred = no:
+          - Confirm Echo and Kirin can use vore outcomes when conditions are
+            right.
+          - Confirm predators can occasionally swallow the player in a
+            non-lethal way.
+          - Confirm no player-as-pred options appear.
+      - Start another game, vore = yes, player-as-pred = yes:
+          - Confirm all of the above plus:
+              - at least one scenario where the player can act as pred.
+
+  - Regression:
+      - Verify normal travel, encounters, Echo interactions, hunger,
+        seasons, runestones, Kirin, and curses UI still function correctly.
+  - Save/load:
+      - Save and reload in each configuration and confirm vore behavior
+        matches the chosen settings.

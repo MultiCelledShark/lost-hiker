@@ -1,0 +1,32 @@
+{
+  "forest_stew": {
+    "name": "Forest Stew",
+    "requires": {
+      "edible_mushroom": 1,
+      "forest_berries": 1
+    },
+    "output": "forest_stew",
+    "description": "A simple but hearty stew made from mushrooms and berries, cooked over the campfire.",
+    "requires_camp": true
+  },
+  "trail_mash": {
+    "name": "Trail Mash",
+    "requires": {
+      "trail_nuts": 2
+    },
+    "output": "trail_mash",
+    "description": "A filling mash of trail nuts, roasted and mashed together into a simple meal.",
+    "requires_camp": true
+  },
+  "wayfinding_tea": {
+    "name": "Wayfinding Tea",
+    "requires": {
+      "dream_fern": 1,
+      "mooncap_mushroom": 1
+    },
+    "output": "wayfinding_tea",
+    "description": "You carefully brew the dream fern and mooncap mushroom together, their essences merging into a warm, fragrant tea. As you stir, the paths you've walked seem to overlap in your mind—the Forest remembers, and so do you.",
+    "requires_camp": true
+  }
+}
+

@@ -1,0 +1,221 @@
+name: "Lost Hiker - Time of Day UI & 'Check Sky' (Phase 1)"
+
+description: |
+  Expose the existing time-of-day system (or introduce a minimal one if
+  missing) to the player via:
+    - a status display showing current day, season, and time of day, and
+    - a "check sky" command that describes the sky/light conditions.
+
+  Also:
+    - If the player is in an enclosed/sheltered state (e.g. from a SHELTERED
+      outcome), "check sky" should report that they can't see the sky from
+      where they are.
+
+  This task is purely UI/feedback + light glue; it should NOT add heavy new
+  time mechanics.
+
+goals:
+  - Time-of-day model (reuse if present, otherwise add simple version):
+      - If a time-of-day field already exists in game state:
+          - Use it as the source of truth (e.g. "morning", "day", "evening",
+            "night", or similar).
+      - If no time-of-day tracking exists yet:
+          - Introduce a simple, coarse-grained time-of-day model, e.g.:
+              - 4 slots: "Dawn", "Day", "Dusk", "Night".
+          - Store it in game state:
+              - e.g. state.time_of_day as a string or small enum.
+          - Advance time-of-day at appropriate points:
+              - On each major action that already advances time:
+                  - e.g. exploration steps, camping, collapse, special travel.
+              - Keep it simple:
+                  - For this phase, a rough "advance one slot every N actions"
+                    model is fine.
+          - Ensure it wraps around sensibly (Night → Dawn).
+
+      - Provide helpers (in a small module if needed, e.g. src/time_of_day.py):
+          - get_time_of_day(state) → "Dawn"/"Day"/"Dusk"/"Night".
+          - advance_time_of_day(state, steps=1) to be called by existing
+            time-advancing actions (explore, sleep, collapse, etc.).
+
+  - Status display integration:
+      - Extend the existing "status" view/command (or add one if needed) so it
+        clearly shows:
+          - current day (number),
+          - current season,
+          - current time of day.
+      - Example display (exact wording can vary with existing style):
+          - "Day: 17 (Late Spring)"
+          - "Time: Early Evening"
+      - Make sure:
+          - this works in both curses and non-curses modes.
+          - status rendering reuses the same helpers for day/season/time_of_day
+            that other systems will use.
+
+  - "Check sky" command:
+      - Add a player action/command:
+          - e.g. "check sky" (and optionally a short alias like "sky").
+      - Behavior when the player is in the open (normal forest/glade/etc.):
+          - Describe the sky/light conditions based on:
+              - time_of_day,
+              - current season,
+              - optionally weather hooks if they exist (but do NOT add full
+                weather in this task).
+          - Examples (implementation decides exact prose):
+              - Dawn, Spring:
+                  - "Soft gray light seeps through the canopy; the sky is pale
+                    with the first hints of sunrise."
+              - Day, Summer:
+                  - "The sky is a bright patchwork through the leaves, harsh
+                    sunlight pressing down."
+              - Dusk, Fall:
+                  - "The sky beyond the branches is streaked with orange and
+                    red; shadows are growing long."
+              - Night, any season:
+                  - "You can just make out the stars through gaps in the
+                    branches; the forest is mostly shapes and silhouettes."
+          - The description should be 1–3 lines: informative but not a wall.
+
+      - Behavior when in an enclosed/sheltered state:
+          - If the player is considered "sheltered" / "enclosed" (e.g. from
+            a SHELTERED outcome or similar flag):
+              - "check sky" should NOT describe the sky.
+              - Instead, give a short line indicating they can't see it:
+                  - e.g. "You can't see the sky from in here." or similar
+                    neutral wording.
+              - The implementation must not assume this is specifically vore;
+                just treat it as "no open view of the sky."
+          - Use whatever state flag or structure is used by SHELTERED or
+            similar outcomes to determine this; if none exists yet, introduce
+            a simple boolean like state.is_sheltered for those outcomes.
+
+  - Integration with encounter outcomes:
+      - For SHELTERED outcomes:
+          - Ensure that the state reflects "enclosed / under cover":
+              - e.g. set state.is_sheltered = True for the duration of that
+                state, and false when emerging.
+          - "check sky" should consult this to decide whether sky is visible.
+      - For NORMAL/RETREAT/COLLAPSE/TRANSPORTED:
+          - Ensure that is_sheltered is false unless explicitly set by a
+            sheltered mechanic.
+
+  - Menu/command integration:
+      - Add "Check sky" to:
+          - any general command list where it makes sense (if such a list is
+            visible in UI),
+          - or ensure the parser accepts "check sky" typed directly.
+      - In curses mode:
+          - When "check sky" is chosen, render the sky description into the
+            rolling log window using the existing UI behavior.
+      - In non-curses mode:
+          - Print the description as normal text.
+
+  - Save/load:
+      - Persist:
+          - time_of_day value.
+          - any is_sheltered or equivalent flags if introduced.
+      - Keep older saves safe:
+          - default time_of_day to a reasonable value (e.g. "Day") if missing.
+          - default is_sheltered to False.
+
+deliverables:
+  - src/time_of_day.py or equivalent:
+      - Implement:
+          - get_time_of_day(state).
+          - advance_time_of_day(state, steps=1) if needed.
+          - Any utility for mapping time_of_day to descriptive phrases.
+
+  - src/engine.py / src/exploration.py:
+      - Hook time_of_day advancement into:
+          - exploration,
+          - camping/sleep,
+          - collapse,
+          - and any other major time-advancing actions (teleports, Kirin, etc.).
+      - Ensure it does not double-advance days; this is intra-day flavor.
+
+  - src/status.py or equivalent:
+      - Extend status rendering to show:
+          - current day,
+          - season,
+          - time_of_day.
+
+  - src/commands.py and UI modules (curses + non-curses):
+      - Implement the "check sky" command:
+          - parse input ("check sky" / "sky" if you add an alias).
+          - call into a helper to generate the description.
+          - display it in the main text area.
+
+  - src/encounter_outcomes.py or equivalent:
+      - Integrate:
+          - is_sheltered or equivalent flag for SHELTERED outcome, if not
+            already present.
+      - Provide a helper for other code to query:
+          - is_player_sheltered(state) → bool
+
+  - Save/load logic:
+      - Ensure time_of_day and sheltered-related fields are persisted and have
+        safe defaults for older saves.
+
+acceptance_criteria:
+  - Time-of-day:
+      - The game tracks a coarse time_of_day value that:
+          - advances as the player explores/sleeps/collapses.
+          - wraps around sanely across days.
+      - "status" clearly shows day, season, and time of day.
+
+  - Check sky:
+      - When the player is in normal Forest/Glade conditions:
+          - "check sky" prints a plausible sky/light description based on
+            time_of_day and season.
+      - When the player is in a sheltered/enclosed state (e.g. as flagged by
+        SHELTERED outcome):
+          - "check sky" prints a short line indicating they cannot see the
+            sky from here.
+      - Works in both curses and non-curses modes, with the text visible in
+        the rolling log.
+
+  - Integration:
+      - Encounter outcomes that set SHELTERED (or similar) cause "check sky"
+        to behave as enclosed until the player exits that state.
+      - There are no regressions to:
+          - seasons,
+          - hunger/stamina,
+          - encounters,
+          - Echo interactions,
+          - Kirin and wayfinding,
+          - curses UI.
+
+  - Stability:
+      - Old saves load without crashes, defaulting time_of_day and sheltered
+        flags sensibly.
+
+non_goals:
+  - Do NOT:
+      - Implement a detailed hourly clock.
+      - Implement full weather systems in this task.
+      - Make time-of-day significantly change mechanics beyond descriptions
+        and light future hooks (encounter tables can be updated later).
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep time-of-day logic minimal and centralized; it’s a flavor and hook
+    system here, not a simulation.
+  - Keep "check sky" text short and evocative; it will be used often.
+  - Treat SHELTERED/enclosed states generically so they can later cover burrows,
+    tree hollows, and belly-rest without code changes.
+
+test_plan:
+  - New game:
+      - Use "status" and confirm day/season/time_of_day appear.
+      - Explore, camp, and collapse to ensure time_of_day advances and wraps.
+      - Use "check sky" at various times and seasons and verify descriptions
+        change.
+  - Sheltered state:
+      - Trigger a SHELTERED outcome or any logic that sets the enclosed flag.
+      - Use "check sky" and confirm it says you can’t see the sky.
+      - Exit the sheltered state and confirm "check sky" returns to normal.
+  - Save/load:
+      - Save at different times of day, reload, and confirm time_of_day and
+        "check sky" behavior are preserved.
+      - Load an older save and confirm defaults behave reasonably.

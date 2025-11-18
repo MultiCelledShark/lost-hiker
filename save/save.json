@@ -1,0 +1,117 @@
+{
+  "schema_version": 5,
+  "day": 2,
+  "current_season": "spring",
+  "day_in_season": 2,
+  "season_index": 0,
+  "season_day": 0,
+  "stage": "camp",
+  "active_zone": "forest",
+  "character": {
+    "name": "Jeb",
+    "race_id": "wolfkin",
+    "tags": [
+      "biped",
+      "clawed",
+      "furred",
+      "keen-smell"
+    ],
+    "base_stats": {
+      "stamina_max": 4.0,
+      "stamina_wake_restore": 1.0,
+      "stamina_camp_restore": 3.0,
+      "explore_slots": 1.0,
+      "camp_meal_cost": 1.0,
+      "inventory_slots": 20.0
+    },
+    "race_modifiers": [
+      {
+        "add": {
+          "stamina_max": 5,
+          "inventory_slots": 10
+        }
+      },
+      {
+        "add": {
+          "tame_bonus_wolf": 1
+        }
+      },
+      {
+        "mul": {
+          "cold_penalty": 0.5
+        }
+      }
+    ],
+    "permanent_modifiers": []
+  },
+  "stamina": 1.0,
+  "inventory": [
+    "water_bottle",
+    "edible_mushroom",
+    "forest_berries",
+    "trail_nuts",
+    "trail_nuts",
+    "trail_nuts",
+    "edible_mushroom",
+    "edible_mushroom",
+    "dried berries",
+    "birch tinder",
+    "edible_mushroom",
+    "edible_mushroom"
+  ],
+  "days_without_meal": 0,
+  "ate_snack_today": false,
+  "water_drinks_today": 1,
+  "rest_type": "camp",
+  "rapport": {
+    "echo": 2,
+    "red_wolf": 1
+  },
+  "timed_modifiers": [],
+  "recent_events": [
+    "forest_noise",
+    "stream_crossing",
+    "mushroom_patch"
+  ],
+  "zone_steps": {
+    "forest": 13
+  },
+  "zone_depths": {
+    "charred_tree_interior": 0,
+    "forest": 13
+  },
+  "vore_enabled": true,
+  "player_as_pred_enabled": false,
+  "radio_version": 1,
+  "pending_radio_upgrade": false,
+  "pending_radio_return_day": null,
+  "pending_brews": [],
+  "pending_stamina_floor": 6,
+  "discovered_landmarks": [],
+  "current_landmark": null,
+  "landmark_flags": {},
+  "landmark_stability": {},
+  "runestone_states": {},
+  "steps_since_forage": 0,
+  "act1_quest_stage": 0,
+  "act1_repaired_runestones": 0,
+  "act1_total_runestones": 0,
+  "act1_forest_stabilized": false,
+  "kirin_interest_level": 0,
+  "kirin_known": false,
+  "kirin_trust_level": 0,
+  "kirin_travel_unlocked": false,
+  "kirin_travel_mode_unlocked": [],
+  "kirin_last_travel_day": null,
+  "wayfinding_ready": false,
+  "npc_flags": {},
+  "echo_present_at_glade": true,
+  "echo_radio_connection_hint_shown": false,
+  "echo_last_pet_day": 1,
+  "echo_vore_tension": 0.0,
+  "echo_last_vore_tension_day": null,
+  "belly_state": null,
+  "condition": 0,
+  "time_of_day": "Dawn",
+  "is_sheltered": false
+}

@@ -1,0 +1,124 @@
+name: "Lost Hiker - Flavor Intro (Charred Tree Spawn + CC Polish)"
+
+description: |
+  Improve the opening experience and character creation flavor for Lost Hiker.
+
+  This task assumes:
+    - Core day loop and Glade/Forest exploration are working with typed commands.
+    - Character creation (race + name) already functions.
+    - Look/examine commands are available.
+
+  Phase goal:
+    - Start the game inside the charred tree interior instead of directly in the open Glade.
+    - Make the initial scene richly described and examinable.
+    - Add light flavor polish to character creation (without changing mechanics or stats).
+
+goals:
+  - New starting location: charred tree interior
+      - Add a new scene/zone representing the interior of the charred tree, e.g.
+        location id: "charred_tree_interior".
+      - On New Game, after character creation, set the player's location to
+        "charred_tree_interior" instead of directly to "glade".
+      - The first "look" in this location should describe:
+          - The hollow trunk interior.
+          - Charred bark.
+          - Faint runes/portal scars.
+          - A visible opening leading out into the Glade.
+      - Support examinable objects here, e.g.:
+          - "tree", "bark", "runes", "roots", "opening" / "doorway".
+      - Ensure there is a clear affordance to leave the tree, for example:
+          - Typed commands like "leave", "exit", "step out", "go out", or
+            "move glade" should move the player from "charred_tree_interior"
+            to the normal Glade location and begin the usual hub loop.
+  - Integrate with existing command system:
+      - Make sure "look" and "look at X"/"examine X" work in the charred tree
+        interior using the scene/examinables model already in use elsewhere.
+      - Do not add new command verbs; reuse "look", "move", etc.
+      - If an unknown noun is examined, use the same failure behavior as in
+        other scenes ("You don't see that here." or similar).
+  - Character creation flavor polish:
+      - Without changing underlying stats or modifiers, enhance CC flow with
+        better prompts and short race descriptions:
+          - After the player selects a race (from races.json), display a short
+            flavor blurb describing that race's general nature and feel.
+          - Keep these blurbs data-driven where possible (e.g. add an optional
+            "blurb" field to races.json).
+      - Add a brief "summary" screen after CC that:
+          - Shows chosen name and race.
+          - Mentions that the player comes to their senses inside a charred tree.
+        This is purely narrative; no extra input required beyond "continue".
+      - Make sure CC UX remains simple and does not introduce new mechanical
+        choices or stats in this task.
+  - Glade linkage:
+      - When the player exits the charred tree interior, ensure:
+          - location is set to the existing glade location.
+          - "look" now shows the Glade description.
+          - All existing Glade commands and menus continue to work.
+      - The transition should only happen once at game start; subsequent days
+        should wake the player directly in the Glade (unless you already have
+        a wake-up location mechanic — in that case, keep behavior consistent
+        and only change the *first* morning to start in the tree).
+
+deliverables:
+  - src/engine.py (or wherever location/start logic lives)
+      - Updated to:
+          - Start New Game at "charred_tree_interior".
+          - Handle transition from "charred_tree_interior" to "glade" via commands.
+  - src/status.py or equivalent (optional)
+      - If needed, helpers for intro/summary text after CC.
+  - src/commands.py (or equivalent)
+      - Any small additions needed for interpreting "leave/exit/step out" in
+        the interior context, mapping them to the same internal "move to glade"
+        action as existing movement commands.
+  - src/events.py / scene helpers
+      - Data/logic for the "charred_tree_interior" scene, including:
+          - descriptions[] list.
+          - objects[] list for examinables.
+  - data/events_glade_or_intro.json (if you use a separate file)
+      - Scene entry for "charred_tree_interior" with:
+          - Multiple descriptions.
+          - Examinable objects and texts.
+  - data/races.json
+      - Optional addition of a "blurb" field per race, used for CC flavor text.
+
+acceptance_criteria:
+  - New Game flow:
+      - Player completes character creation.
+      - A short summary shows their name, race, and that they awaken inside a
+        charred tree.
+      - The game then places them in "charred_tree_interior".
+  - In the charred tree interior:
+      - "look" shows an appropriate description of the interior.
+      - "look at tree"/"examine bark"/etc. show specific examine texts.
+      - Typing "leave", "exit", "step out", or an equivalent supported command
+        moves the player into the Glade.
+  - After leaving the tree:
+      - "look" now shows the Glade description.
+      - Exploration and Forest systems behave exactly as before.
+  - Character creation:
+      - After selecting a race, a brief race blurb appears.
+      - After name + race are set, a short summary appears before gameplay.
+      - No new stat choices or mechanical changes are introduced in this task.
+
+non_goals:
+  - Adding Echo or any new NPCs.
+  - Modifying core mechanics (stamina, depth, combat, vore, etc.).
+  - Changing the underlying stats associated with races.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Do not rewrite the main loop; only adjust starting location and intro flow.
+  - Keep intro flavor text and race blurbs data-driven where possible.
+  - Preserve existing save/load behavior; starting location changes should only
+    affect new games.
+
+test_plan:
+  - Start a New Game:
+      - Verify CC flow, race blurb, and summary behavior.
+      - Confirm starting location is inside the charred tree interior.
+  - Use "look" and "look at X" in the tree interior to examine several objects.
+  - Leave the tree and confirm Glade + Forest exploration works as before.
+  - Load an existing save made before this change and confirm:
+      - It still loads into the previous location (Glade) without errors.

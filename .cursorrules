@@ -1,0 +1,22 @@
+You are working inside the "Lost Hiker" game project — a Python text adventure with a survival focus.
+
+Project layout:
+- src/lost_hiker/ : all core game source code
+- docs/design/ : design documents and worldbuilding
+- assets/ : images, audio, and data files
+- scripts/ : helper or build scripts
+- tests/ : automated tests
+
+Rules for AI edits:
+- Follow PEP 8 with ruff and black formatting.
+- Keep each module focused; prefer small functions and clear responsibilities.
+- Keep game logic modular: engine handles loops/state, ui handles input/output.
+- Use type hints and docstrings.
+- Write maintainable code that runs on Python 3.11+.
+Project identity: Lost Hiker is a gritty survival text-adventure.
+Coding persona: pragmatic, modular, tests-first, explicit types, no clever one-liners.
+Style: Python 3.11+, dataclasses, Enums, small pure functions. Keep files <300 LOC.
+Commits: Conventional Commits, present tense, scoped (e.g., zone/forest, engine/loop).
+Docs: Google-style docstrings, top-of-file module docstring summarizing purpose.
+AI boundaries: do not invent features; ask to create files with minimal runnable stubs.
+Always consult and align code, naming, and behavior with the design document at docs/design/Lost_Hiker_Design.md before proposing or generating new systems, mechanics, or narrative elements.

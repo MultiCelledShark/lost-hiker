@@ -1,0 +1,249 @@
+name: "Lost Hiker - Seasons Phase 1 (Calendar + Seasonal Weights + Curses Log Clamp)"
+
+description: |
+  Implement a simple in-world calendar and seasonal system for the Glade and
+  Forest, and fix the curses output so the player only sees recent text instead
+  of the entire lifetime scrollback.
+
+  The season system should:
+    - Build on the existing day counter.
+    - Divide the year into simple seasons (Spring, Summer, Fall, Winter).
+    - Allow seasonal flavor text and light tuning of forage/event weights.
+    - Be data-driven enough to extend later.
+
+  The curses fix should:
+    - Ensure the main curses text output only shows a recent window of
+      messages, not everything since game start.
+    - Restore/regress to the earlier behavior where old text scrolls out or
+      is truncated instead of endlessly accumulating.
+
+goals:
+  - Calendar and season tracking:
+      - Introduce a canonical calendar structure in game state:
+          - Fields (names can be adapted to current style):
+              - current_day (int, already exists or to be standardized).
+              - current_season (enum/string: "Spring", "Summer", "Fall", "Winter").
+              - day_in_season (int, e.g. 1–N).
+              - year (int) if needed; otherwise keep implicit.
+      - Define a simple mapping from day → season:
+          - For Phase 1, a straightforward model like:
+              - Spring: days 1–30
+              - Summer: days 31–60
+              - Fall: days 61–90
+              - Winter: days 91–120
+            OR use a data-driven structure (e.g. seasons.json) that defines
+            lengths per season.
+      - On each "new day" transition (after camping/collapse):
+          - Increment current_day.
+          - Recompute current_season and day_in_season.
+      - Ensure this is consistent with any existing day counter logic and
+        does not double-increment.
+
+  - Seasonal flavor:
+      - On waking up each day (after hunger/stamina logic is applied):
+          - Show a brief line indicating:
+              - The current day number.
+              - The current season.
+          - Example (adapt to current narrative voice):
+              - "Day 27 of the year. Early Summer."
+              - Keep it short; this should not spam multiple lines.
+      - Add a small set of season-specific flavor hooks:
+          - Spring: more birdsong, damp soil, new growth.
+          - Summer: heavy warmth, buzzing insects, thick foliage.
+          - Fall: leaf-fall, cooler air, longer shadows.
+          - Winter (when you get that far): bare branches, cold ground, ice.
+      - These should be optional additions to existing wake/explore text,
+        not full rewrites.
+
+  - Seasonal weights for forage & events (Phase 1 light tuning):
+      - Add a way for data-driven content (forage items, events) to optionally
+        specify seasonal weighting modifiers:
+          - Example structure in data:
+              - "season_weights": { "Spring": 1.2, "Summer": 1.0, "Fall": 1.5, "Winter": 0.5 }
+          - Or a simpler "preferred_seasons" list that boosts chance when in
+            those seasons.
+      - Apply this lightly:
+          - Spring: favor greens, early herbs, light forage.
+          - Summer: balanced, baseline behavior.
+          - Fall: favor nuts, mushrooms, roots.
+          - Winter: for now, only slight reductions in certain forage; no need
+            to make it brutally sparse yet.
+      - Integrate seasonal weighting into existing event/forage selection
+        without rewriting the entire system:
+          - e.g. forest_effects or event selection helpers can query current
+            season and adjust weights.
+
+  - Hooks for future expansion (no heavy logic yet):
+      - Provide a central helper like:
+          - get_current_season(state) → "Spring"/"Summer"/"Fall"/"Winter"
+          - get_day_in_season(state)
+      - These will be used later for:
+          - creature spawns,
+          - weather,
+          - town schedule gating, etc.
+      - For Phase 1, avoid adding complex season-based penalties or buffs
+        beyond light forage/event bias and flavor messaging.
+
+  - Save/load integration (calendar):
+      - Ensure current_day, current_season, and day_in_season are persisted.
+      - Existing saves:
+          - If a day counter already exists, use it to initialize season
+            fields on first load.
+          - If not, default to:
+              - current_day = 1,
+              - current_season = "Spring",
+              - day_in_season = 1.
+          - Must not crash when calendar fields are missing.
+
+  - Curses output clamp / log window fix:
+      - Identify the curses-based UI module (e.g. src/ui_curses.py or
+        equivalent) responsible for drawing the main text output window.
+      - Reintroduce or implement logic so that:
+          - The visible text area only shows the most recent N lines, where N
+            is appropriate for the current terminal size (or a defined max).
+          - Older lines scroll out of view instead of being redrawn every
+            frame.
+          - The player is not effectively seeing the entire lifetime of game
+            output each time; only the current window of context.
+      - Reasonable behaviors:
+          - Maintain an internal message log/list, but:
+              - Slice it to the last N lines for rendering, OR
+              - Cap the log buffer to some maximum length.
+          - Respect non-curses (stdin/stdout) fallback behavior:
+              - Do NOT break the plain text mode.
+      - This bug previously worked correctly and was broken during formatting
+        or refactors; fix the regression so the curses experience feels clean
+        again.
+
+deliverables:
+  - data/seasons.json or equivalent (optional but preferred):
+      - Defines:
+          - season names.
+          - order.
+          - length in days.
+      - Example:
+          - [
+              { "name": "Spring", "length": 30 },
+              { "name": "Summer", "length": 30 },
+              { "name": "Fall",   "length": 30 },
+              { "name": "Winter", "length": 30 }
+            ]
+      - If using constants instead, keep them in one place in code.
+
+  - src/seasons.py (new module) or equivalent:
+      - Functions to:
+          - initialize calendar state.
+          - increment day and recalculate current_season/day_in_season.
+          - query current season and day_in_season.
+      - Optionally:
+          - helper functions to apply seasonal weighting to events/forage.
+
+  - src/engine.py:
+      - Integrate:
+          - day and season updates into the existing "new day" flow:
+              - after sleep/collapse, before exploration starts.
+          - season-aware wake-up messaging (short).
+      - Ensure calendar logic cooperates with hunger/stamina logic already
+        in place and does not double-advance days.
+
+  - Event/forage selection module(s):
+      - Extend event/forage selection helpers to optionally accept or query
+        seasonal weights:
+          - If an item/event has season_weights or preferred_seasons, bias
+            selection accordingly.
+          - If not defined, treat it as neutral (no change).
+      - Keep Phase 1 tuning light:
+          - Do not drastically rebalance the Forest; just nudge.
+
+  - src/ui_curses.py or equivalent (curses output):
+      - Implement or restore:
+          - A line buffer and visible window logic, so only the last N lines
+            are drawn in the main text area.
+          - Proper scrolling behavior when new messages arrive.
+      - The exact approach may vary:
+          - Slicing an internal list of strings to fit max visible rows.
+          - Or keeping a capped buffer size.
+      - Ensure:
+          - window resizing (if supported) doesn't catastrophically break.
+          - non-curses text mode remains unchanged.
+
+  - Save/load logic:
+      - Persist:
+          - calendar-related fields (day, season, day_in_season).
+      - Ensure:
+          - older saves load with sensible defaults
+          - no crashes when calendar fields are absent.
+
+acceptance_criteria:
+  - Calendar:
+      - After multiple sleeps, current_day increments consistently and
+        current_season/day_in_season update correctly.
+      - Game start defaults to Spring, day 1 (or the defined starting season)
+        unless configured otherwise.
+      - On waking, player sees a concise message indicating day and season.
+
+  - Seasonal behavior:
+      - Certain forage or event entries show up slightly more or less often
+        depending on season, in a way that matches any configured weights.
+      - No hard-locks where a season makes critical items impossible to get.
+      - The game still feels fundamentally the same in early testing, just
+        with subtle seasonal flavor and distribution differences.
+
+  - Curses output clamp:
+      - In curses mode, after many actions:
+          - The main text output no longer tries to display the entire history
+            back to game start.
+          - Only the last N lines (based on window size or a set maximum) are
+            visible.
+      - New messages push older ones out of view rather than stacking forever.
+      - Non-curses mode (stdin/stdout fallback) still prints linearly and is
+        not broken by this change.
+
+  - Stability:
+      - No crashes on day/season transitions.
+      - No crashes on older save files.
+      - Forest exploration, runestones, hunger, Kirin, and wayfinding tea
+        all continue to function as before, now with a season field silently
+        ticking along under the hood.
+
+non_goals:
+  - Do NOT:
+      - Implement full time-of-day (morning/afternoon/night) in this task.
+      - Implement full seasonal weather penalties, temperature, or complex
+        buffs/debuffs.
+      - Implement season-dependent NPC schedules or town behavior yet.
+      - Overhaul all event tables; just add enough hooks/tags for light
+        seasonal tuning.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep season logic centralized (e.g. in src/seasons.py) and have other
+    systems query it rather than re-implementing day/season checks.
+  - Make seasonal weighting opt-in from data (season_weights or
+    preferred_seasons) instead of hardcoding special cases.
+  - For the curses fix, prioritize clarity over cleverness; a simple
+    "keep the last N lines and render them" approach is acceptable.
+
+test_plan:
+  - Start a new game:
+      - Sleep multiple times and confirm:
+          - current_day increments.
+          - season changes when the configured threshold is crossed.
+          - day/season message appears once at wake-up.
+      - Observe forage and events over several in-game weeks:
+          - Confirm any configured seasonal biases appear (e.g. more nuts in
+            Fall, more greens in Spring) without breaking overall balance.
+  - Curses UI:
+      - Play a long session in curses mode:
+          - Confirm that the main text area no longer fills with every message
+            since game start.
+          - Confirm that only the last N lines are visible.
+          - Confirm no visual corruption or overlapping text.
+      - Test non-curses mode to ensure it still prints full logs as before.
+  - Save/load:
+      - Save mid-season and reload:
+          - Season, day, and any seasonal behaviors still behave correctly.
+      - Load an older save:
+          - No crashes; season defaults are applied.

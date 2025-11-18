@@ -1,0 +1,257 @@
+name: "Lost Hiker - Runestone Repair Phase 1 (Mortar, Resonance, Pulse Stub)"
+
+description: |
+  Implement the first playable slice of the runestone repair system for Act I.
+  This builds on the existing Forest landmarks and fractured runestones (e.g.
+  Split Boulder, Stone Lantern Clearing), the brewing system, Echo, and the HT
+  radio.
+
+  Phase 1 focuses on:
+    - Gathering raw materials (clay, sand, ash) using the Creek Bend landmark
+      and campfire.
+    - Crafting primitive mortar with the gold pan via the brewing submenu.
+    - Using mortar + a runestone fragment to physically repair a fractured
+      runestone at a landmark.
+    - Using the radio to "tune" the runestone's resonance in a simple,
+      text-driven mini-flow.
+    - Adding a basic "pulse alignment" step that applies a next-day or
+      immediate buff and marks the runestone as repaired.
+    - Echo reacting and guiding the player lightly via the existing radio
+      module.
+
+  Do not implement the full multi-stone Act I questline, Kirin logic, or fast
+  travel yet. This is a single-stone (or generic) repair pipeline proving out
+  the core mechanics.
+
+goals:
+  - Resource gathering at Creek and Camp:
+      - Extend the Creek Bend landmark behavior to support actual gathering:
+          - Commands:
+              - "gather clay"
+              - "gather sand"
+          - Each produces a small inventory item:
+              - "clay_lump"
+              - "sand_handful"
+              - (Stackable or count-based, whichever matches current inventory patterns.)
+      - At camp:
+          - Allow the player to collect ash:
+              - Command: "gather ash" or implicit when using the campfire.
+              - Produces "ash_scoop" inventory item.
+      - These should be simple and not grindy:
+          - A single gather action should give enough for at least one mortar
+            batch, or the quantities should be clearly explained in the text.
+
+  - Primitive mortar crafting (via brewing submenu):
+      - Add a new craftable entry to the brewing-style menu at camp:
+          - Name: "Primitive Mortar"
+          - Requires:
+              - 1x clay_lump
+              - 1x sand_handful
+              - 1x ash_scoop
+              - Optionally, 1x resin/sap item if such an item already exists.
+          - Only available if the player has the gold_pan in inventory.
+      - On selection:
+          - Consume the ingredients.
+          - Create a "primitive_mortar" item.
+          - Flavor text should describe mixing the materials in the gold pan
+            into a thick, gritty paste.
+      - Hook this into existing brewing/crafting infrastructure so it behaves
+        like a normal, data-driven recipe rather than hard-coded special case.
+
+  - Runestone repair workflow (single-stone or generic implementation):
+      - At minimum, make the fractured runestone at Stone Lantern Clearing
+        fully repairable using the new workflow. If it is feasible and clean,
+        generalize so any landmark runestone flagged as "fractured" can use the
+        same system.
+      - Add a new high-level command:
+          - "repair runestone"
+          - This should:
+              - Check the player's context (must be at a landmark with a
+                fractured runestone).
+              - Guide the player step-by-step through:
+                  1) Checking for primitive_mortar.
+                  2) Checking for a runestone fragment (if fragments are
+                     already part of the design; otherwise assume the stone
+                     pieces are still present locally for Phase 1).
+                  3) Applying mortar and seating the fragment.
+                  4) Tuning resonance via the radio.
+                  5) Completing a simple "pulse alignment" step.
+      - Physical repair step:
+          - If the player has primitive_mortar:
+              - Apply it and mark the stone as "physically restored" in state.
+              - Show descriptive text tying together mortar + glyph tracks.
+          - If not:
+              - Output a clear hint about needing clay/sand/ash and the gold pan
+                from the creek/camp.
+      - Resonance tuning step:
+          - Use the existing radio module (src/radio.py) to present a simple
+            text-based tuning mini-flow:
+              - e.g. ask the player to "adjust" left/right or choose between
+                a few options until Echo confirms the tone is correct.
+              - A minimal implementation can be linear (press a key to
+                "hold steady") as long as it feels like an interaction.
+          - On success:
+              - Mark a "resonance_stable" flag for that runestone.
+              - Show a short flavored [RADIO] message from Echo acknowledging
+                success.
+      - Pulse alignment step (Phase 1 stub):
+          - For now, keep this simple:
+              - Apply a one-time next-day modifier (e.g. small stamina bonus or
+                slight bias toward safer events).
+              - Mark the runestone as "repaired" in state.
+          - Display text about the forest's "heartbeat" steadying.
+          - This will be expanded in later phases, so keep the structure
+            modular (e.g. a runestones.apply_pulse_effect() helper).
+
+  - Echo and radio integration:
+      - Use the existing Echo and radio_version state to:
+          - Give 1–3 short hints when the player examines a fractured runestone
+            while holding the gold_pan or mortar ingredients.
+          - Provide affirmation when the stone is successfully repaired.
+      - Behavior:
+          - If radio_version == 1:
+              - More impressionistic hints (short phrases, emotional tones).
+          - If radio_version == 2:
+              - Clearer, sentence-style hints and comments.
+      - Echo should not solve the puzzle outright, just nudge:
+          - e.g. hint at clay/sand/ash, or suggest using the radio.
+
+  - State and persistence:
+      - Introduce runestone-related state to track, for each fractured stone:
+          - discovered (already present from landmarks task)
+          - is_fractured
+          - is_physically_repaired
+          - is_resonance_stable
+          - is_fully_repaired (all steps done)
+      - Ensure these fields are saved and loaded correctly.
+      - Older saves should:
+          - Treat all runestones as unrepaired by default.
+          - Not crash if runestone state is absent.
+
+deliverables:
+  - data/items.json or equivalent:
+      - New items:
+          - clay_lump
+          - sand_handful
+          - ash_scoop
+          - primitive_mortar
+      - Ensure gold_pan is already defined from the landmarks task; if not,
+        define it here in a way consistent with how items are currently
+        structured.
+
+  - data/brewing_recipes.json or equivalent:
+      - Add a "primitive_mortar" recipe entry:
+          - Inputs: clay_lump, sand_handful, ash_scoop (+ optional resin).
+          - Requires: gold_pan in inventory.
+          - Output: primitive_mortar.
+      - Ensure it shows up in the brewing submenu at camp.
+
+  - src/gathering.py or equivalent (if needed):
+      - Helper functions for "gather clay", "gather sand", and "gather ash".
+      - Integrate with the Creek Bend landmark and camp context respectively.
+
+  - src/runestones.py (new module, or equivalent):
+      - Core functions for:
+          - identifying the current runestone at a landmark.
+          - checking and updating runestone state.
+          - orchestrating the "repair runestone" flow:
+              - physical repair
+              - resonance tuning (via radio)
+              - pulse alignment (Phase 1 stub).
+
+  - src/engine.py:
+      - Hook the "repair runestone" command into the input loop when in a
+        landmark context containing a fractured runestone.
+      - Call into runestones.py as needed.
+      - Hook in the one-time runestone "pulse effect" (simple buff for now).
+
+  - src/commands.py:
+      - Parse:
+          - "repair runestone"
+          - "gather clay"
+          - "gather sand"
+          - "gather ash"
+      - Route appropriately to gathering and runestone repair helpers.
+
+  - src/radio.py:
+      - If needed, add a small helper to format Echo's hints for runestone
+        tuning (reuse existing [RADIO] prefix behavior).
+      - Do NOT rewrite the whole module; just extend it minimally if required.
+
+  - Save/load logic:
+      - Extend existing save structures to include per-runestone repair state.
+      - Ensure compatibility with older save files.
+
+acceptance_criteria:
+  - Player can:
+      - Go to Creek Bend and successfully:
+          - "gather clay" → receives clay_lump.
+          - "gather sand" → receives sand_handful.
+      - At camp:
+          - "gather ash" → receives ash_scoop.
+          - Use the brewing submenu to craft primitive_mortar when they have
+            clay, sand, ash, and the gold_pan.
+      - At Stone Lantern Clearing (or designated test runestone landmark):
+          - "repair runestone" initiates a guided sequence.
+          - Without mortar, they are told they need to craft it first.
+          - With mortar:
+              - Physical repair step completes.
+              - A simple resonance tuning interaction happens via the radio.
+              - A pulse alignment step marks the stone as fully repaired and
+                applies a small, noticeable buff.
+  - Echo:
+      - Provides at least one hint when the player examines a fractured
+        runestone after having seen the creek or obtained the gold_pan.
+      - Reacts positively (different tone for radio v1 vs v2) when the
+        runestone is successfully repaired.
+  - State:
+      - Repaired runestone remains repaired after save/load.
+      - No duplicate gold_pan or mortal material exploits are introduced by
+        this change.
+  - Stability:
+      - Existing forest exploration, landmarks, Echo, brewing, and radio
+        behavior remain functional.
+      - Trying to "repair runestone" where there is none should fail gracefully.
+
+non_goals:
+  - Do not:
+      - Implement the full three-stone Act I questline logic.
+      - Implement Kirin encounters, fast travel, or teleport tea behavior.
+      - Implement advanced puzzle variants (timing-based tuning, multi-step
+        pulse rituals, etc.).
+      - Implement full seasonal runestone variations or deep event weighting
+        logic. A small, simple buff is enough for Phase 1.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep the repair logic modular so additional runestones and more complex
+    behaviors can be added later without rewriting Phase 1.
+  - Reuse existing patterns for inventory items, brewing, and scene/landmark
+    handling instead of introducing new ad-hoc systems.
+  - Keep Echo's hints flavorful but short; avoid large lore dumps in this task.
+
+test_plan:
+  - Start a new game, reach Creek Bend:
+      - Confirm "gather clay" and "gather sand" work and give the correct
+        items.
+  - Camp:
+      - Confirm "gather ash" works.
+      - Confirm the brewing submenu shows an option to craft primitive mortar
+        when requirements are met and results in a primitive_mortar item.
+  - Go to the designated fractured runestone (e.g. Stone Lantern Clearing):
+      - Confirm "repair runestone" walks through:
+          - physical repair (using mortar),
+          - a simple radio-based resonance interaction,
+          - and a pulse alignment step that sets a buff and flags the stone
+            as repaired.
+      - Confirm Echo gives at least one contextual hint before repair and a
+        clear reaction afterward.
+  - Save and reload:
+      - Confirm the runestone remains repaired and the buff logic does not
+        re-trigger incorrectly.
+  - Regression:
+      - Check that existing commands and systems (exploration, Echo dialog,
+        brewing teas, landmarks) are unchanged except for the intended new
+        behaviors.

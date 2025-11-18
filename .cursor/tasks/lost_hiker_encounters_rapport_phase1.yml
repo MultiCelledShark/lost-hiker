@@ -1,0 +1,269 @@
+name: "Lost Hiker - Encounters & Rapport Phase 1 (Forest Creatures, Non-Combat)"
+
+description: |
+  Implement a lightweight, reusable encounter system and a rapport mechanic
+  for forest creatures, focused on non-combat interactions in the Glade and
+  Forest.
+
+  The goal is:
+    - Provide a generic encounter framework that can drive multi-step creature
+      interactions with choices and outcomes.
+    - Track rapport/trust with specific creature types or named beings.
+    - Let encounters influence future behavior (friendlier, more curious, more
+      wary, etc.).
+    - Keep this non-lethal and non-combat for Phase 1. This will be the
+      foundation for later combat and deeper NPC systems.
+
+goals:
+  - Rapport system:
+      - Introduce a simple rapport model in game state:
+          - e.g. state.rapport: a mapping from creature_id (and later npc_id)
+            to an integer score.
+          - Suggested range: -5 to +5 for now, with 0 as neutral.
+      - Provide helpers to:
+          - get_rapport(state, creature_id) → int (default 0).
+          - change_rapport(state, creature_id, delta) → new value clamped to
+            [-5, +5].
+          - get_rapport_tier(score) → "hostile" / "wary" / "neutral" /
+            "friendly" / "bonded" (or similar labels).
+      - Make this generic enough to work for:
+          - forest creatures (wolves, deer, Kirin later).
+          - humanoid NPCs (townsfolk, miners, hermits) in future tasks.
+
+  - Encounter framework (Phase 1, non-combat):
+      - Implement a small, data-driven encounter engine for creature
+        interactions in the Forest:
+          - Encounters are triggered events that:
+              - pause normal exploration flow,
+              - present one or more choices to the player,
+              - update rapport and possibly other state,
+              - then return to regular exploration/camp flow.
+      - Requirements:
+          - Support:
+              - creature_id (who/what this is with).
+              - a short intro description.
+              - 2–4 choices per step (e.g. observe, offer food, approach,
+                back away, call Echo, etc.).
+              - simple branching based on choice and current rapport tier.
+              - a resolution that may:
+                  - adjust rapport.
+                  - give/remove an item.
+                  - tweak future encounter frequency (see below).
+          - Encounters should be definable from data where possible:
+              - e.g. a small encounters_forest.json, or similar.
+              - For Phase 1, a simple approach is ok:
+                  - a few hand-coded encounter scripts using a shared helper.
+      - Make sure this framework can be reused for:
+          - non-hostile creature meetings,
+          - future NPC conversations,
+          - future combat scenes (with additional logic).
+
+  - Pilot forest creatures & encounters:
+      - Implement at least 2 concrete forest creature encounter types using
+        the new framework:
+          - One shy/skittish creature:
+              - e.g. a deer-like or stag-like being, or a small forest animal.
+              - Core behaviors:
+                  - Neutral at first; it may flee if the player is loud or
+                    aggressive.
+                  - Gains rapport if:
+                      - player stays still/observes,
+                      - offers food (berries/nuts),
+                      - behaves gently.
+                  - At high rapport:
+                      - more likely to appear in safe/comforting events.
+          - One cautious/predatory-adjacent but non-lethal encounter:
+              - e.g. a curious red wolf or similar carnivore.
+              - Core behaviors:
+                  - Neutral/wary at first; no true attack in Phase 1.
+                  - If the player acts aggressively or carelessly:
+                      - they may get a "close call" (lose stamina, or suffer
+                        a mild debuff), but NOT full combat/HP loss.
+                  - If the player acts calmly or offers food:
+                      - minor rapport gain.
+                  - At higher rapport:
+                      - the creature may escort/watch over the player (purely
+                        narrative for now) or warn of danger.
+      - Use existing creature definitions if they already exist (e.g. red
+        wolves, etc.). If none exist in data, define minimal entries for these
+        pilot creatures in a creatures_forest.json or equivalent file.
+
+  - Encounter triggers & integration:
+      - Add logic to occasionally trigger encounters during normal Forest
+        exploration:
+          - Trigger frequency should be modest:
+              - e.g. low chance per explore action, slightly higher at mid/deep
+                depths, capped so the player isn't spammed.
+          - Encounter chance can be modified by:
+              - current season (e.g. more wildlife in Spring/Fall).
+              - current hunger/stamina (e.g. fewer encounters if the player is
+                barely standing).
+              - existing rapport (e.g. friendlier creatures seek you out).
+      - Ensure encounters respect forest_memory and runestone/forest_effects:
+          - Creatures might be more common near certain landmarks or depth
+            bands.
+      - Encounters should be:
+          - interrupt-driven: you land in an encounter instead of a generic
+            event.
+          - completed/escaped before normal exploration resumes.
+
+  - Encounter outcomes influencing future behavior:
+      - Use rapport and simple flags to control future appearances:
+          - Higher rapport:
+              - increase chance of friendly encounters with that creature.
+              - decrease chance of fearful/wary encounters.
+          - Very low rapport:
+              - creature avoids the player (fewer encounters),
+              - or only appears in tense/stressful scenes.
+      - For now, outcomes are mostly narrative + rapport:
+          - No full combat yet.
+          - No permanent injuries.
+          - No hard game overs.
+
+  - Hooks for later systems:
+      - Provide functions that future tasks can use:
+          - to query rapport for deciding:
+              - whether a creature will defend the player,
+              - whether vore/trust scenes are allowed,
+              - whether NPCs trust you faster.
+      - Maintain a clear separation:
+          - Phase 1 encounter framework (non-lethal, non-vore).
+          - Future phases can extend with combat and vore behavior using the
+            same backbone.
+
+  - Save/load:
+      - Persist rapport state:
+          - For all creatures/NPC ids that have been modified.
+      - Persist any per-creature encounter flags that matter (e.g. "met",
+        "first_encounter_complete").
+      - Ensure old saves:
+          - load with empty rapport maps (no crashes).
+          - treat unknown rapport entries as 0 (neutral).
+
+deliverables:
+  - data/creatures_forest.json or equivalent (if not already present):
+      - Define or extend creature entries used in encounters:
+          - shy forest herbivore (e.g. "mossback_stag" or similar).
+          - cautious carnivore (e.g. "red_wolf", if consistent with the design).
+      - Fields might include:
+          - id, name, description.
+          - temperament (shy, wary, curious).
+          - depth/landmark preferences.
+      - Conform to existing data style if a creatures file already exists.
+
+  - data/encounters_forest.json or equivalent (optional but preferred):
+      - Define one or more encounter templates for each pilot creature:
+          - triggers (conditions, landmarks, depth ranges).
+          - text snippets for intro and outcome descriptions.
+          - possible player choices and effects on rapport.
+      - If JSON feels too heavy for Phase 1, encounter structure can initially
+        be scripted in code as long as the framework is written to be
+        data-friendly.
+
+  - src/rapport.py (new module) or equivalent:
+      - Implement generic rapport helpers:
+          - get_rapport, change_rapport, get_rapport_tier.
+      - Ensure the module is generic and not forest-specific.
+
+  - src/encounters.py (new module) or equivalent:
+      - Implement:
+          - a small encounter engine that:
+              - takes a creature_id and encounter definition,
+              - presents choices,
+              - applies outcomes (rapport changes, minor stamina tweaks, etc.),
+              - returns control back to the exploration loop.
+          - helper(s) to pick which encounter to run when an encounter is
+            triggered during exploration.
+      - Respect:
+          - global toggles (e.g. no vore content here for Phase 1),
+          - future compatibility with combat.
+
+  - src/engine.py and/or src/exploration.py:
+      - Integrate:
+          - encounter trigger checks into the Forest exploration loop.
+          - logic to:
+              - sometimes replace a normal exploration event with a creature
+                encounter.
+      - Make sure this does not disrupt landmark discovery, runestone repair,
+        hunger checks, or Kirin/wayfinding behavior.
+
+  - src/commands.py and src/ui/*.py:
+      - Add support for:
+          - choosing encounter options via numeric input or simple commands
+            (e.g. "1", "2", "3" during encounters).
+      - Ensure the UI clearly separates:
+          - normal exploration commands,
+          - encounter-choice prompts.
+
+  - Save/load logic:
+      - Extend save data to include:
+          - rapport map.
+          - any necessary encounter flags (met_first_time, etc.).
+      - Ensure older saves load with rapport empty and no encounter state.
+
+acceptance_criteria:
+  - Rapport:
+      - Rapport is tracked per creature_id.
+      - Repeated encounters with the same creature adjust rapport up/down.
+      - Rapport tiers (hostile/wary/neutral/friendly/bonded) are computed
+        correctly from the numeric score.
+
+  - Encounters:
+      - During Forest exploration, at least two different creature encounters
+        (shy + cautious) can trigger.
+      - Encounters:
+          - present the player with at least 2–3 choices.
+          - can change rapport based on choices.
+          - end cleanly and return to normal exploration flow.
+      - Outcomes depend on rapport tier:
+          - high rapport leads to gentler/friendlier behavior.
+          - low rapport leads to more skittish or tense behavior.
+
+  - Non-lethal Phase 1:
+      - No "full combat" sequences exist yet.
+      - Max penalty from bad choices is:
+          - stamina loss,
+          - mild debuff, or
+          - narrative stress.
+      - No deaths, no HP bars, no full injury system yet.
+
+  - Integration:
+      - Encounter triggers do not spam; exploration still feels like the main loop.
+      - Hunger, stamina, runestones, Kirin, seasons, and forest_memory all
+        still behave correctly.
+      - Rapport is persisted across saves.
+
+  - Extensibility:
+      - Code in rapport.py and encounters.py is generic enough to use for
+        humanoid NPCs and later combat-phase encounters.
+
+non_goals:
+  - Do NOT:
+      - Implement full combat mechanics (hit points, damage types, etc.).
+      - Implement vore content in encounters for this phase.
+      - Implement complex multi-NPC social graphs.
+      - Overhaul the entire event system; just integrate encounters into it.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep rapport and encounter logic modular and decoupled from any single
+    creature implementation.
+  - Use existing patterns for data loading (JSON files, etc.) where possible.
+  - Keep encounter text and branches small and readable; Phase 1 is about
+    framework and feel, not massive dialogue trees.
+
+test_plan:
+  - Start a new game, explore the Forest:
+      - Confirm that, after some exploration, creature encounters can trigger.
+      - Confirm shy and cautious creature encounters both appear over time.
+      - Make different choices and observe rapport changing and reflected in
+        future encounter text/tones.
+  - Save mid-encounter (if supported) and after an encounter, reload:
+      - Confirm no crashes and that rapport persists.
+  - Confirm there are no softlocks:
+      - Encounters always end, returning control to the main loop.
+  - Regression:
+      - Landmarks, hunger, seasons, runestones, Kirin travel, and wayfinding
+        tea still function, with encounters as an added layer.

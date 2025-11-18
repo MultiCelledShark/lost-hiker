@@ -1,0 +1,283 @@
+name: "Lost Hiker - Runestone Repair Phase 2 (Multi-Stone Quest + Forest Effects)"
+
+description: |
+  Extend the existing runestone repair system from Phase 1 into a multi-stone
+  Act I quest spine.
+
+  In Phase 1, the player could:
+    - Gather clay/sand/ash.
+    - Craft primitive_mortar with the gold pan.
+    - Repair at least one fractured runestone (physical + resonance + pulse stub).
+
+  Phase 2 will:
+    - Support multiple fractured runestones across different landmarks.
+    - Track global runestone repair progress.
+    - Apply escalating forest-wide effects as stones are repaired.
+    - Gate deeper forest exploration and certain events based on repair progress.
+    - Add a simple Act I quest state for "Mend the Forest's Pulse".
+    - Add light Kirin foreshadowing hooks (no full Kirin behavior yet).
+
+goals:
+  - Multi-runestone support:
+      - Generalize the runestone system so that multiple landmarks can have
+        fractured runestones that are repairable using the Phase 1 pipeline.
+      - Use the existing landmark data (e.g. landmarks_forest.json) and add/
+        confirm per-landmark runestone entries such as:
+          - Stone Lantern Clearing
+          - Split Boulder
+          - (Optionally) Fallen Giant or a new runestone-bearing landmark.
+      - Each runestone should have a unique ID and state:
+          - id (string)
+          - location / landmark_id
+          - is_discovered
+          - is_fractured
+          - is_physically_repaired
+          - is_resonance_stable
+          - is_fully_repaired
+
+  - Act I quest spine: "Mend the Forest's Pulse":
+      - Introduce a minimal quest-tracking structure for Act I:
+          - e.g. game_state.act1_forest_pulse or similar.
+      - Track:
+          - total_runestones (number of fractured runestones in the Forest).
+          - repaired_runestones (count of is_fully_repaired == true).
+          - quest_stage:
+              - 0 = not yet aware of runestones.
+              - 1 = has discovered at least one fractured runestone.
+              - 2 = has repaired at least one.
+              - 3 = has repaired enough stones for Act I completion threshold.
+      - The exact Act I completion threshold:
+          - For now, set to 3 fully repaired runestones.
+      - Add simple quest text / status the player can see (e.g. via "status",
+        "journal", "quest", or similar command if one exists; otherwise just
+        ensure flavor text fires at key milestones).
+
+  - Forest-wide effects per repaired runestone:
+      - Implement stepwise improvements to forest conditions as more stones are
+        fully repaired:
+          - For each repaired stone (1/3, 2/3, 3/3):
+              - Slightly bias exploration event tables in favor of:
+                  - fewer dangerous events.
+                  - fewer dead-ends or "wasted" actions.
+                  - slightly more forage or neutral events without breaking
+                    the hunger system tuning.
+              - Slightly reduce stamina cost for traversing deeper depths:
+                  - e.g. treat base stamina usage per "explore" action as a bit
+                    lower when repaired_runestones >= 2.
+      - These effects should be subtle but noticeable:
+          - The forest feels "less hostile" as you repair.
+      - Keep logic centralized (e.g. in runestones.py or a forest_effects helper)
+        so it can be extended later.
+
+  - Depth gating and progression:
+      - Use runestone repair progress to gate deeper-forest access:
+          - Before any runestones are repaired:
+              - Limit maximum depth the player can reliably reach (e.g. shallow
+                and early mid-depth bands).
+          - After repairing at least 1 runestone:
+              - Allow slightly deeper depth band to be accessed in exploration.
+          - After repairing 2 runestones:
+              - Unlock deeper mid-depths and/or new landmark(s).
+          - After repairing 3 runestones (Act I threshold):
+              - Fully unlock the current Forest depth range intended for Act I.
+              - Set a flag that can later be used to unlock new zones/acts.
+      - This gating should be soft, not a hard "you cannot go deeper" wall:
+          - e.g. heavily reduce or eliminate deep-depth roll chances until the
+            appropriate repair threshold is met, rather than hard-blocking.
+      - Integrate this with existing exploration/depth logic, not by hacking
+        around it.
+
+  - Runestone UX improvements:
+      - Ensure that when the player arrives at a landmark with a fractured
+        runestone:
+          - The description makes the runestone obvious.
+          - "look runestone" / "examine runestone" always work.
+          - "repair runestone" uses the generalized Phase 1 pipeline for that
+            specific stone ID.
+      - When a runestone is fully repaired:
+          - Mark it visually in the description (e.g. "The runestone here hums
+            steadily with a soft light").
+          - Disable further "repair runestone" attempts and respond with
+            appropriate flavor text acknowledging it's already stable.
+
+  - Kirin foreshadowing hooks (no full encounter yet):
+      - Add a very lightweight global flag or counter to represent the Kirin's
+        interest in the player increasing as more runestones are repaired.
+          - e.g. game_state.kirin_interest_level:
+              - 0 = unaware or uninterested.
+              - 1 = has noticed (after 1 stone repaired).
+              - 2 = watching more closely (after 2 stones repaired).
+              - 3 = ready for eventual first encounter (after 3 stones repaired).
+      - At key thresholds (1 and 2 stones repaired):
+          - Add a small chance for a flavor-only event while exploring or
+            camping that hints at the Kirin:
+              - distant hoofprints.
+              - a glimpse of antlers through the trees.
+              - a subtle shift in light.
+          - These should NOT move the player, change stats, or start a full
+            encounter; they are pure foreshadowing.
+      - Do NOT implement fast travel or a full Kirin scene in this task; just
+        set up the scaffolding for a later Kirin intro task.
+
+  - Messaging & feedback:
+      - After the first runestone is fully repaired:
+          - Show a short piece of flavor text about the forest's heartbeat
+            steadying and the player "feeling the land respond."
+          - Update quest_stage → 2.
+      - After the second:
+          - Emphasize that the forest feels more navigable, and minor hazards
+            seem to "bend" away from the player more often.
+      - After the third (Act I threshold):
+          - Stronger text about the forest's pulse stabilizing.
+          - Set quest_stage → 3.
+          - Set kirin_interest_level → 3.
+          - Flag this internally as "Act I forest stabilization complete"
+            so future tasks can hook Act II or Kirin intro into it.
+
+  - Save/load:
+      - Extend save data to include:
+          - Per-runestone state for all fractured stones in the Forest.
+          - Act I quest state (quest_stage, repaired_runestones, total_runestones).
+          - kirin_interest_level.
+      - Ensure older saves:
+          - Default to no repaired runestones and quest_stage = 0.
+          - Do not crash if runestone arrays or quest fields are missing.
+
+deliverables:
+  - data/runestones_forest.json or equivalent:
+      - A data file that defines all fractured Forest runestones and links
+        them to landmarks:
+          - Fields:
+              - id (e.g. "forest_stone_lantern", "forest_split_boulder", ...)
+              - landmark_id
+              - name / label
+              - initial_state (fractured/unstable)
+      - If such a file was already introduced in Phase 1, extend it instead of
+        creating a duplicate.
+
+  - src/runestones.py (extending Phase 1 implementation):
+      - Support multiple runestones and per-runestone state.
+      - Provide helper functions:
+          - get_runestone_at_current_landmark(state)
+          - is_runestone_repairable(rs)
+          - repair_runestone_flow(rs)  # should reuse Phase 1 physical + resonance + pulse logic
+          - get_repaired_runestone_count(state)
+          - apply_runestone_forest_effects(state)
+      - Ensure all Phase 1 logic now operates per-runestone rather than using
+        any hard-coded single-stone assumptions.
+
+  - src/forest_effects.py or equivalent helper:
+      - Centralize logic for forest-wide modifiers based on repaired_runestones:
+          - event weighting tweaks (danger vs neutral vs forage).
+          - stamina cost modifiers per depth band.
+          - depth gating thresholds based on runestone progress.
+      - Ensure exploration code calls into this to determine:
+          - valid depth ranges.
+          - event tables to roll from.
+
+  - src/engine.py:
+      - Integrate:
+          - Multi-runestone repair logic with landmark context.
+          - Act I quest state updates at key repair milestones.
+          - Kirin interest level updates and small foreshadowing events.
+      - Provide a way (if feasible) for the player to see high-level quest
+        progress:
+          - e.g. extend an existing "status" or "journal" view to mention
+            how many runestones have been repaired and that the forest feels
+            more stable.
+
+  - src/commands.py:
+      - Ensure "repair runestone" is routed to the generalized multi-runestone
+        logic (not a single hard-coded instance).
+      - If a "quest" or "status" command exists or is easy to add:
+          - Show a short summary of Act I quest progress and runestones
+            repaired.
+
+  - Save/load logic:
+      - Store per-runestone state, Act I quest state, and kirin_interest_level.
+      - Confirm compatibility with existing Phase 1 save data.
+
+acceptance_criteria:
+  - Multiple runestones:
+      - At least three fractured runestones exist across Forest landmarks and
+        can each be discovered/examined.
+      - Each can be fully repaired using the Phase 1 workflow (mortar, radio
+        tuning, pulse alignment).
+      - Once repaired, they remain repaired after saving/loading.
+
+  - Quest progression:
+      - Before discovering a runestone, quest_stage is 0.
+      - After discovering the first fractured runestone, quest_stage becomes 1.
+      - After repairing the first runestone, quest_stage becomes 2.
+      - After repairing three runestones, quest_stage becomes 3 and a flag is
+        set for "Act I forest stabilization complete."
+
+  - Forest effects:
+      - With 0 repaired stones:
+          - Forest feels as dangerous as in current baseline.
+          - Deep depths are hard/rare to reach.
+      - With 1–2 repaired stones:
+          - Explorations feel slightly safer (fewer nasty events).
+          - It's marginally easier to traverse a bit deeper.
+      - With 3 repaired stones:
+          - The Forest feels clearly less hostile.
+          - Deeper depths in the intended Act I range are accessible.
+      - These changes should be noticeable but NOT extreme; the player should
+        still feel some risk.
+
+  - Kirin foreshadowing:
+      - After the first runestone repair, there is a small chance of ambient
+        flavor-only hints (hoofprints, glimpses, etc.) tied to kirin_interest_level.
+      - After three runestones, kirin_interest_level signals that the Kirin
+        is now "ready" to eventually appear in a future task (no full encounter yet).
+
+  - Stability:
+      - Existing runestone repair from Phase 1 still works but now applies
+        per-runestone.
+      - Landmarks, hunger, cooking, exploration, Echo, and radio continue to
+        function without regression.
+
+non_goals:
+  - Do NOT:
+      - Implement a full Kirin encounter or fast travel system.
+      - Implement Act II zones or new biomes.
+      - Implement complex, branching quest dialogue trees.
+      - Overhaul all event tables; only tweak weights where necessary to
+        reflect forest stabilization.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Build on the existing Phase 1 runestone code rather than rewriting it.
+  - Keep Act I quest and kirin_interest state simple and easy to query.
+  - Prefer data-driven definitions (runestones_forest.json, etc.) over hard-
+    coded logic.
+  - Keep forest effects subtle and testable; avoid extreme swings in difficulty.
+
+test_plan:
+  - Start a new game:
+      - Discover and repair the first runestone:
+          - Confirm quest_stage transitions 0 → 1 → 2 as expected.
+          - Confirm small but noticeable improvements in event safety and/or
+            stamina efficiency.
+          - Confirm early Kirin foreshadowing can appear (low probability).
+      - Discover and repair the second runestone:
+          - Confirm repaired_runestones count is 2.
+          - Confirm forest feels slightly more forgiving again.
+      - Discover and repair the third runestone:
+          - Confirm quest_stage becomes 3.
+          - Confirm "Act I forest stabilization complete" flag is set and
+            kirin_interest_level is at its maximum for this phase.
+          - Confirm access to deeper depths in the Forest is now consistently
+            possible within the intended range.
+  - Save/load:
+      - Save mid-quest (after 1–2 repaired stones) and reload.
+      - Save after all 3 stones are repaired and reload.
+      - Confirm all state persists (per-runestone repair, quest_stage,
+        kirin_interest_level, forest effect behavior).
+  - Regression:
+      - Confirm Phase 1 behaviors (mortar crafting, single-stone repair
+        flow) still behave correctly under the new system.
+      - Confirm hunger, stamina caps, landmarks, and exploration loops
+        function and feel coherent with the new forest effects.

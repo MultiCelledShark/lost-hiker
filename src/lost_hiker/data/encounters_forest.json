@@ -1,0 +1,417 @@
+{
+  "encounters": [
+    {
+      "id": "mossback_stag_first",
+      "creature_id": "mossback_stag",
+      "intro_text": "A large stag with moss-covered antlers steps into view between the trees. Its dark eyes watch you warily, muscles tensed for flight.",
+      "choices": [
+        {
+          "text": "Stay perfectly still and observe",
+          "outcome": "observe_neutral"
+        },
+        {
+          "text": "Slowly back away",
+          "outcome": "retreat_neutral"
+        },
+        {
+          "text": "Offer food (berries or nuts)",
+          "outcome": "offer_food",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts"]
+          }
+        },
+        {
+          "text": "Make a sudden movement",
+          "outcome": "startle_negative"
+        },
+        {
+          "text": "Swallow the small creature (vore-enabled, player-as-pred)",
+          "outcome": "player_pred_swallow",
+          "requirements": {
+            "requires_vore_enabled": true,
+            "requires_player_pred_enabled": true
+          }
+        }
+      ],
+      "outcomes": {
+        "observe_neutral": {
+          "text": "The stag holds your gaze for a long moment, then gracefully turns and melts back into the forest. You feel a sense of mutual respect.",
+          "rapport_delta": {
+            "mossback_stag": 1
+          },
+          "stamina_delta": 0.0
+        },
+        "retreat_neutral": {
+          "text": "You step back slowly. The stag relaxes slightly, watching you go. No harm, no trust gained.",
+          "rapport_delta": {},
+          "stamina_delta": 0.0
+        },
+        "offer_food": {
+          "text": "You extend your hand with the offering. The stag approaches cautiously, takes the food delicately, then nuzzles your hand before retreating. A small bond forms.",
+          "rapport_delta": {
+            "mossback_stag": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_remove": []
+        },
+        "startle_negative": {
+          "text": "Your sudden movement sends the stag bolting. It crashes through the underbrush, leaving you feeling clumsy and intrusive.",
+          "rapport_delta": {
+            "mossback_stag": -1
+          },
+          "stamina_delta": -0.5
+        },
+        "player_pred_swallow": {
+          "text": "You make a quick move, catching the stag unawares. It's over in moments—the creature is safely inside you, and you feel a strange sense of completion. The encounter is resolved.",
+          "rapport_delta": {
+            "mossback_stag": -2
+          },
+          "stamina_delta": 0.5
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 0,
+        "max_depth": 20
+      }
+    },
+    {
+      "id": "mossback_stag_friendly",
+      "creature_id": "mossback_stag",
+      "intro_text": "The familiar mossback stag emerges from the trees, antlers glistening with morning dew. It recognizes you and approaches with cautious curiosity.",
+      "choices": [
+        {
+          "text": "Wait calmly for it to approach",
+          "outcome": "wait_friendly"
+        },
+        {
+          "text": "Offer food",
+          "outcome": "offer_food_friendly",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts"]
+          }
+        },
+        {
+          "text": "Reach out to touch its antlers",
+          "outcome": "touch_friendly"
+        }
+      ],
+      "outcomes": {
+        "wait_friendly": {
+          "text": "The stag comes close, breathing warm air against your hand. It seems to find comfort in your presence.",
+          "rapport_delta": {
+            "mossback_stag": 1
+          },
+          "stamina_delta": 0.0
+        },
+        "offer_food_friendly": {
+          "text": "The stag eagerly takes the food, then stays close, nuzzling your shoulder. The bond between you deepens.",
+          "rapport_delta": {
+            "mossback_stag": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_remove": []
+        },
+        "touch_friendly": {
+          "text": "You gently touch the moss-covered antlers. The stag closes its eyes in contentment, and you feel a profound sense of trust.",
+          "rapport_delta": {
+            "mossback_stag": 1
+          },
+          "stamina_delta": 0.0
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 0,
+        "max_depth": 20,
+        "min_rapport": 2
+      }
+    },
+    {
+      "id": "red_wolf_first",
+      "creature_id": "red_wolf",
+      "intro_text": "A lean red wolf steps onto the trail ahead, blocking your path. Its amber eyes lock onto you, and you hear a low growl rumbling in its chest. It's not attacking—yet—but the tension is palpable.",
+      "choices": [
+        {
+          "text": "Stand your ground, meet its gaze calmly",
+          "outcome": "stand_calm"
+        },
+        {
+          "text": "Slowly back away",
+          "outcome": "retreat_calm"
+        },
+        {
+          "text": "Offer food",
+          "outcome": "offer_food_wolf",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts", "dried_berries"]
+          }
+        },
+        {
+          "text": "Yell and wave your arms",
+          "outcome": "aggressive_negative"
+        }
+      ],
+      "outcomes": {
+        "stand_calm": {
+          "text": "You hold the wolf's gaze without flinching. After a tense moment, it relaxes slightly, gives a short yip, and steps aside. You pass by safely, but your heart pounds.",
+          "rapport_delta": {
+            "red_wolf": 1
+          },
+          "stamina_delta": -0.5
+        },
+        "retreat_calm": {
+          "text": "You back away slowly. The wolf watches you go, then turns and disappears into the brush. You're safe, but shaken.",
+          "rapport_delta": {},
+          "stamina_delta": -0.5
+        },
+        "offer_food_wolf": {
+          "text": "You toss the food toward the wolf. It sniffs cautiously, then takes it. The growl stops, and it gives you a curious look before moving off the trail. A small measure of trust is earned.",
+          "rapport_delta": {
+            "red_wolf": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_remove": []
+        },
+        "aggressive_negative": {
+          "text": "Your aggressive display triggers the wolf's instincts. It lunges forward with a snarl, teeth snapping inches from your face before it pulls back. You stumble backward, heart racing. That was too close.",
+          "rapport_delta": {
+            "red_wolf": -2
+          },
+          "stamina_delta": -1.5
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 5,
+        "max_depth": 30
+      }
+    },
+    {
+      "id": "red_wolf_wary",
+      "creature_id": "red_wolf",
+      "intro_text": "The red wolf appears again, but this time it keeps more distance. Its ears are pinned back, and it watches you with clear suspicion.",
+      "choices": [
+        {
+          "text": "Stay still and wait",
+          "outcome": "wait_wary"
+        },
+        {
+          "text": "Offer food",
+          "outcome": "offer_food_wary",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts", "dried_berries"]
+          }
+        },
+        {
+          "text": "Back away slowly",
+          "outcome": "retreat_wary"
+        }
+      ],
+      "outcomes": {
+        "wait_wary": {
+          "text": "You remain motionless. The wolf circles you at a distance, then eventually moves on. The tension eases, but trust hasn't been rebuilt.",
+          "rapport_delta": {},
+          "stamina_delta": -0.5
+        },
+        "offer_food_wary": {
+          "text": "You place food on the ground and step back. The wolf approaches warily, takes it, and retreats. A small step toward reconciliation.",
+          "rapport_delta": {
+            "red_wolf": 1
+          },
+          "stamina_delta": 0.0,
+          "inventory_remove": []
+        },
+        "retreat_wary": {
+          "text": "You back away carefully. The wolf watches you go, still tense. No progress made.",
+          "rapport_delta": {},
+          "stamina_delta": -0.5
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 5,
+        "max_depth": 30,
+        "max_rapport": -1
+      }
+    },
+    {
+      "id": "red_wolf_friendly",
+      "creature_id": "red_wolf",
+      "intro_text": "The red wolf trots into view, tail held high. It recognizes you and approaches with a curious, almost playful demeanor.",
+      "choices": [
+        {
+          "text": "Wait for it to approach",
+          "outcome": "wait_friendly_wolf"
+        },
+        {
+          "text": "Offer food",
+          "outcome": "offer_food_friendly_wolf",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts", "dried_berries"]
+          }
+        },
+        {
+          "text": "Reach out to touch",
+          "outcome": "touch_friendly_wolf"
+        }
+      ],
+      "outcomes": {
+        "wait_friendly_wolf": {
+          "text": "The wolf comes close, sniffing you curiously. It seems to find your scent acceptable and gives a soft yip before settling nearby, watching over you.",
+          "rapport_delta": {
+            "red_wolf": 1
+          },
+          "stamina_delta": 0.0
+        },
+        "offer_food_friendly_wolf": {
+          "text": "The wolf eagerly takes the food, then stays close. It seems to be offering protection—or at least, it's no longer a threat. The bond deepens.",
+          "rapport_delta": {
+            "red_wolf": 2
+          },
+          "stamina_delta": 0.0,
+          "inventory_remove": []
+        },
+        "touch_friendly_wolf": {
+          "text": "You reach out and the wolf allows you to scratch behind its ears. It leans into your touch, and you feel a genuine connection forming.",
+          "rapport_delta": {
+            "red_wolf": 1
+          },
+          "stamina_delta": 0.0
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 5,
+        "max_depth": 30,
+        "min_rapport": 2
+      }
+    },
+    {
+      "id": "red_wolf_threat",
+      "creature_id": "red_wolf",
+      "encounter_type": "threat",
+      "intro_text": "A lean red wolf blocks your path, its amber eyes fixed on you with predatory intensity. Its lips curl back, revealing sharp teeth, and a low growl rumbles from its chest. This is no cautious encounter—the wolf is hunting, and you're the prey.",
+      "choices": [
+        {
+          "text": "Attempt to flee",
+          "outcome": "flee_attempt"
+        },
+        {
+          "text": "Try to calm or appease",
+          "outcome": "calm_attempt"
+        },
+        {
+          "text": "Stand your ground",
+          "outcome": "stand_ground_attempt"
+        },
+        {
+          "text": "Offer food to distract",
+          "outcome": "offer_food_threat",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts", "dried_berries"]
+          }
+        },
+        {
+          "text": "Freeze and submit (vore-enabled)",
+          "outcome": "vore_submit",
+          "requirements": {
+            "requires_vore_enabled": true
+          }
+        }
+      ],
+      "outcomes": {
+        "flee_attempt": {
+          "text": "THREAT_FLEE_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "flee"
+        },
+        "calm_attempt": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm"
+        },
+        "stand_ground_attempt": {
+          "text": "THREAT_STAND_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "stand_ground"
+        },
+        "offer_food_threat": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm",
+          "inventory_remove": []
+        },
+        "vore_submit": {
+          "text": "VORE_SWALLOWED",
+          "stamina_delta": 0.0,
+          "condition_delta": 1,
+          "threat_resolution": "vore_shelter"
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 8,
+        "max_depth": 30,
+        "preferred_seasons": ["fall", "winter"]
+      }
+    },
+    {
+      "id": "territorial_boar_threat",
+      "creature_id": "territorial_boar",
+      "encounter_type": "threat",
+      "intro_text": "A massive boar with bristling fur and sharp tusks charges out from the underbrush, blocking your path. It paws at the ground, snorting aggressively. You've blundered into its territory, and it's not backing down.",
+      "choices": [
+        {
+          "text": "Attempt to flee",
+          "outcome": "flee_attempt"
+        },
+        {
+          "text": "Try to calm or appease",
+          "outcome": "calm_attempt"
+        },
+        {
+          "text": "Stand your ground",
+          "outcome": "stand_ground_attempt"
+        },
+        {
+          "text": "Offer food to distract",
+          "outcome": "offer_food_threat",
+          "requirements": {
+            "requires_items": ["forest_berries", "trail_nuts", "dried_berries"]
+          }
+        }
+      ],
+      "outcomes": {
+        "flee_attempt": {
+          "text": "THREAT_FLEE_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "flee"
+        },
+        "calm_attempt": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm"
+        },
+        "stand_ground_attempt": {
+          "text": "THREAT_STAND_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "stand_ground"
+        },
+        "offer_food_threat": {
+          "text": "THREAT_CALM_RESOLVED",
+          "stamina_delta": 0.0,
+          "condition_delta": 0,
+          "threat_resolution": "calm",
+          "inventory_remove": []
+        }
+      },
+      "trigger_conditions": {
+        "min_depth": 10,
+        "max_depth": 30
+      }
+    }
+  ]
+}
+

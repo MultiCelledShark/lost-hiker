@@ -1,0 +1,132 @@
+{
+  "glade": {
+    "look": {
+      "default": [
+        "Soft moss cushions the Glade, the runic portal tree towering above still whispering with latent sparks.",
+        "The Glade breathes in quiet rhythm—portal tree, mossy ground, and the distant susurrus of the stream.",
+        "Echo coils near the HT radio on a sun-warmed stone; the snake's antenna-like tendrils glint with static."
+      ]
+    },
+    "examinables": {
+      "portal_tree": {
+        "name": "portal tree",
+        "aliases": ["portal tree", "tree", "portal", "runic tree"],
+        "descriptions": [
+          "The portal tree's bark is etched with dormant runes; faint warmth pulses beneath your fingertips.",
+          "Close up, the portal tree's runes shimmer like embers, promising a way home once awakened."
+        ]
+      },
+      "campfire_ring": {
+        "name": "campfire ring",
+        "aliases": ["campfire", "fire pit", "ring"],
+        "descriptions": [
+          "Charred stones and neat ash hint at recent nights spent trading stories with allies.",
+          "The campfire ring sits ready—only kindling and a spark stand between you and warmth."
+        ]
+      },
+      "glade_stream": {
+        "name": "stream",
+        "aliases": ["stream", "water", "brook"],
+        "descriptions": [
+          "Clear water threads past the Glade, cold enough to jolt tired thoughts awake.",
+          "The stream gurgles softly, carrying the forest's scents deeper south."
+        ]
+      },
+      "echo": {
+        "name": "Echo",
+        "aliases": ["echo", "snake", "radio snake"],
+        "descriptions": [
+          "Echo's scales shimmer with faint radio static as they watch you with patient, lidless eyes.",
+          "Echo rests coiled around the HT radio, tongue tasting the air with soft bursts of static."
+        ]
+      }
+    }
+  },
+  "forest": {
+    "look": {
+      "default": [
+        "Branches loom overhead, and the trail twists through a crowd of ancient trunks."
+      ],
+      "by_depth": {
+        "edge": [
+          "At the forest's edge, trail markers are still visible and the Glade's breeze brushes your shoulders."
+        ],
+        "mid": [
+          "Mid-forest shadows stretch long; runes carved into trunks glow faintly as you pass."
+        ],
+        "deep": [
+          "In the deep forest, roots jut like ribs and every sound seems swallowed by the loam."
+        ]
+      }
+    },
+    "examinables": {
+      "trail_markers": {
+        "name": "trail markers",
+        "aliases": ["trail markers", "markers", "marker", "markings"],
+        "descriptions": [
+          "Notches hacked into bark chart your path; some are yours, others older.",
+          "Trail markers glow faintly with resin—proof others have braved this route."
+        ]
+      },
+      "ferns": {
+        "name": "ferns",
+        "aliases": ["ferns", "fern", "underbrush"],
+        "descriptions": [
+          "Damp ferns brush your knees, hiding beetles and the occasional startled hare.",
+          "The ferns are slick with dew, concealing the narrow trail unless you watch your footing."
+        ]
+      },
+      "runic_stump": {
+        "name": "runic stump",
+        "aliases": ["runic stump", "stump", "rune stump"],
+        "descriptions": [
+          "Runes carved into the stump glow when your hand hovers close—someone left warnings here.",
+          "The runic stump's sigils pulse in rhythm with your heartbeat before fading again."
+        ]
+      }
+    }
+  },
+  "charred_tree_interior": {
+    "look": {
+      "default": [
+        "Blackened heartwood bows overhead, ember veins tracing the hollow that swallowed you whole.",
+        "Ash-moted light filters through rune-burned fractures, painting the interior in copper ghosts."
+      ]
+    },
+    "examinables": {
+      "portal_scars": {
+        "name": "portal scars",
+        "aliases": ["scars", "portal scars", "burns", "runes"],
+        "descriptions": [
+          "Each rune scar still hums with fading portal energy, edges shimmering violet beneath the soot.",
+          "You trace a rune scar—warm to the touch, as though time itself only just stitched it closed."
+        ]
+      },
+      "camp_pack": {
+        "name": "camp pack",
+        "aliases": ["pack", "backpack", "camp pack"],
+        "descriptions": [
+          "Your camp pack sits half-spilled, dusted with ash yet mercifully intact.",
+          "Canvas creaks as you lift the pack; everything smells of smoke, but the straps hold."
+        ]
+      },
+      "charred_floor": {
+        "name": "charred floor",
+        "aliases": ["floor", "charred floor", "ashes"],
+        "descriptions": [
+          "The floor is a mosaic of soot and splintered charcoal, footprints marking your arrival.",
+          "Ash shifts underfoot, hiding coal-hot embers that glow when your weight passes."
+        ]
+      },
+      "splintered_opening": {
+        "name": "splintered opening",
+        "aliases": ["opening", "exit", "gap", "doorway"],
+        "descriptions": [
+          "Through the splintered opening you glimpse soft daylight and the mossy Glade beyond.",
+          "A jagged gap in the trunk breathes fresh air, beckoning you toward the Glade."
+        ]
+      }
+    }
+  }
+}
+

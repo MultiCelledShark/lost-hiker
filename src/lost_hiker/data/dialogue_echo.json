@@ -1,0 +1,291 @@
+{
+  "nodes": [
+    {
+      "id": "echo_start",
+      "npc_id": "echo",
+      "text": "[RADIO] Warm… curious… testing your scent.",
+      "conditions": {
+        "min_rapport_tier": "hostile"
+      },
+      "options": [
+        {
+          "text": "Hello, Echo.",
+          "next_node_id": "echo_greeting_low",
+          "rapport_delta": 0
+        },
+        {
+          "text": "What are you?",
+          "next_node_id": "echo_what_are_you_low",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can you hear me through the radio?",
+          "next_node_id": "echo_radio_connection_low",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_radio_connection_hint_shown": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "echo_start_mid",
+      "npc_id": "echo",
+      "text": "[RADIO] A pulse of recognition. Comfortable warmth.",
+      "conditions": {
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "How are you today?",
+          "next_node_id": "echo_greeting_mid",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Tell me about the radio.",
+          "next_node_id": "echo_radio_connection_mid",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_radio_connection_hint_shown": true
+          }
+        },
+        {
+          "text": "What do you sense in the forest?",
+          "next_node_id": "echo_forest_sense_mid",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_start_high",
+      "npc_id": "echo",
+      "text": "[RADIO] Deep resonance. Bonded warmth. You are safe here.",
+      "conditions": {
+        "min_rapport_tier": "friendly"
+      },
+      "options": [
+        {
+          "text": "I'm glad you're here.",
+          "next_node_id": "echo_greeting_high",
+          "rapport_delta": 0
+        },
+        {
+          "text": "The radio feels different when you're near.",
+          "next_node_id": "echo_radio_connection_high",
+          "rapport_delta": 0,
+          "set_flags": {
+            "echo_radio_connection_hint_shown": true
+          }
+        },
+        {
+          "text": "What do you hear in the forest?",
+          "next_node_id": "echo_forest_sense_high",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_greeting_low",
+      "npc_id": "echo",
+      "text": "[RADIO] Static shifts. A cautious acknowledgment. The radio translates feelings into fragments.",
+      "options": [
+        {
+          "text": "I don't understand.",
+          "next_node_id": "echo_understanding_low",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I'll try to listen.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "echo_what_are_you_low",
+      "npc_id": "echo",
+      "text": "[RADIO] Ancient. Forest-bound. Radio-tuned. The words come through as sensations—scales, coils, static, warmth.",
+      "options": [
+        {
+          "text": "You're connected to the radio?",
+          "next_node_id": "echo_radio_connection_low",
+          "rapport_delta": 1,
+          "set_flags": {
+            "echo_radio_connection_hint_shown": true
+          }
+        },
+        {
+          "text": "I see.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_connection_low",
+      "npc_id": "echo",
+      "text": "[RADIO] The radio crackles with distant heartbeats. When it hums, I feel the Forest and runestones vibrating. I hear you through the static—your presence, your emotions, translated into pulses I can sense.",
+      "options": [
+        {
+          "text": "So the radio connects us?",
+          "next_node_id": "echo_radio_explanation",
+          "rapport_delta": 1
+        },
+        {
+          "text": "That's fascinating.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_understanding_low",
+      "npc_id": "echo",
+      "text": "[RADIO] Patience. The radio will learn. So will you. Time builds understanding.",
+      "options": [
+        {
+          "text": "I'll keep trying.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "echo_greeting_mid",
+      "npc_id": "echo",
+      "text": "[RADIO] Content. Watching. Protective. The static carries a sense of coiled readiness—you are safe in the Glade.",
+      "options": [
+        {
+          "text": "Thank you for watching over me.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "The forest feels safer with you here.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_connection_mid",
+      "npc_id": "echo",
+      "text": "[RADIO] The HT radio sounds like distant heartbeats to me. When it crackles, I feel the Forest and runestones vibrating. I hear you through the static—your presence translated into pulses I can sense. The connection grows stronger each day.",
+      "options": [
+        {
+          "text": "So we're connected through the radio?",
+          "next_node_id": "echo_radio_explanation",
+          "rapport_delta": 1
+        },
+        {
+          "text": "That explains a lot.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_forest_sense_mid",
+      "npc_id": "echo",
+      "text": "[RADIO] The forest pulses with wrongness. Fractured runestones. Distorted ley-lines. But also… life. Growth. Hope. The static carries both warnings and comfort.",
+      "options": [
+        {
+          "text": "Can I help fix the runestones?",
+          "next_node_id": "echo_runestone_guidance",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I'll be careful.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_greeting_high",
+      "npc_id": "echo",
+      "text": "[RADIO] Deep warmth. Bonded. You are pack. The static thrums with steady, protective resonance. The Glade is home because you are here.",
+      "options": [
+        {
+          "text": "You're important to me too.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I feel safe with you.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_connection_high",
+      "npc_id": "echo",
+      "text": "[RADIO] The radio and I are one. When it hums, I feel the Forest's pulse. When it crackles, I sense the runestones' vibrations. I hear you through the static—your emotions, your presence, translated into a language of resonance only we share. The connection deepens with each day.",
+      "options": [
+        {
+          "text": "I'm glad we found each other.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "The radio feels alive when you're near.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_forest_sense_high",
+      "npc_id": "echo",
+      "text": "[RADIO] The forest speaks through me. Fractured runestones cry out for mending. Distorted ley-lines pulse wrong. But I also sense growth, hope, and the steady rhythm of your presence. Together, we can help the forest remember itself.",
+      "options": [
+        {
+          "text": "I'll do what I can.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Thank you for guiding me.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_explanation",
+      "npc_id": "echo",
+      "text": "[RADIO] Yes. The radio translates my resonance into words you can understand. And it carries your presence back to me—your emotions, your heartbeat, your essence. We are connected through static and static alone.",
+      "options": [
+        {
+          "text": "That's amazing.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I'll take care of the radio.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "echo_runestone_guidance",
+      "npc_id": "echo",
+      "text": "[RADIO] Yes. Gather clay, sand, ash. Make mortar. Use the radio to tune resonance. Meditate with tea to realign the pulse. I will guide you when you find the fractured stones.",
+      "options": [
+        {
+          "text": "Thank you. I'll start looking.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I'll remember that.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    }
+  ]
+}
+

@@ -1,0 +1,29 @@
+[project]
+name = "lost-hiker"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "MCS", email = "multicelled-shark@proton.me" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "pytest>=9.0.0",
+    "rich>=14.2.0",
+    "typer>=0.20.0",
+]
+
+[project.scripts]
+lost-hiker = "lost_hiker:main"
+
+[build-system]
+requires = ["uv_build>=0.9.8,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "black>=25.11.0",
+    "pre-commit>=4.4.0",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.4",
+]

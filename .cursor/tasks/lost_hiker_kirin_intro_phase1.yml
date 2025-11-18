@@ -1,0 +1,303 @@
+name: "Lost Hiker - Kirin Intro Phase 1 (First Encounter + Limited Fast Travel)"
+
+description: |
+  Introduce the Forest Kirin as a mid-game reward for stabilizing the Forest,
+  and implement a limited, lore-consistent fast travel system.
+
+  Phase 1 focus:
+    - A single, repeatable Kirin encounter after Act I forest stabilization
+      (enough runestones repaired, kirin_interest_level high).
+    - Bonding state with the Kirin (trust).
+    - A simple, limited fast-travel mechanic:
+        - Travel between the Glade and a subset of well-known landmarks.
+        - Support both vore-based travel (if vore is enabled) and non-vore
+          horn-portal travel (if vore is disabled or player declines).
+    - Integration with forest_memory and runestone repair progress.
+
+  Do NOT implement:
+    - Full Kirin relationship arcs.
+    - Global fast travel network.
+    - Teleport tea or other travel methods.
+    - Kirin combat or complex AI.
+
+goals:
+  - Kirin state & data:
+      - Define a Kirin entity/state in game_state:
+          - kirin_known (bool)
+          - kirin_trust_level (int, suggested 0–3)
+          - kirin_travel_unlocked (bool)
+          - kirin_travel_mode_unlocked:
+              - "vore", "portal", or both, depending on toggles and choices.
+          - kirin_last_travel_day (int or other day index) to enforce per-day
+            usage limits.
+      - This should be stored in a dedicated structure under game_state
+        (e.g. state.kirin).
+
+  - Encounter conditions (Act I reward):
+      - The Kirin should NOT appear until:
+          - Act I forest stabilization is effectively complete according to
+            runestone logic:
+              - e.g. repaired_runestones >= 3 and quest_stage >= 3.
+          - kirin_interest_level is at max for Phase 2 (set by runestone
+            repair task).
+      - Once conditions are met:
+          - The Kirin's first encounter should trigger under one of these
+            conditions:
+              - While camping at a Forest landmark with high path stability
+                (e.g. Fallen Giant, Stone Lantern Clearing).
+              - OR at the Glade upon waking, after Act I is complete.
+          - Make the triggering method data-driven or at least easy to tweak:
+              - e.g. helper function: check_for_kirin_intro_event(state, context).
+
+  - First Kirin encounter (narrative & choice):
+      - Implement a one-time Kirin intro scene:
+          - The Kirin appears peacefully and observes the player.
+          - Echo and/or the radio may react (optional, see later goal).
+          - The player should understand:
+              - This is a powerful, non-hostile forest being.
+              - It is attracted by the repaired runestones and stabilized
+                forest pulse.
+      - The encounter should:
+          - Set kirin_known = true.
+          - Initialize kirin_trust_level = 1.
+          - Introduce the idea of Kirin-assisted travel, but not force it.
+      - Vore vs portal choice:
+          - Respect existing vore and pred toggles:
+              - If vore/pred is disabled globally:
+                  - The Kirin offers only horn-portal travel.
+              - If vore/pred is enabled:
+                  - The Kirin can offer either:
+                      - belly/trust-based internal travel ("ride in stomach"),
+                      - or a horn-opened tree-arch portal.
+          - For Phase 1, keep this as a simple player choice in text:
+              - e.g. "Ask to travel via portal", "Ask to be carried inside", or "Decline for now".
+          - Player choice should update kirin_travel_mode_unlocked accordingly.
+
+  - Limited fast travel (Phase 1 constraints):
+      - After the intro encounter and once kirin_travel_unlocked is true:
+          - Allow the player to use Kirin-assisted travel once per day.
+      - Scope for Phase 1:
+          - Travel endpoints:
+              - Between the Glade and a subset of stabilized landmarks that:
+                  - have high path stability (e.g. >= 2),
+                  - and/or have fully repaired runestones.
+              - Examples:
+                  - Glade ↔ Stone Lantern Clearing.
+                  - Glade ↔ Split Boulder.
+                  - Glade ↔ Fallen Giant (if appropriate).
+          - Direction:
+              - For Phase 1, it is acceptable to limit travel to:
+                  - Glade → landmark in the morning,
+                  - OR landmark → Glade (return).
+              - If bidirectional travel is easy, support both, but keep usage
+                limited to once per day.
+      - Usage:
+          - Add a camp/glade action such as:
+              - "travel with Kirin"
+          - When used:
+              - Present a list of eligible destinations:
+                  - Derived from landmarks with stability >= 2 and optional tags
+                    like has_runestone or forest_safe.
+              - Player chooses one; the game:
+                  - Advances time appropriately (e.g. counts as that day's major
+                    movement, or triggers a new "time block").
+                  - Moves the player context to that landmark.
+                  - Adjusts stamina and hunger as appropriate:
+                      - Do NOT bypass hunger or stamina completely; treat this
+                        like a safe but costly or neutral movement option.
+      - Vore vs portal mechanics (flavor difference only for Phase 1):
+          - For now, keep the mechanical effect of vore vs portal identical:
+              - Both are instant/safe repositioning with the same stamina/time
+                cost.
+          - The difference should be in description only, based on:
+              - player toggles,
+              - kirin_travel_mode_unlocked,
+              - and the chosen option at interaction time.
+
+  - Integration with forest_memory:
+      - Use forest_memory / path stability to:
+          - Determine which landmarks are valid travel destinations:
+              - Only allow travel to landmarks with stability >= 2 ("familiar"
+                or "well-worn" paths).
+          - Optionally:
+              - Slightly increase path stability for a landmark when arriving
+                via Kirin travel (the forest "remembers" this as a strong link).
+      - Fast travel should feel like a natural extension of the forest
+        remembering paths, not a UI teleport.
+
+  - Echo and radio integration (light but flavorful):
+      - When the Kirin first appears:
+          - If radio_version == 1:
+              - Echo sends impressionistic feelings (warm, awe, reverence).
+          - If radio_version == 2:
+              - Echo can comment more clearly on the Kirin’s presence and
+                connection to the repaired runestones.
+      - When traveling with the Kirin:
+          - Optional short [RADIO] lines:
+              - Acknowledging the safety and strangeness of riding inside/
+                through a horn-portal.
+      - Keep dialogue compact and leave room for future expansion.
+
+  - Save/load:
+      - Persist full Kirin state:
+          - kirin_known
+          - kirin_trust_level
+          - kirin_travel_unlocked
+          - kirin_travel_mode_unlocked
+          - kirin_last_travel_day (or equivalent)
+      - Ensure compatibility with saves that existed before the Kirin:
+          - Default to kirin_known = false and trust_level = 0.
+          - No crashes if Kirin fields are missing.
+
+deliverables:
+  - data/npcs_forest.json or equivalent (if NPC data file exists):
+      - Add a Kirin entry with:
+          - id (e.g. "forest_kirin")
+          - name
+          - basic flavor text
+          - flags indicating:
+              - non-hostile
+              - special_travel_npc = true
+      - If no such NPC data file exists, either create one following existing
+        patterns or document the structure in code.
+
+  - src/kirin.py (new module) or equivalent:
+      - Implement:
+          - Kirin state helpers (get/set for kirin_known, trust, etc.).
+          - Kirin intro trigger check:
+              - e.g. maybe_check_kirin_intro(state, context).
+          - Kirin travel option logic:
+              - which destinations are valid,
+              - per-day usage limits,
+              - resolving vore vs portal descriptions based on toggles.
+      - All Kirin-specific logic should be centralized here where possible.
+
+  - src/engine.py:
+      - Integrate:
+          - A call to Kirin intro triggers at appropriate times (e.g. when
+            waking at camp/Glade after Act I completion).
+          - The "travel with Kirin" action into the camp/Glade action menu.
+          - Movement of player context when traveling via Kirin:
+              - update location/landmark,
+              - adjust stamina/hunger in a reasonable way,
+              - ensure the day/time flow still makes sense.
+      - Ensure that:
+          - Kirin travel does not bypass hunger or stamina systems entirely.
+          - Kirin travel interacts cleanly with forest_memory and runestone
+            gating.
+
+  - src/commands.py and/or src/ui.py:
+      - Add command(s) or menu entries for:
+          - Initiating Kirin travel from an appropriate location (Glade or
+            a camp where the Kirin can be summoned/approached).
+      - If using text commands, support:
+          - "travel with kirin"
+          - and simple numeric selection of destinations.
+
+  - src/radio.py / Echo dialogue integration (light):
+      - Add a few small helpers or branches for Kirin-specific [RADIO]
+        messages in:
+          - first encounter,
+          - travel scenes.
+      - Avoid large rewrites; keep additions minimal and data-driven where
+        possible.
+
+  - Save/load logic:
+      - Store Kirin state in the save file.
+      - Confirm older saves load without errors and start with Kirin unseen.
+
+acceptance_criteria:
+  - Encounter:
+      - After repairing the required number of runestones and completing Act I
+        forest stabilization (per Phase 2), the Kirin can appear in a
+        one-time intro scene.
+      - kirin_known is set to true and kirin_trust_level is at least 1 after
+        the scene.
+      - The player is given a clear sense of what the Kirin is and that it can
+        help with travel.
+      - Vore vs portal options respect global toggles and player choice.
+
+  - Travel:
+      - Once Kirin travel is unlocked:
+          - The player can choose "travel with Kirin" from a valid context
+            (Glade or an agreed-upon camp/landmark).
+          - A list of valid destinations (subset of known, stable landmarks)
+            is shown.
+          - Choosing a destination moves the player there, adjusting day/time
+            and stamina appropriately.
+          - Kirin travel is limited to once per in-game day in Phase 1.
+      - Travel via vore vs portal differs only in text, not mechanics, for
+        now.
+
+  - Integration:
+      - Kirin appears only after Act I forest stabilization conditions are
+        met.
+      - Kirin travel uses forest_memory/path stability to decide valid
+        destinations.
+      - No system bypasses hunger or stamina in a way that trivializes those
+        mechanics; Kirin is a convenience and reward, not a cheat code.
+
+  - Save/load:
+      - Kirin intro and travel unlock state persist correctly across saves.
+      - Reloading a game after Kirin introduction preserves:
+          - kirin_known,
+          - trust level,
+          - unlocked travel mode(s),
+          - last travel day.
+
+  - Stability:
+      - Existing systems (landmarks, hunger, cooking, runestones, forest_effects,
+        forest_memory, Echo, radio) continue to function correctly with
+        Kirin additions.
+      - No crashes or softlocks when Kirin is not yet unlocked or when used
+        at boundary conditions (e.g. no valid destinations).
+
+non_goals:
+  - Do NOT:
+      - Implement Kirin combat, injury, or death.
+      - Implement full, branching Kirin relationship content.
+      - Implement Kirin-based access to brand new zones or Acts in this phase.
+      - Implement teleport teas or other travel systems; those are for future
+        tasks.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep Kirin logic modular (kirin.py) and avoid scattering special cases.
+  - Interact with forest_memory and runestone systems through their existing
+    helper functions rather than duplicating their logic.
+  - Respect existing vore/pred toggles; no Kirin vore descriptions when those
+    are disabled.
+
+test_plan:
+  - Start a new game (or load an existing one) and progress to:
+      - At least three fully repaired Forest runestones and completed Act I
+        forest stabilization.
+      - Confirm that the Kirin intro scene eventually triggers at a valid
+        location (Glade or designated landmark).
+  - After the intro:
+      - Confirm kirin_known == true, trust_level >= 1.
+      - Confirm Kirin travel is NOT available before intro and IS available
+        afterward.
+  - Travel tests:
+      - Use "travel with Kirin":
+          - Confirm only appropriate, stable landmarks are offered as
+            destinations.
+          - Confirm travel works, moves the player correctly, and respects
+            per-day usage limits.
+          - Confirm hunger and stamina remain consistent and are not bypassed.
+      - Test both vore-enabled and vore-disabled configurations:
+          - With vore enabled, both belly and portal descriptions should be
+            possible (depending on choice).
+          - With vore disabled, only portal-style descriptions should appear.
+  - Save/load:
+      - Save after Kirin intro but before using travel; reload and confirm
+        state.
+      - Save after using travel; reload and confirm that:
+          - location persists correctly,
+          - kirin_last_travel_day is respected.
+  - Regression:
+      - Verify that prior behavior (hunger, forest exploration, landmark
+        recall, runestone repair, Kirin foreshadowing) still functions as
+        intended.

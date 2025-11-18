@@ -1,0 +1,266 @@
+name: "Lost Hiker - Dialogue & First Forest NPC Phase 1"
+
+description: |
+  Implement a lightweight conversation/dialogue system that builds on the
+  existing rapport framework, and introduce the first on-foot NPC in the
+  Forest who uses it.
+
+  This phase focuses on:
+    - A reusable dialogue engine that can present multi-line NPC conversations
+      with choices and simple branching.
+    - Integrating dialogue with the existing rapport system (from
+      Encounters & Rapport Phase 1).
+    - One concrete NPC in the Forest with a small dialogue tree, race-aware
+      flavor, and a minor bit of guidance about the runestones / forest state.
+    - No town yet, no complex quests, no romance, and no heavy branching
+      storylines.
+
+goals:
+  - Dialogue system core:
+      - Implement a small dialogue engine that:
+          - Presents NPC lines, then player response options.
+          - Allows simple branching based on:
+              - previous choices,
+              - rapport tier with that NPC,
+              - a few simple flags (e.g. whether Act I is complete,
+                whether certain runestones are repaired).
+          - Updates rapport and flags based on player choices.
+          - Exits cleanly back to exploration or camp menus.
+      - Keep the system data-friendly:
+          - Dialogue should be definable in a JSON (or similar) file where
+            possible, not hard-coded walls of if/else.
+      - Requirements:
+          - Each dialogue node:
+              - id (string).
+              - npc_id.
+              - text (NPC line).
+              - options: list of:
+                  - text (player choice text).
+                  - next_node_id or special value (e.g. "END").
+                  - optional effects: rapport_delta, set_flag, etc.
+              - optional conditions (e.g. min_rapport_tier, require_flag,
+                require_race).
+          - The engine:
+              - resolves conditions,
+              - hides options that are not available,
+              - falls back gracefully if a node has no valid options
+                (end the conversation).
+
+  - Rapport integration:
+      - Use the rapport system (rapport.py) for NPCs:
+          - Store NPC rapport keys under their npc_id (e.g. "forest_hermit").
+          - Dialogue choices can call change_rapport(state, npc_id, delta).
+          - Certain response options can be gated by rapport_tier.
+          - Higher rapport can unlock:
+              - slightly warmer lines,
+              - extra hints or small perks (purely narrative for now).
+      - Ensure NPC rapport state is persisted in save files through the
+        existing rapport mechanism.
+
+  - First Forest NPC:
+      - Add a single on-foot NPC who resides in the Forest:
+          - e.g. a hermit, druid, ranger, or similar "liminal outsider"
+            who understands that the Forest is warped but isn’t the wizard
+            or townsperson yet.
+          - Suggested id: "forest_hermit" (name can be changed to match design
+            doc, but keep it stable in data).
+      - Define their data in an NPC file:
+          - id, name, short description.
+          - preferred landmark(s) where they can be encountered.
+          - tags for future use (e.g. forest_npc, non_town, non_combatant).
+      - Place them at one or two specific Forest landmarks:
+          - e.g. a mid-depth landmark with some runic significance, or a
+            “safe” clearing that the player can revisit.
+          - They do NOT move around the whole Forest in this phase; treat them
+            as living at or near that landmark.
+
+  - NPC dialogue content (Phase 1 scope):
+      - Provide a small but meaningful conversation tree for the forest_hermit:
+          - Intro meeting:
+              - A first-time greeting that acknowledges:
+                  - the player is lost,
+                  - the Forest is "distorted" or "off",
+                  - the presence of runestones and ley-line damage.
+          - Follow-up dialogue:
+              - Different lines if the player has:
+                  - not repaired any runestones yet,
+                  - repaired at least one,
+                  - completed Act I forest stabilization (3+ stones, etc.).
+          - Race-aware flavor (lightweight):
+              - If possible, vary one or two lines slightly depending on
+                player race (e.g. human vs wolf-kin vs cow-kin), using the
+                existing character data.
+              - Keep this minimal—just enough to prove the concept.
+          - A small hint or guidance:
+              - The NPC can:
+                  - nudge the player toward repairing runestones,
+                  - mention that “the Forest remembers paths when you treat it
+                    kindly” (tying into forest_memory),
+                  - hint that “civilization lies beyond, but only once the
+                    Forest settles” (future town).
+      - Provide a way to re-initiate dialogue:
+          - When visiting the NPC’s landmark again:
+              - Player can choose “talk” (or a menu entry like "Talk to
+                [Name]") to start a new conversation.
+          - Subsequent conversations should:
+              - skip the long intro,
+              - jump into a shorter “loop” or context-aware hub node.
+
+  - Integration with exploration:
+      - Make the NPC accessible via the existing exploration system:
+          - The first time the player reaches that landmark, they should see
+            the NPC there (narrative description).
+          - Add a landmark action when the NPC is present:
+              - e.g. "talk", "approach [Name]", or "speak".
+          - This should work both on the first encounter and on repeat visits.
+      - Use the existing curses UI pattern:
+          - When in dialogue:
+              - Show NPC text and numbered player options clearly.
+              - Re-draw options every input cycle until a valid choice.
+          - On exiting dialogue:
+              - Return to the landmark’s local menu or exploration menu as
+                appropriate.
+
+  - Save/load:
+      - Persist:
+          - NPC rapport via the existing rapport map.
+          - NPC-specific flags:
+              - e.g. "forest_hermit_met", "forest_hermit_intro_done".
+      - Ensure:
+          - older saves load without errors.
+          - if no NPC state exists, treat the NPC as never met.
+
+deliverables:
+  - data/npcs_forest.json or equivalent:
+      - Add an entry for the first Forest NPC:
+          - id: "forest_hermit" (or similar name, but keep stable).
+          - name: (e.g. "Alder", "Lysa", etc.).
+          - description: short text for landmark descriptions.
+          - landmark_id(s): where they can be found in the Forest.
+          - tags: ["forest_npc", "non_town"] or similar.
+
+  - data/dialogue_forest.json or equivalent:
+      - Define dialogue nodes for forest_hermit:
+          - Intro conversation.
+          - Follow-up conversations.
+          - Minor branches based on:
+              - runestone progress (0, partial, Act I complete).
+              - rapport tier (e.g. neutral vs friendly).
+              - optionally, player race.
+      - Keep node content small and focused; this is a framework test.
+
+  - src/dialogue.py (new module) or equivalent:
+      - Implement:
+          - dialogue loading from data.
+          - a DialogueSession object or equivalent to:
+              - track current node,
+              - resolve available options,
+              - handle player choice,
+              - advance to next node or END.
+          - helper functions:
+              - start_dialogue(state, npc_id, starting_node_id=None).
+              - step_dialogue(state, choice_index).
+      - Integrate with rapport:
+          - support rapport_delta on options.
+          - support gating options on rapport_tier, flags, or race.
+
+  - src/engine.py and/or src/exploration.py:
+      - Integrate:
+          - entering dialogue when the player chooses to talk to the NPC at
+            the appropriate landmark.
+          - returning from dialogue to the correct game state (landmark or
+            camp menu).
+
+  - src/commands.py and src/ui (curses + non-curses):
+      - Add:
+          - a way to initiate conversation at a landmark where the NPC is
+            present (menu item or "talk" command).
+          - UI for:
+              - showing NPC text,
+              - showing numbered options,
+              - handling input and invalid selections.
+      - Reuse the improved "always show current prompt/options" behavior in
+        curses.
+
+  - Save/load logic:
+      - Ensure NPC-related flags and rapport persist in the save file and load
+        correctly.
+
+acceptance_criteria:
+  - Dialogue system:
+      - Player can start a conversation with the Forest NPC when at the
+        correct landmark.
+      - Dialogue presents NPC text and multiple player choices.
+      - Choices can:
+          - adjust rapport,
+          - set simple flags,
+          - lead to different NPC lines.
+      - Conversation ends gracefully and returns to normal play.
+
+  - Rapport:
+      - NPC rapport is tracked using the existing rapport system.
+      - Repeated conversations can warm or cool the relationship based on
+        choices.
+      - At higher rapport:
+          - At least one line of dialogue changes (warmer tone, extra hint).
+
+  - Context-aware dialogue:
+      - NPC says one thing if no runestones are repaired.
+      - NPC says something different if some runestones are repaired.
+      - NPC acknowledges when Act I forest stabilization is complete (3+ stones),
+        even if only briefly.
+
+  - Re-visits:
+      - The first meeting has an intro.
+      - Later visits skip or greatly shorten the intro and go to a smaller
+        loop/hub.
+      - Talking to the NPC works reliably whenever you return to that landmark.
+
+  - Stability:
+      - No crashes when starting or ending dialogue.
+      - Old saves do not crash; NPC is simply not met yet.
+      - Hunger, seasons, exploration, runestones, Kirin, wayfinding, and
+        encounters all continue to function as before.
+
+non_goals:
+  - Do NOT:
+      - Implement town NPCs, shops, or town schedules.
+      - Implement romance, deep backstory arcs, or long quest chains.
+      - Implement combat or vore content in dialogue for this phase.
+      - Implement complex branching storylines; this is a framework and
+        single-NPC test.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep dialogue engine generic and NPC-agnostic.
+  - Keep forest_hermit’s content small but illustrative of:
+      - rapport-aware lines,
+      - runestone-aware lines,
+      - race-aware flavor if feasible.
+  - Avoid giant nested if/else in engine code; lean on data-driven structure.
+
+test_plan:
+  - Start a new game and explore until you reach the NPC’s landmark:
+      - Confirm that landmark text mentions the NPC.
+      - Confirm there is a visible way to start talking.
+  - First conversation:
+      - Play through intro, choose different responses across test runs, and
+        confirm rapport and flags change as expected.
+      - Confirm follow-up lines vary slightly when you repair runestones or
+        complete Act I.
+  - Later visits:
+      - Return to the NPC’s landmark and talk again:
+          - Confirm the intro is skipped/shortened.
+          - Confirm conversation respects prior rapport.
+  - Save/load:
+      - Save after meeting the NPC and reloading:
+          - NPC still present.
+          - rapport and flags intact.
+      - Load an older save from before this task:
+          - No crashes; NPC just hasn’t been met yet.
+  - Regression:
+      - Ensure existing systems (exploration, encounters, hunger, seasons,
+        Kirin, wayfinding, curses UI) all work as before, with dialogue layered
+        neatly on top.

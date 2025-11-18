@@ -1,0 +1,86 @@
+{
+  "landmarks": [
+    {
+      "id": "fallen_giant",
+      "name": "Fallen Giant",
+      "depth_min": 8,
+      "depth_max": 12,
+      "tags": ["resting", "safe", "mystical"],
+      "short_description": "A colossal fallen tree with a hollow trunk, roots twisted into an almost-arch.",
+      "long_description": "The Fallen Giant sprawls across the forest floor, its massive trunk hollowed by time and weather. The roots have twisted into a natural archway, creating a sheltered space beneath. The interior is dry and surprisingly spacious, with soft moss carpeting the ground. Faint runic traces mark the inner walls, hinting at ancient significance. At the heart of the hollow, a fractured runestone is embedded in the wood, its magical pulse erratic and broken. This feels like a safe haven, a place where predators rarely venture.",
+      "features": {
+        "has_runestone": true,
+        "has_creek": false,
+        "has_camp_spot": true,
+        "has_food": true,
+        "food_type": "edible_fungus"
+      }
+    },
+    {
+      "id": "split_boulder",
+      "name": "Split Boulder",
+      "depth_min": 10,
+      "depth_max": 16,
+      "tags": ["runestone", "mystical", "damaged"],
+      "short_description": "A huge boulder split cleanly in half, with faint, weathered runes along the fracture plane.",
+      "long_description": "The Split Boulder stands like a monument to some ancient cataclysm. A massive stone, easily twice your height, has been cleaved perfectly in half. The fracture plane reveals intricate runes carved deep into the stone's heart—runes that pulse with a faint, distorted light. The magical energy here feels wrong, fractured, like a song played out of tune. At the center of the split, a fractured runestone glimmers with unstable magic.",
+      "features": {
+        "has_runestone": true,
+        "has_creek": false,
+        "has_camp_spot": false
+      }
+    },
+    {
+      "id": "stone_lantern_clearing",
+      "name": "Stone Lantern Clearing",
+      "depth_min": 6,
+      "depth_max": 10,
+      "tags": ["runestone", "ritual", "mystical"],
+      "short_description": "A small clearing ringed by mossy stone lanterns with shallow rune-scratches.",
+      "long_description": "The Stone Lantern Clearing feels like a place of ceremony. Ancient stone lanterns, weathered and moss-covered, form a rough circle around a central clearing. Each lantern bears shallow rune-scratches that seem to shift when you're not looking directly at them. At the center, a rune-etched plinth rises from the earth, its surface cracked and damaged. The fractured runestone embedded in the plinth hums with distorted resonance, the magical pulse erratic and broken. This was clearly a ritual site, now fallen into disrepair.",
+      "features": {
+        "has_runestone": true,
+        "has_creek": false,
+        "has_camp_spot": false,
+        "has_food": true,
+        "food_type": "night_mushrooms"
+      }
+    },
+    {
+      "id": "creek_bend",
+      "name": "Creek Bend",
+      "depth_min": 5,
+      "depth_max": 9,
+      "tags": ["creek", "resource", "gathering"],
+      "short_description": "A slow bend in a forest stream with sandy banks and exposed clay along the inner curve.",
+      "long_description": "The Creek Bend offers a peaceful respite. The stream curves lazily here, creating a wide, shallow pool on the inner bank. Sandy deposits line the water's edge, perfect for sifting. Along the inner curve, the current has exposed rich clay deposits—dark, sticky earth that would be ideal for crafting. A tarnished tin pan lies half-buried in the sand, its handle rusted but still serviceable. This place feels like a resource-rich haven, where you could gather materials for future projects.",
+      "features": {
+        "has_runestone": false,
+        "has_creek": true,
+        "has_camp_spot": false,
+        "has_gold_pan": true,
+        "has_food": true,
+        "food_type": "creek_forage"
+      }
+    },
+    {
+      "id": "whispering_hollow",
+      "name": "Whispering Hollow",
+      "depth_min": 7,
+      "depth_max": 11,
+      "tags": ["safe", "resting", "npc"],
+      "short_description": "A sheltered hollow where the trees form a natural canopy, their leaves rustling with an almost-whisper.",
+      "long_description": "The Whispering Hollow is a peaceful clearing where ancient trees have grown in a protective circle. Their branches interlace overhead, creating a natural canopy that filters the light into dappled patterns. The ground is soft with moss and fallen leaves, and a small fire pit sits at the center, its embers still warm. A weathered figure in patched robes sits cross-legged near the fire, their presence calm and watchful. This feels like a safe haven, a place where the forest's distortions seem muted.",
+      "features": {
+        "has_runestone": false,
+        "has_creek": false,
+        "has_camp_spot": true,
+        "has_food": true,
+        "food_type": "edible_fungus",
+        "has_npc": true,
+        "npc_id": "forest_hermit"
+      }
+    }
+  ]
+}
+

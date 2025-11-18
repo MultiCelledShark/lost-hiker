@@ -1,0 +1,267 @@
+name: "Lost Hiker - Hunger & Light Cooking Phase 1 (Stamina Caps + Simple Meals)"
+
+description: |
+  Replace the existing simple "meal tracker" with a light but meaningful hunger
+  system and basic cooking, tuned for a weird-time magical forest rather than
+  hardcore realism.
+
+  The goal is:
+    - Hunger should matter, but not be a tedious survival sim.
+    - Lack of food should cap daily stamina rather than instantly kill the
+      player.
+    - The player should be able to forage simple food during exploration and
+      cook proper meals at camp.
+    - The system should integrate cleanly with existing day/stamina logic and
+      set the stage for future expansions (better recipes, buffs, etc.).
+
+  This is Phase 1: keep it simple, data-driven, and easy to extend.
+
+goals:
+  - Replace/upgrade the existing meal tracker:
+      - If there is a "meals" or "meal_count" tracker that simply decreases
+        once per day, refactor it into a small hunger state structure instead
+        of layering a second system on top.
+      - Introduce a canonical "days_without_meal" or equivalent integer in
+        game state:
+          - 0 = the player ate a proper meal yesterday (or today).
+          - 1 = one day without a proper meal.
+          - 2 = two days without a proper meal.
+          - 3 = three days without a proper meal.
+          - 4+ = game over trigger.
+      - Ensure hunger is updated once per in-game day:
+          - If the player eats a proper meal at camp that day → days_without_meal = 0.
+          - If they do not eat a proper meal → days_without_meal += 1 (capped at 4+).
+
+  - Stamina cap logic based on hunger:
+      - At the start of each day (or just before giving the player full stamina),
+        apply a cap to the available stamina based on days_without_meal:
+          - 0 days without meal → 100% stamina (no penalty).
+          - 1 day without meal → max stamina capped at 75% of normal.
+          - 2 days without meal → cap at 50%.
+          - 3 days without meal → cap at 25%.
+          - 4 or more days without meal → immediate game over / collapse event.
+      - Implement this as:
+          - either a clamp on the daily stamina refill,
+          - or a multiplier applied to base max stamina when initializing the new day.
+      - Make sure this cap is visible in some way to the player (e.g., text
+        when waking up or a brief status summary).
+
+  - Game over on prolonged starvation:
+      - On day start, if days_without_meal >= 4:
+          - Trigger an appropriate failure state:
+              - Flavor text: the player loses sync with the forest, collapses,
+                and the game ends.
+              - Then either:
+                  - send them to a game over screen, or
+                  - return them to main menu / starting point, consistent with
+                    how other game overs are handled.
+      - This does not need to be elaborate; a simple, clean game over is enough
+        for Phase 1.
+
+  - Light foraging for snacks:
+      - Introduce a very small number of simple forageable food items that can
+        be found during forest exploration and/or at certain landmarks:
+          - Example items:
+              - "forest_berries"
+              - "trail_nuts"
+              - "edible_mushroom"
+          - These should be low-effort finds, occasionally appearing in
+            exploration events, especially at shallower/mid depths.
+      - Consumption rules:
+          - Eating a snack:
+              - Does NOT reset days_without_meal to 0.
+              - But should prevent it from getting worse for that day:
+                  - e.g. if the player is at 1 or 2 days without a meal and
+                    eats at least one snack that day, days_without_meal should
+                    not increase further that night (it stays where it is).
+          - That is: proper meals reset hunger; snacks "hold the line."
+      - Commands:
+          - "eat [item]" should work for both snacks and meals.
+      - Add clear text to distinguish between snacks and proper meals.
+
+  - Simple camp meals (core loop reset):
+      - Implement a lightweight "cooking" flow at camp:
+          - Either:
+              - Add a "cook" menu separate from brewing, OR
+              - Add a new "Meals" section into the existing brewing/crafting
+                menu. Choose the approach that best fits the current UI code.
+      - Define 1–2 basic meal recipes that:
+          - Require 1–2 simple ingredients (e.g. any snack item + water, or
+            two snacks).
+          - Require a campfire or camp context.
+          - Output a "simple_meal" or similar item which, when eaten:
+              - sets days_without_meal = 0.
+              - fully restores next-day stamina cap to 100% (normal).
+      - Example recipes:
+          - "Forest Stew":
+              - Inputs: 1x edible_mushroom + 1x forest_berries.
+          - "Trail Mash":
+              - Inputs: 2x trail_nuts.
+      - Keep recipes intentionally simple, with no buff beyond resetting hunger
+        for Phase 1.
+
+  - Day transition + messaging:
+      - At day start (or after sleeping), output a short flavor block that:
+          - Indicates how hungry the player is, in narrative terms.
+          - Communicates the resulting stamina cap.
+          - Examples:
+              - 0 days: "You wake steady, stomach full enough to face the day."
+              - 1 day: "You wake light-headed. The forest feels heavier."
+              - 2 days: "Your limbs ache and colors smear at the edges."
+              - 3 days: "You can barely stand. Each breath feels misaligned."
+      - This messaging should emphasize that this is partly magical
+        dissonance, not just lack of calories, to match the ley-line lore.
+
+  - Echo integration (light flavor only, optional but nice):
+      - If it’s easy and clean:
+          - Add a few Echo radio lines that sometimes trigger when:
+              - days_without_meal >= 2,
+              - the player examines Echo at camp or Glade,
+              - or the player attempts a runestone repair while severely hungry.
+          - Examples:
+              - radio_version 1: brief impressions of concern.
+              - radio_version 2: clearer hints like "You need food. The forest
+                feels wrong inside you."
+      - Do not make Echo auto-feed the player or bypass the mechanic; just let
+        her acknowledge it.
+
+  - Save/load integration:
+      - Ensure days_without_meal (or equivalent hunger state) is persisted.
+      - Ensure any new food items and cooked meals are properly serialized.
+      - Old saves:
+          - Default to a safe starting hunger state (e.g. days_without_meal = 0).
+          - Must not crash if hunger fields are missing.
+
+deliverables:
+  - data/items_food.json or equivalent (or extend existing items.json):
+      - Define:
+          - forest_berries (snack)
+          - trail_nuts (snack)
+          - edible_mushroom (snack)
+          - simple_meal (or forest_stew / trail_mash)
+      - Each item should have:
+          - a type/flag indicating whether it is a snack or a proper meal.
+          - short and long descriptions.
+
+  - data/cooking_recipes.json or equivalent:
+      - Define 1–2 simple camp meal recipes:
+          - e.g. forest_stew, trail_mash.
+      - Each recipe should be:
+          - data-driven (inputs, outputs, context requirements).
+          - usable by a generic "cook" or extended brewing/crafting system.
+
+  - src/hunger.py (new module) or equivalent:
+      - Core helpers for:
+          - updating hunger at day transition.
+          - applying stamina caps based on days_without_meal.
+          - checking for starvation game over.
+          - formatting hunger-related status messages.
+
+  - src/cooking.py (new module) or extend existing brewing/crafting logic:
+      - Implement:
+          - A camp-only action (menu or command) to cook meals from ingredients.
+          - Integration of cooking recipes into whatever menu system currently
+            drives brewing.
+      - Ensure cooked meals appear as inventory items that can be eaten later.
+
+  - src/engine.py:
+      - Hook into:
+          - Day-start / wake-up logic to:
+              - update days_without_meal,
+              - apply stamina caps,
+              - check for starvation game over,
+              - show hunger status text.
+          - Camp context to:
+              - allow cooking actions.
+      - Remove or refactor any old "meal_count" logic so it doesn't conflict
+        with the new system.
+
+  - src/commands.py:
+      - Parsing for:
+          - "eat [item]"
+          - "cook" / "cook meal" (or whatever keyword best fits existing UX).
+      - Correct routing of these commands to hunger/cooking handlers.
+
+  - Echo / radio integration (optional, if time allows):
+      - A few lightweight hooks in src/radio.py or Echo dialog code so Echo
+        can comment on extreme hunger states (2+ days) in a minimal, flavorful
+        way.
+
+  - Save/load updates:
+      - Ensure days_without_meal and any new hunger/cooking data is persisted.
+
+acceptance_criteria:
+  - Hunger:
+      - At day start, hunger is updated exactly once.
+      - Stamina cap matches:
+          - 0 days without meal → 100% stamina.
+          - 1 day → 75%.
+          - 2 days → 50%.
+          - 3 days → 25%.
+          - 4+ days → game over.
+      - Player-facing messaging clearly signals their state each morning.
+  - Foraging:
+      - During forest exploration, at least one or two events can yield
+        forest_berries, trail_nuts, or edible_mushroom.
+      - "eat forest_berries" (and other snacks) works and prevents hunger from
+        worsening that night, but does not fully reset hunger.
+  - Cooking:
+      - At camp, the player can cook at least one proper meal (e.g. forest_stew)
+        from ingredients.
+      - Eating that meal resets days_without_meal to 0 and restores full
+        stamina cap next day.
+  - Starvation:
+      - If the player ignores food completely for four in-game days, they hit a
+        clean, understandable game over.
+  - Stability:
+      - Existing systems (landmarks, exploration, brewing, Echo, radio,
+        runestone stubs) still function.
+      - Old "meal tracker" logic no longer conflicts with the new hunger
+        implementation.
+  - Optional Echo behavior:
+      - If implemented, Echo occasionally comments when the player is at 2+
+        days of hunger, without spamming or overriding core mechanics.
+
+non_goals:
+  - Do NOT implement:
+      - Detailed nutrition (macros, specific food types).
+      - Weight, body composition, or long-term metabolic simulation.
+      - Complex multi-course meals or deep cooking trees.
+      - Buff/debuff stacking beyond simple stamina caps and hunger reset for
+        this phase.
+  - Do NOT overhaul all exploration events; just add enough food sources to
+    make the system functional and fair.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep hunger logic centralized (e.g. src/hunger.py) to avoid scattered
+    conditionals.
+  - Use existing patterns for inventory items, day transitions, and camp
+    context where possible.
+  - Make sure any new commands integrate cleanly with the current parser
+    instead of reinventing input handling.
+
+test_plan:
+  - Start a new game:
+      - Play 4 in-game days without eating:
+          - Confirm stamina caps at 75/50/25% on days 2/3/4 respectively.
+          - Confirm game over on day 5 wake-up (4+ days without meal).
+  - Foraging:
+      - Trigger at least one event that grants a snack item.
+      - Eat snacks for 2–3 days without cooking:
+          - Confirm days_without_meal does NOT get worse on days when a snack
+            was eaten, but also does NOT reset to 0.
+  - Cooking:
+      - Gather enough ingredients to cook one meal.
+      - Cook at camp using the new system.
+      - Eat the cooked meal and confirm:
+          - days_without_meal resets to 0 at next day start.
+          - stamina cap returns to 100%.
+  - Save/load:
+      - Save while moderately hungry (days_without_meal 1–3).
+      - Reload and confirm hunger state and stamina cap are consistent.
+  - Regression:
+      - Confirm no crashes when existing content tries to reference the old
+        meal tracker field (if any); update or remove those references.

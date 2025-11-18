@@ -1,0 +1,311 @@
+{
+  "nodes": [
+    {
+      "id": "forest_hermit_start",
+      "npc_id": "forest_hermit",
+      "text": "You notice a figure sitting by a small fire. They look up as you approach, their weathered face showing neither surprise nor alarm. 'Lost, are you? The forest has that effect on travelers these days.'",
+      "conditions": {
+        "require_not_flag": "forest_hermit_intro_done"
+      },
+      "options": [
+        {
+          "text": "Who are you?",
+          "next_node_id": "forest_hermit_intro",
+          "rapport_delta": 0
+        },
+        {
+          "text": "What do you mean, 'these days'?",
+          "next_node_id": "forest_hermit_intro",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I need to find my way back.",
+          "next_node_id": "forest_hermit_intro",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_intro",
+      "npc_id": "forest_hermit",
+      "text": "I'm Alder. I've lived in these woods long enough to see the change. The runestones that once guided the forest's memory are fractured. The ley-lines pulse wrong, and the paths... they don't remember themselves anymore. You're not the first to get lost here, and you won't be the last—not until someone mends what's broken.",
+      "options": [
+        {
+          "text": "How do I fix the runestones?",
+          "next_node_id": "forest_hermit_runestone_guidance",
+          "rapport_delta": 1,
+          "set_flags": {
+            "forest_hermit_intro_done": true,
+            "forest_hermit_met": true
+          }
+        },
+        {
+          "text": "What happens if I don't?",
+          "next_node_id": "forest_hermit_consequences",
+          "rapport_delta": 0,
+          "set_flags": {
+            "forest_hermit_intro_done": true,
+            "forest_hermit_met": true
+          }
+        },
+        {
+          "text": "Is there a way out of here?",
+          "next_node_id": "forest_hermit_way_out",
+          "rapport_delta": 0,
+          "set_flags": {
+            "forest_hermit_intro_done": true,
+            "forest_hermit_met": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_runestone_guidance",
+      "npc_id": "forest_hermit",
+      "text": "The stones need three things: physical repair with mortar, resonance tuning with your radio, and pulse realignment through meditation. Find the fractured stones—you'll feel their wrongness. Gather clay, sand, and ash for mortar. When you repair them, the forest remembers. The paths become clearer, safer. Start with the ones closest to the Glade.",
+      "options": [
+        {
+          "text": "Thank you. I'll try.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "That sounds complicated.",
+          "next_node_id": "forest_hermit_encouragement",
+          "rapport_delta": -1
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_consequences",
+      "npc_id": "forest_hermit",
+      "text": "The distortions will worsen. Paths will forget themselves entirely. Creatures will grow more aggressive as the forest's pulse becomes erratic. And you... you'll be trapped here, wandering in circles until exhaustion claims you. But it doesn't have to be that way. The stones can be mended.",
+      "options": [
+        {
+          "text": "I understand. I'll help.",
+          "next_node_id": "forest_hermit_runestone_guidance",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I'll find my own way.",
+          "next_node_id": "END",
+          "rapport_delta": -1
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_way_out",
+      "npc_id": "forest_hermit",
+      "text": "There is a way, but the forest must be stable first. Beyond these woods lies civilization—a town by the lake, paths to the mountain. But the forest guards those routes, and it won't let you pass until its pulse is restored. Mend the stones, and the way will open.",
+      "options": [
+        {
+          "text": "How many stones need repair?",
+          "next_node_id": "forest_hermit_runestone_guidance",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I see. Thank you.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_encouragement",
+      "npc_id": "forest_hermit",
+      "text": "It is. But you're here, aren't you? That means you're resourceful. The forest responds to those who treat it with respect. Start small—one stone at a time. You'll learn as you go.",
+      "options": [
+        {
+          "text": "You're right. I'll start with one stone.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I'll think about it.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_revisit",
+      "npc_id": "forest_hermit",
+      "text": "Alder looks up from their fire. 'Back again? How goes your work with the stones?'",
+      "conditions": {
+        "require_flag": "forest_hermit_intro_done"
+      },
+      "options": [
+        {
+          "text": "I haven't started yet.",
+          "next_node_id": "forest_hermit_no_progress",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I've repaired one stone.",
+          "next_node_id": "forest_hermit_some_progress",
+          "rapport_delta": 1,
+          "conditions": {
+            "runestone_progress": "some"
+          }
+        },
+        {
+          "text": "I've made progress on the stones.",
+          "next_node_id": "forest_hermit_some_progress",
+          "rapport_delta": 1,
+          "conditions": {
+            "runestone_progress": "some"
+          }
+        },
+        {
+          "text": "The forest feels more stable now.",
+          "next_node_id": "forest_hermit_act1_complete",
+          "rapport_delta": 2,
+          "conditions": {
+            "runestone_progress": "act1_complete"
+          }
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_no_progress",
+      "npc_id": "forest_hermit",
+      "text": "The stones won't mend themselves. The forest needs your help. When you're ready, seek out the fractured runestones—you'll know them by their wrongness, their distorted pulse.",
+      "options": [
+        {
+          "text": "I'll get started soon.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Tell me again how to repair them.",
+          "next_node_id": "forest_hermit_runestone_guidance",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_some_progress",
+      "npc_id": "forest_hermit",
+      "text": "Good. Each stone you mend strengthens the forest's memory. The paths remember themselves a little more. Keep at it—you're making a difference. The forest notices, and it rewards those who help it heal.",
+      "options": [
+        {
+          "text": "How many more do I need?",
+          "next_node_id": "forest_hermit_progress_guidance",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Thank you. I'll continue.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_progress_guidance",
+      "npc_id": "forest_hermit",
+      "text": "Three stones should be enough to stabilize the forest's core pulse. Once that's done, the major distortions will fade. The forest will remember its paths, and the way forward will open. You're on the right track.",
+      "options": [
+        {
+          "text": "I'll keep working on it.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "Thanks for the guidance.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_act1_complete",
+      "npc_id": "forest_hermit",
+      "text": "You've done it. The forest's pulse is stable again. The paths remember themselves, and the way forward is clear. Beyond these woods, civilization awaits—a town by the lake, and beyond that, the mountain where answers might lie. You've earned your passage.",
+      "options": [
+        {
+          "text": "What should I do next?",
+          "next_node_id": "forest_hermit_post_act1",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Thank you for your guidance.",
+          "next_node_id": "END",
+          "rapport_delta": 2
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_post_act1",
+      "npc_id": "forest_hermit",
+      "text": "Head to the town by the lake. There are others there who might help you find your way home. The wizard who lives there... they know more about portals than I do. But be careful—the lake is treacherous, and the town has its own dangers.",
+      "options": [
+        {
+          "text": "I'll be careful. Thank you.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "Any advice for the journey?",
+          "next_node_id": "forest_hermit_journey_advice",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_journey_advice",
+      "npc_id": "forest_hermit",
+      "text": "The forest remembers paths when you treat it kindly. Use that. The wayfinding teas can help you return to places you've been. And remember—the forest is alive. It responds to respect, to those who help it heal.",
+      "options": [
+        {
+          "text": "I'll remember that. Thank you.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_friendly_revisit",
+      "npc_id": "forest_hermit",
+      "text": "Alder greets you with a warm nod. 'Good to see you again. How fares your journey?'",
+      "conditions": {
+        "require_flag": "forest_hermit_intro_done",
+        "min_rapport_tier": "friendly"
+      },
+      "options": [
+        {
+          "text": "I'm making progress.",
+          "next_node_id": "forest_hermit_friendly_chat",
+          "rapport_delta": 0
+        },
+        {
+          "text": "The forest feels different now.",
+          "next_node_id": "forest_hermit_friendly_chat",
+          "rapport_delta": 1
+        },
+        {
+          "text": "Just passing through.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "forest_hermit_friendly_chat",
+      "npc_id": "forest_hermit",
+      "text": "The forest responds to those who help it. You're doing good work. Keep it up, and the way forward will open. If you need guidance, you know where to find me.",
+      "options": [
+        {
+          "text": "Thank you. I appreciate your help.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "I'll keep that in mind.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    }
+  ]
+}
+

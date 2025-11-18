@@ -1,0 +1,285 @@
+name: "Lost Hiker - Combat Phase 1 (Light, Non-Lethal Forest Conflict)"
+
+description: |
+  Implement a light, non-lethal combat system for the Forest that builds on
+  the existing encounters & rapport framework.
+
+  Phase 1 goals:
+    - Add structured "threat encounters" for hostile or predatory creatures.
+    - Introduce a simple player "condition" track (e.g. strain / minor injury),
+      distinct from hunger and stamina.
+    - Give the player a few meaningful choices in dangerous encounters
+      (flee, stand your ground, calm/appease, use items/teas).
+    - Keep this phase non-lethal: no permanent death, no full HP bar yet.
+      Punishments are:
+        - stamina loss,
+        - temporary debuffs,
+        - forced retreat / lost progress.
+
+goals:
+  - Player condition / minor injury track:
+      - Add a simple "condition" or "strain" system to game state:
+          - e.g. state.condition or state.strain as an integer or small enum.
+          - For Phase 1, an integer range like 0–3 is sufficient:
+              - 0 = fine
+              - 1 = bruised / rattled
+              - 2 = battered / hurting
+              - 3 = close to collapse from stress/injury
+      - Effects:
+          - Higher condition/strain should:
+              - slightly reduce effective stamina cap OR
+              - apply a small penalty to actions (e.g. higher chance to collapse
+                when stamina is low).
+          - Integrate with existing TimedModifier-style logic if it already
+            exists for status effects; otherwise, keep this as a simple field
+            plus optional temporary modifiers.
+      - Recovery:
+          - Condition should:
+              - improve with proper rest at camp (e.g. sleeping at Glade
+                reduces it by 1).
+              - possibly improve faster with certain teas/foods in future tasks
+                (just leave hooks for now).
+
+  - Threat encounter extension to encounters framework:
+      - Extend the existing encounter engine so some encounters are explicitly
+        "threat" or "combat-like" encounters:
+          - Involves a creature that might:
+              - snap, bite, charge, pin, or otherwise "attack" if provoked.
+          - These do NOT use a classic hitpoint system yet.
+      - Threat encounter structure:
+          - Intro: presentation of danger (hostile posture, cornered animal,
+            hungry predator, etc.).
+          - Player choices per round:
+              - Attempt to flee.
+              - Try to calm/appease (possibly using rapport or food).
+              - Stand your ground (take a risk, but maybe gain respect/rapport).
+              - Use a relevant item/tea (if any exist; for now this can be
+                stubbed or minimal).
+          - Outcomes:
+              - Flee:
+                  - On success:
+                      - escape to a safer context (e.g. retreat one "step"
+                        toward shallower depth or force return to Glade),
+                      - stamina loss.
+                  - On failure:
+                      - stamina loss + condition/strain increase.
+              - Calm/appease:
+                  - On good roll/conditions (rapport, items, etc.):
+                      - de-escalate encounter,
+                      - maybe small rapport gain with that creature type.
+                  - On failure:
+                      - minor injury/strain increase, or forced flee.
+              - Stand your ground:
+                  - Higher risk, higher rapport reward if it works.
+                  - On failure: bigger stamina + condition penalty.
+          - Encounters should be 1–3 "rounds" max; Phase 1 should be short and
+            tense, not a tactical minigame.
+
+  - Concrete hostile creatures:
+      - Promote at least one existing creature from the encounters system to
+        have a threat/combat variant:
+          - e.g. the cautious predator (red wolf) from Encounters Phase 1
+            gets a "true threat" variant when:
+              - hunger is high,
+              - the player is deep in the forest,
+              - or the season makes prey scarce.
+      - Optionally add a second:
+          - e.g. a territorial creature (boar, large stag, etc.) that
+            triggers combat when the player blunders too close.
+      - Use existing creature data if available (creatures_forest.json); add
+        threat metadata if needed:
+          - e.g. "can_threaten": true, "threat_style": "pursuit", etc.
+
+  - Trigger conditions:
+      - Integrate threat encounters into the Forest exploration loop:
+          - Rarely at shallow depth.
+          - More likely at mid/deep depths.
+          - Slightly more likely:
+              - when the player is low on stamina and pushing further,
+              - when hunger is high,
+              - in certain seasons (e.g. more aggressive behavior when food
+                is scarce, like in late Fall / early Winter).
+      - Respect forest_memory and runestone/forest_effects:
+          - Deeper, less-stable paths should feel more dangerous.
+      - Ensure threat encounters are:
+          - uncommon enough not to dominate play,
+          - common enough that a long run into mid/deep Forest will probably
+            see a few.
+
+  - Outcomes / failure state (non-lethal Phase 1):
+      - There should be no outright death in this phase.
+      - Worst-case result of a bad threat encounter:
+          - The player is:
+              - forced to retreat to the Glade or a "safer" landmark,
+              - severely drained of stamina,
+              - with condition/strain at or near max,
+              - maybe loses a bit of time (e.g. skip to next day if we
+                narrate a blackout).
+      - Integrate with existing collapse/exhaustion logic:
+          - If condition/strain is high and stamina hits 0, collapse handling
+            should produce an appropriate narrative and reset them in a safe
+            location, not kill them outright.
+
+  - UI and controls:
+      - During a threat encounter:
+          - Show:
+              - the creature,
+              - your basic state (stamina, hunger, condition),
+              - your options for this "round".
+          - Use numbered choices consistent with other encounters/dialogue.
+          - Re-render the options after invalid input.
+      - In curses mode:
+          - Keep the rolling log behavior:
+              - show only recent lines plus the current prompt/options.
+          - Make sure threat encounter text is readable, not spammy.
+
+  - Hooks for future combat/vore:
+      - Keep the design flexible so later phases can:
+          - add more detailed damage,
+          - add protective items and teas,
+          - layer in vore outcomes (when enabled) as an alternative
+            "resolution" path.
+      - For now, do NOT add explicit vore implementations:
+          - just ensure creature/threat definitions and encounter code are
+            not locked into only one type of resolution.
+
+  - Save/load:
+      - Persist:
+          - player condition/strain.
+          - any flags related to specific combat-ish outcomes (e.g. if needed
+            for future NPC reactions).
+      - Safe with old saves:
+          - default condition/strain to 0 (fine) if missing.
+
+deliverables:
+  - data/creatures_forest.json (or equivalent) updates:
+      - Mark at least one predator (e.g. red wolf) and optionally one more
+        creature as having a threat/combat variant, with any metadata needed
+        (temperament, threat_type, depth preference).
+
+  - data/encounters_forest.json (or equivalent) updates:
+      - Add threat encounter definitions for:
+          - the chosen predator,
+          - optional second hostile creature.
+      - Each definition should include:
+          - intro text,
+          - available actions (flee, calm/appease, stand ground, use item),
+          - outcome branches with:
+              - stamina loss,
+              - condition/strain changes,
+              - rapport changes,
+              - possible forced retreat.
+
+  - src/combat.py or equivalent new module:
+      - Implement:
+          - helper functions to handle threat encounters in a structured way:
+              - start_threat_encounter(state, creature_id).
+              - resolve_threat_choice(state, choice_id).
+          - condition/strain update helpers if not better placed elsewhere.
+      - This module should coordinate:
+          - interaction between encounters, condition, rapport, and escape/
+            retreat behaviors.
+
+  - src/engine.py / src/exploration.py:
+      - Integrate:
+          - threat encounter trigger checks in Forest exploration.
+          - branching to the combat/threat encounter flow.
+          - post-encounter transitions (return to exploration, forced retreat,
+            collapse if needed).
+      - Ensure:
+          - normal, non-combat encounters still work and are not overshadowed.
+
+  - src/status.py or equivalent (if you prefer):
+      - If needed, encapsulate player condition/strain and recovery logic in a
+        small helper module, or reuse TimedModifier framework.
+
+  - src/ui (curses + non-curses):
+      - Ensure threat encounters:
+          - display state + options clearly.
+          - accept numeric input.
+          - re-print choices after invalid input.
+
+  - Save/load logic:
+      - Update save data format to include:
+          - player condition/strain.
+      - Confirm compatibility with old saves.
+
+acceptance_criteria:
+  - Condition/strain:
+      - Player condition/strain starts at 0.
+      - In threat encounters, bad choices or failed attempts can raise it up
+        to max (e.g. 3).
+      - High condition clearly affects the player (stamina cap or increased
+        collapse risk).
+      - Condition reduces when resting at camp; it should not be permanent.
+
+  - Threat encounters:
+      - At mid/deep Forest depths, occasional threat encounters trigger
+        involving at least one predator creature.
+      - In a threat encounter, the player can:
+          - try to flee,
+          - try to calm/appease,
+          - stand their ground,
+          - possibly use an item if available.
+      - Different choices lead to different outcomes:
+          - successful escape,
+          - worse condition and stamina loss,
+          - improved rapport with the creature if you handle it well.
+      - Encounters are 1–3 steps long and end cleanly.
+
+  - Non-lethal:
+      - No outright death due to combat in this phase.
+      - Worst-case:
+          - forced retreat/reset to a safe location,
+          - heavy stamina/condition penalties,
+          - lost time (if collapse/blackout is triggered).
+
+  - Integration:
+      - Threat encounters respect:
+          - seasons,
+          - hunger,
+          - forest depths/memory,
+          - existing encounter/rapport logic.
+      - Normal exploration, non-combat encounters, Echo interactions, NPC
+        dialogue, runestones, Kirin, and wayfinding all still function.
+
+  - Stability:
+      - No crashes during threat encounters.
+      - Old saves load fine with condition defaulting to "fine".
+
+non_goals:
+  - Do NOT:
+      - Implement a full HP/damage system with lethal deaths.
+      - Implement explicit vore behavior or outcomes in this phase.
+      - Implement town guards/NPC combat or large-scale battles.
+      - Add complex gear/weapon systems; this phase is about basic forest
+        threats only.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Reuse the encounters/rapport backbone; threat encounters should feel like
+    a natural extension, not a separate minigame bolted on.
+  - Keep all combat/threat logic confined to clearly named modules so it’s
+    easy to extend in future phases.
+  - Keep UI simple and readable; this is a text game first.
+
+test_plan:
+  - Start a mid-game save where:
+      - player has explored into mid/deep Forest.
+      - some runestones are repaired.
+  - Explore until a threat encounter triggers:
+      - Try flee, calm, stand ground options and confirm:
+          - stamina/condition changes make sense,
+          - rapport can increase/decrease,
+          - encounter ends and returns control to normal exploration.
+  - Push into multiple threat encounters in one run:
+      - confirm that high condition makes the character feel more fragile.
+      - confirm that rest at camp improves condition.
+  - Save during and after threat encounters, reload:
+      - ensure state is preserved,
+      - no crashes.
+  - Regression:
+      - Ensure non-combat encounters, Echo camp interactions, NPC dialogue,
+        seasons, runestones, Kirin, and wayfinding all still behave correctly.

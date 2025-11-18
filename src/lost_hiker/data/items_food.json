@@ -1,0 +1,75 @@
+{
+  "forest_berries": {
+    "name": "Forest Berries",
+    "type": "snack",
+    "short_description": "A handful of wild berries",
+    "long_description": "Small, dark berries gathered from the forest undergrowth. They taste tart and slightly sweet, enough to stave off hunger for a while but not a proper meal."
+  },
+  "trail_nuts": {
+    "name": "Trail Nuts",
+    "type": "snack",
+    "short_description": "A cluster of trail nuts",
+    "long_description": "Hard-shelled nuts found along the forest paths. They're filling but require effort to crack open. A snack, not a meal."
+  },
+  "edible_mushroom": {
+    "name": "Edible Mushroom",
+    "type": "snack",
+    "short_description": "An edible mushroom",
+    "long_description": "A pale, fleshy mushroom with a mild earthy flavor. Safe to eat raw, but it's just enough to keep you going, not enough to truly satisfy."
+  },
+  "forest_stew": {
+    "name": "Forest Stew",
+    "type": "meal",
+    "short_description": "A warm bowl of forest stew",
+    "long_description": "A simple but hearty stew made from foraged ingredients. The warmth and substance of a proper cooked meal restores your connection to the forest's rhythm."
+  },
+  "trail_mash": {
+    "name": "Trail Mash",
+    "type": "meal",
+    "short_description": "A simple trail mash",
+    "long_description": "A filling mash of trail nuts and other foraged bits, cooked over the campfire. It's not fancy, but it's a proper meal that satisfies both body and spirit."
+  },
+  "watercress": {
+    "name": "Watercress",
+    "type": "snack",
+    "short_description": "Fresh watercress",
+    "long_description": "Crisp, peppery watercress gathered from the creek. It's refreshing and slightly filling, but not a proper meal."
+  },
+  "creek_tuber": {
+    "name": "Creek Tuber",
+    "type": "snack",
+    "short_description": "A small creek tuber",
+    "long_description": "A small, starchy tuber dug from the creek bank. It's raw and bland, but provides some sustenance."
+  },
+  "edible_fungus": {
+    "name": "Edible Fungus",
+    "type": "snack",
+    "short_description": "Edible fungus",
+    "long_description": "Pale, spongy fungus growing in the hollow of the fallen giant. It's safe to eat and slightly filling."
+  },
+  "night_mushroom": {
+    "name": "Night Mushroom",
+    "type": "snack",
+    "short_description": "A night mushroom",
+    "long_description": "A dark, bioluminescent mushroom that glows faintly in the clearing. It's safe to eat and has a slightly sweet, earthy flavor."
+  },
+  "dream_fern": {
+    "name": "Dream Fern",
+    "type": "herb",
+    "short_description": "A rare fern with silver-tipped fronds",
+    "long_description": "A delicate fern with fronds tipped in silver that shimmer like moonlight. Found only in places where the forest's memory runs deep, this rare herb seems to resonate with paths you've walked before. Its presence suggests the forest remembers you—and that you might remember it in turn."
+  },
+  "mooncap_mushroom": {
+    "name": "Mooncap Mushroom",
+    "type": "mushroom",
+    "short_description": "A pale mushroom with a crescent-shaped cap",
+    "long_description": "A pale, almost translucent mushroom with a distinctive crescent-shaped cap that seems to catch and reflect any available light. Rarely found, it grows only in mystical clearings where the forest's ley-lines flow strongest. It pulses faintly with a soft glow, as if holding memory of places far away."
+  },
+  "wayfinding_tea": {
+    "name": "Wayfinding Tea",
+    "type": "tea",
+    "short_description": "A rare tea that lets paths fold together",
+    "long_description": "A warm, fragrant tea brewed from dream fern and mooncap mushroom. Drinking it grants a fleeting sense of the forest's deeper connections—the paths you've walked most often feel closer, more accessible. For a brief time, the lines between here and there seem to blur, allowing one short leap to a familiar place."
+  }
+}
+

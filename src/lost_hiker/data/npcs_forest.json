@@ -1,0 +1,12 @@
+{
+  "npcs": [
+    {
+      "id": "forest_hermit",
+      "name": "Alder",
+      "description": "A weathered figure in patched robes, sitting cross-legged near a small fire. Their eyes hold the weight of many seasons spent in this warped forest.",
+      "landmark_ids": ["whispering_hollow"],
+      "tags": ["forest_npc", "non_town", "non_combatant"]
+    }
+  ]
+}
+

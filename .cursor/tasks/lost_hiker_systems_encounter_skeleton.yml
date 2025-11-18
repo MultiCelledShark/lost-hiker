@@ -1,0 +1,169 @@
+name: "Lost Hiker - Encounter Systems Skeleton (Combat/Vore Framework)"
+
+description: |
+  Introduce a flexible, data-driven encounter outcome framework and basic
+  settings toggles for vore and player-as-pred, without implementing full
+  combat or vore mechanics yet.
+
+  This task assumes:
+    - Glade + Forest exploration and encounter triggering already work.
+    - resolve_encounter(...) or an equivalent function already exists as a
+      central entry point for encounter handling.
+    - Command system, depth, and Forest events are functioning.
+
+  Phase goal:
+    - Add a generic EncounterOutcome structure and stub handlers for normal,
+      combat, and vore-style encounters.
+    - Add persistent settings toggles (vore enabled, player-as-pred enabled).
+    - Wire encounters through this framework so future combat/vore work can plug
+      in cleanly without refactoring.
+
+goals:
+  - Settings toggles:
+      - Add a `settings` section to the save/state that includes:
+          - `vore_enabled` (bool, default false)
+          - `player_as_pred_enabled` (bool, default false)
+      - Implement a Settings/Options menu (accessible at least from the main
+        menu, and optionally from the Glade) that lets the player:
+          - Toggle vore on/off.
+          - Toggle player-as-pred on/off.
+      - Persist these settings across saves and loads.
+      - Make sure the current game state can access these settings easily
+        (e.g. state.settings.vore_enabled).
+  - EncounterOutcome structure:
+      - Create a dataclass or equivalent, e.g.:
+
+          - kind: str  # e.g. "normal", "combat_stub", "vore_stub"
+          - stamina_delta: int (default 0)
+          - rapport_delta: dict[str, int] (default {})
+          - moved_to_zone: Optional[str] (default None)
+          - flags: dict[str, bool] (default {}), e.g. {"in_belly": False}
+
+      - This structure should be used to represent the result of resolving an
+        encounter, regardless of its internal logic.
+  - Stub handlers:
+      - Implement stub functions for:
+          - handle_normal_encounter(state, creature, event) -> EncounterOutcome
+          - handle_combat_stub(state, creature, event) -> EncounterOutcome
+          - handle_vore_stub(state, creature, event, settings) -> EncounterOutcome
+      - For now, these should:
+          - Display simple flavor text.
+          - Possibly adjust stamina and/or rapport slightly.
+          - Not introduce HP, death, digestion, or complex state machines.
+      - handle_vore_stub should:
+          - Only be called if settings.vore_enabled is True.
+          - For now, do something mild like:
+              - "The creature looms closer, but this system is not implemented yet."
+              - Maybe return the player safely to the Glade or leave them in place,
+                as long as it doesn’t softlock or crash.
+  - resolve_encounter wiring:
+      - Update resolve_encounter(state, creature, event) to:
+          - Inspect creature flags and settings and decide which handler to use:
+              - If creature.flags.combat (or similar) is true:
+                  - Call handle_combat_stub(...)
+              - Else if creature.flags.vore is true and settings.vore_enabled:
+                  - Call handle_vore_stub(...)
+              - Else:
+                  - Call handle_normal_encounter(...)
+          - Apply the returned EncounterOutcome to the game state:
+              - Adjust stamina by stamina_delta.
+              - Adjust rapport by rapport_delta.
+              - If moved_to_zone is not None, move player there.
+              - Keep `flags` available for future use, even if not applied yet.
+      - Ensure this behavior does not break existing encounters that were
+        previously more hard-coded.
+  - Creature flags:
+      - Extend data/creatures.json to allow simple flags, e.g.:
+
+            "flags": {
+              "combat": true,
+              "vore": false
+            }
+
+      - At minimum, mark some creatures appropriately:
+          - E.g. Wolves as combat: true, vore: false.
+          - Future vore-capable creatures as vore: true (even if not used yet).
+      - Encounter resolution should read these flags when deciding which handler
+        to call.
+  - Backwards compatibility:
+      - Existing saves without a `settings` section should:
+          - Load without errors.
+          - Default vore and player-as-pred to false.
+      - Existing encounter flows should still work, only now routed through
+        the new outcome/handler structure.
+
+deliverables:
+  - src/state.py
+      - Updated save/load to handle:
+          - settings.vore_enabled
+          - settings.player_as_pred_enabled
+      - Migration logic for older saves without settings.
+  - src/main.py (or UI/menu module)
+      - Settings/Options menu implementation:
+          - Toggling vore and player-as-pred.
+  - src/encounters.py or src/events.py (where encounter logic lives)
+      - EncounterOutcome class/dataclass.
+      - handle_normal_encounter, handle_combat_stub, handle_vore_stub functions.
+      - Updated resolve_encounter(...) to:
+          - Use the new outcome structure.
+          - Route based on creature flags + settings.
+          - Apply outcome to state.
+  - data/creatures.json
+      - Creature entries updated with a `flags` object for at least:
+          - One clearly combat-leaning creature (e.g. wolf).
+          - One vore-leaning creature (for future use).
+      - Flags should be booleans and easy to extend later.
+
+acceptance_criteria:
+  - Settings:
+      - From the main menu (and/or Glade), the player can open Settings and:
+          - Toggle vore on/off.
+          - Toggle player-as-pred on/off.
+      - Settings persist after saving and reloading.
+  - Encounters:
+      - At least one encounter that previously worked still works but now:
+          - Routes through resolve_encounter(...)
+          - Calls one of the stub handlers.
+          - Applies stamina/rapport changes via EncounterOutcome.
+      - If a creature has combat=true, its encounter uses handle_combat_stub.
+      - If a creature has vore=true and vore_enabled is false:
+          - It should NOT call handle_vore_stub.
+          - It should fall back to handle_normal_encounter (for now).
+      - If a creature has vore=true and vore_enabled is true:
+          - It should call handle_vore_stub and show the stub flavor text, then
+            safely return to exploration or Glade.
+  - Stability:
+      - No crashes or softlocks from encounters over multiple in-game days.
+      - Older saves load and function with default settings applied.
+
+non_goals:
+  - Implementing full combat: HP, attack rolls, death, gear, etc.
+  - Implementing full vore: gut states, escape mini-games, digestion, etc.
+  - Changing how exploration, depth, or stamina core mechanics work.
+  - Adding new zones or NPCs.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep the EncounterOutcome small and focused; it is a glue object, not a
+    dumping ground.
+  - Resist the temptation to fully implement combat or vore here; this is a
+    scaffolding phase only.
+  - Make flags and outcomes as readable and data-driven as possible to make
+    future feature work easy.
+
+test_plan:
+  - Load an existing save and play several in-game days to confirm:
+      - Exploration and encounters still function.
+      - No crashes on encounter.
+  - Toggle vore and player-as-pred in Settings and confirm:
+      - Settings save/load correctly.
+  - Trigger at least one encounter with:
+      - creature.flags.combat = true.
+      - creature.flags.vore = true.
+    Confirm in both cases that:
+      - The correct stub handler is called.
+      - The outcome is applied cleanly.
+  - Verify that with vore disabled, vore-flagged creatures behave as normal
+    encounters for now.

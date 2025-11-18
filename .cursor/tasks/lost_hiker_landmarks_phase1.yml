@@ -1,0 +1,222 @@
+name: "Lost Hiker - Landmarks Phase 1 (Forest Landmarks + Fractured Runestones)"
+
+description: |
+  Implement the initial landmark system for the Forest zone and add a small set
+  of concrete, data-driven landmarks that can be discovered through exploration.
+  Landmarks should be persistent locations with unique descriptions and local
+  interactions, distinct from generic forest events.
+
+  This phase focuses on:
+    - Creating a generic landmark framework.
+    - Defining 3–4 key Forest landmarks.
+    - Placing fractured runestones at some of these landmarks as examinable
+      objects (stubbed for now, no repair mechanics yet).
+    - Adding a creek landmark that will later provide clay/sand and the gold pan
+      for mortar crafting.
+
+  Do NOT implement the full runestone repair gameplay or fast travel yet. This
+  task is about locations, discovery, and persistence only.
+
+goals:
+  - Landmark framework:
+      - Introduce a data-driven landmark system for the Forest:
+          - A new data file (e.g. data/landmarks_forest.json) or equivalent
+            structure defining landmarks with:
+              - id (string)
+              - name
+              - depth_min / depth_max
+              - tags (e.g. ["runestone", "creek", "mystical"])
+              - short_description (for discovery text)
+              - long_description (when the player "looks" at the landmark)
+              - features (e.g. has_runestone, has_creek, has_camp_spot)
+      - Landmarks should:
+          - Be discoverable during Forest exploration when depth and other
+            conditions match.
+          - Move the player into a landmark "context" with its own description
+            and available actions (examine, search, leave, etc.).
+          - Be persistent in the game state (once discovered, they should be
+            remembered and can be revisited).
+
+  - Landmarks to implement (Phase 1):
+      - Fallen Giant:
+          - Depth range: mid-forest (e.g. ~8–12).
+          - Description: a colossal fallen tree with a hollow trunk, roots
+            twisted into an almost-arch.
+          - Features:
+              - Safe-ish resting spot (no combat encounter here for now).
+              - A good environmental anchor for future Kirin encounters
+                (do NOT implement Kirin yet).
+              - Room to later place a runestone or NPC scene.
+      - Split Boulder:
+          - Depth range: ~10–16.
+          - Description: a huge boulder split cleanly in half, with faint,
+            weathered runes along the fracture plane.
+          - Features:
+              - Contains a fractured runestone object (stub only).
+              - Examining the stone clearly signals it is magical and damaged,
+                but not yet repairable.
+      - Stone Lantern Clearing:
+          - Depth range: ~6–10.
+          - Description: a small clearing ringed by mossy stone lanterns with
+            shallow rune-scratches.
+          - Features:
+              - Contains a fractured runestone or rune-etched plinth (stub).
+              - Feels like a ritual site; strong candidate for early repair
+                quest in a later task.
+      - Creek Bend (or similar creek landmark):
+          - Depth range: ~5–9.
+          - Description: a slow bend in a forest stream with sandy banks and
+            exposed clay along the inner curve.
+          - Features:
+              - Source for sand and clay gathering (simple examine text and
+                basic gather stubs are enough for now).
+              - Place the "gold pan" (tin pan) as a unique item the player can
+                find here or nearby:
+                  - Leave its detailed use for later tasks, but ensure it is
+                    represented as an item and can be picked up.
+              - The landmark itself should be revisitable; future tasks will
+                flesh out gathering mechanics.
+
+  - Forest exploration integration:
+      - Integrate landmarks into the existing Forest exploration loop:
+          - As the player explores deeper, occasionally trigger a landmark
+            discovery instead of a generic event.
+          - Landmark discovery frequency should be low but noticeable; the
+            player should not be spammed with landmarks.
+          - Landmark discovery should respect depth ranges:
+              - e.g. Fallen Giant should not appear at shallow depth.
+      - Once a landmark is discovered:
+          - Record it in the game state (e.g. state.discovered_landmarks).
+          - Allow future exploration rolls to route back to known landmarks
+            (at lower probability) to simulate finding your way back.
+
+  - Fractured runestone stubs:
+      - At Split Boulder and Stone Lantern Clearing:
+          - Add a "fractured runestone" or "damaged rune plinth" as:
+              - an examinable object
+              - with a clear description hinting at magical damage.
+          - Commands:
+              - "look runestone", "examine runestone" should work.
+          - Do NOT add repair mechanics yet:
+              - If the player attempts obvious repair-type commands, respond
+                with a generic hint that they currently lack the knowledge or
+                tools to fix it.
+      - Optionally, Fallen Giant may have faint runic traces hinting at future
+        expansion, but it does not need a full fractured runestone yet.
+
+  - Save/load:
+      - Ensure discovered landmarks and any "seen runestone" flags are persisted
+        to the save file.
+      - Older saves (without landmark data) should load with safe defaults
+        (no landmarks discovered).
+
+deliverables:
+  - data/landmarks_forest.json (or equivalent):
+      - Contains definitions for at least:
+          - fallen_giant
+          - split_boulder
+          - stone_lantern_clearing
+          - creek_bend
+      - Each entry includes:
+          - id
+          - name
+          - depth_min/depth_max
+          - tags
+          - short_description
+          - long_description
+          - features (e.g. {"has_runestone": true, "has_creek": true})
+  - src/world/landmarks.py (or equivalent module):
+      - Helper functions for:
+          - loading landmark data
+          - selecting an appropriate landmark given depth and state
+          - entering a landmark context
+          - listing available landmark actions (e.g. look, examine [object],
+            leave).
+  - src/engine.py:
+      - Integrations to:
+          - Hook landmark selection into the Forest exploration loop.
+          - Route player commands correctly when inside a landmark context.
+          - Track discovered landmarks in the game state.
+  - src/commands.py:
+      - Command parsing updates for:
+          - "look [landmark-related object]"
+          - "examine runestone" / "look runestone"
+          - "leave" / "return" from landmark back to forest exploration.
+  - Item data file (or equivalent):
+      - Define the "gold_pan" item:
+          - Found at or near the Creek Bend landmark.
+          - Pick-up description and inventory entry only (no behavior yet).
+  - Updates to save/load:
+      - Store discovered landmarks and any minimal flags needed to tell if the
+        player has already encountered a given fractured runestone.
+
+acceptance_criteria:
+  - During Forest exploration:
+      - The player can naturally discover at least:
+          - Fallen Giant
+          - Split Boulder
+          - Stone Lantern Clearing
+          - Creek Bend
+      - Landmark discovery feels occasional, not constant.
+      - Landmarks respect depth ranges.
+  - At each landmark:
+      - The player sees a unique description (short on arrival, long on "look").
+      - The player can "leave" to return to general forest exploration.
+  - Fractured runestones:
+      - At Split Boulder and Stone Lantern Clearing:
+          - "look runestone" / "examine runestone" show clear, flavorful text
+            indicating magical damage and hinting they may be repairable later.
+          - Attempting obvious repair commands does not crash and gently
+            indicates the player lacks the method or materials for now.
+  - Creek Bend:
+      - Has clear descriptions of sand and clay banks.
+      - The gold pan item can be found and picked up.
+      - Sand and clay gathering can be represented as either:
+          - simple stub actions (e.g. "You could gather material here one day."),
+          - or minimal "gather [resource]" behavior that will be expanded in a
+            later task.
+  - Save/load:
+      - Discovered landmarks remain discovered after saving and loading.
+      - Old saves load with no errors and no discovered landmarks by default.
+  - Stability:
+      - The existing exploration loop, Echo, brewing, and radio behavior remain
+        functional and unchanged aside from the addition of landmarks.
+
+non_goals:
+  - Do not implement:
+      - Runestone repair mechanics (mortar, resonance, pulse alignment).
+      - Fast travel or Kirin encounters.
+      - Complex NPC schedules or story scenes at landmarks.
+      - Full resource gathering and crafting systems beyond minimal stubs.
+  - Do not expand to all 14 planned landmarks; this task is only Phase 1.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep landmark data JSON-driven and easy to extend later.
+  - Avoid overcomplicating landmark selection logic; a simple weighted random
+    approach constrained by depth and discovery state is sufficient.
+  - Keep fractured runestones clearly described but mechanically inert for now.
+  - Use existing patterns in the codebase for state persistence, command
+    routing, and scene descriptions.
+
+test_plan:
+  - Start a new game and explore the Forest:
+      - Confirm that after a few exploration actions, a landmark can be
+        discovered.
+      - Confirm different landmarks appear when exploring at different depths.
+  - Visit each landmark:
+      - Fallen Giant: unique description, safe-feeling environment.
+      - Split Boulder: runestone present and examinable.
+      - Stone Lantern Clearing: runestone or rune-plinth present and examinable.
+      - Creek Bend: description shows sand/clay banks; gold pan can be found.
+  - Save and reload:
+      - Confirm discovered landmarks remain discoverable and revisitable.
+  - Attempt basic interactions:
+      - "look runestone", "examine runestone" → flavorful stub, no crashes.
+      - "leave" from landmark → returns to exploration loop.
+  - Regression:
+      - Verify general forest exploration, Echo, radio, and brewing still work
+        as before, with landmarks simply acting as rare event types rather than
+        replacing the core loop.

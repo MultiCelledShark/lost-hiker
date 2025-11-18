@@ -1,0 +1,244 @@
+name: "Lost Hiker - Echo Camp Interactions & Presence (Phase 1)"
+
+description: |
+  Extend Echo's role at the Glade/camp so the player can:
+    - explicitly talk to Echo,
+    - pet Echo,
+    - raise Echo's rapport up to the max tier,
+    - get clear hints that Echo is connected to the HT radio,
+    - and ensure Echo is actually present when the player emerges from the
+      charred tree at game start.
+
+  This task assumes:
+    - A rapport system already exists (rapport.py or equivalent).
+    - A dialogue system is either present or being implemented by a separate
+      task (e.g. dialogue engine for NPCs). If available, reuse it for Echo.
+
+goals:
+  - Ensure Echo's presence at the Glade / charred tree:
+      - On first emerging from the charred tree at game start:
+          - Ensure Echo is present and described in the Glade/starting scene
+            in a way that matches the design doc (giant snake denmate).
+          - Make sure there is no path where the player "starts alone"
+            without Echo being acknowledged, unless explicitly intended.
+      - Maintain a simple state flag:
+          - e.g. state.echo_present_at_glade = True when the player is at
+            the Glade starting area and Echo hasn't left for any story reason.
+      - If there is logic that moves Echo away for story reasons later, do NOT
+        overwrite that here; just ensure the initial emergence and normal
+        Glade state correctly treat Echo as present.
+
+  - Echo rapport integration:
+      - Ensure Echo uses the existing rapport system:
+          - "echo" should be a valid key in the rapport map.
+          - get_rapport(state, "echo") and change_rapport(state, "echo", delta)
+            should work and clamp to the existing min/max range (e.g. -5..+5).
+      - Initial rapport:
+          - Keep initial Echo rapport at a reasonable baseline (e.g. 0 or 1)
+            per design doc; do not start at max.
+      - This task must ensure there are enough interactions (talk/pet) for the
+        player to naturally raise Echo's rapport up to the maximum tier over
+        time (e.g. +5).
+
+  - Camp/Glade commands: "Talk to Echo" and "Pet Echo":
+      - At the Glade camp (and anywhere else the code considers Echo to be
+        physically present with the player):
+          - Add two clear actions:
+              - "Talk to Echo"
+              - "Pet Echo"
+          - These should appear in:
+              - the camp/Glade action menu in curses,
+              - and the non-curses command menu/fallback.
+
+      - "Pet Echo":
+          - Implement as a short, single-step interaction:
+              - Show a brief description that fits Echo's personality and
+                size (comforting, playful, sleepy, etc.).
+              - Increase Echo rapport by a small amount (e.g. +1) if Echo is
+                below the max rapport tier.
+              - Include diminishing returns:
+                  - e.g. only award full rapport once per in-game day from
+                    petting, and either:
+                      - give reduced benefit for further pet attempts that day,
+                      - or give only flavor text once the daily bonus is used.
+              - Respect the global rapport clamp so Echo's rapport cannot
+                exceed the maximum (e.g. +5).
+
+      - "Talk to Echo":
+          - If a dialogue system is available (preferred):
+              - Define a small Echo dialogue tree in a data file (e.g.
+                dialogue_forest.json or dialogue_echo.json) and run it through
+                the dialogue engine.
+              - The dialogue should:
+                  - have different tone/lines at low, mid, and high rapport:
+                      - low rapport: more reserved, curious, a bit cautious.
+                      - mid rapport: comfortable, teasing, protective.
+                      - high rapport: clearly bonded, more intimate or
+                        emotionally open.
+                  - allow for multiple short conversations over time rather
+                    than one long monologue.
+                  - optionally offer small rapport bumps for certain choices,
+                    especially at low/mid rapport, without trivializing the
+                    climb to max.
+          - If a dialogue system is NOT present yet:
+              - Implement at least a simple multi-option text interaction
+                inside the current UI framework, but structure it so it can
+                later be swapped to the generic dialogue engine with minimal
+                code changes (e.g. one helper function handling Echo's talk).
+
+  - Echo ↔ HT radio hint:
+      - Add at least one Echo camp conversation that explicitly references
+        the HT radio and how it feels or sounds to her:
+          - Echo might:
+              - comment that the radio sounds like distant heartbeats,
+              - say she "hears" the player through the static,
+              - mention that when the radio crackles, she feels the Forest
+                and runestones vibrating.
+          - The goal is for the player to:
+              - connect Echo + radio in their head,
+              - understand that Echo and the radio are linked somehow.
+      - Add a flag in game state, e.g.:
+          - state.flags["echo_radio_connection_hint_shown"] = True
+            the first time this conversation path is reached.
+      - Do NOT implement full radio attunement or upgrades here:
+          - This is only narrative + small mechanical groundwork for a later
+            "Echo attunes the HT" task.
+
+  - High-rapport Echo behavior (camp flavor):
+      - At higher Echo rapport tiers (e.g. 4–5):
+          - Add small flavor upgrades to:
+              - camp descriptions mentioning Echo,
+              - her reactions when the player returns exhausted or hungry.
+          - Examples (implementation-specific):
+              - Echo coils closer when you rest at camp.
+              - Echo lightly nudges you toward eating/sleeping instead of
+                pushing too hard.
+          - Keep changes small and purely flavor for now; no heavy mechanical
+            buffs in this task.
+
+  - Save/load:
+      - Ensure:
+          - Echo rapport is persisted via the existing rapport system.
+          - echo_radio_connection_hint_shown is persisted.
+          - Any new flags/state related to Echo presence at the Glade
+            (e.g. echo_present_at_glade or equivalent) are saved and restored.
+      - Older saves:
+          - must load safely with:
+              - Echo rapport defaulting to the baseline value,
+              - echo_radio_connection_hint_shown = False if missing,
+              - Echo treated as present at Glade as long as no story-based
+                override logic says otherwise.
+
+deliverables:
+  - data/dialogue_echo.json or additions to an existing dialogue file (if the
+    dialogue system is present):
+      - Define a small Echo dialogue tree with:
+          - base lines for low rapport,
+          - alternate lines for high rapport,
+          - at least one branch that explicitly references the HT radio and
+            sets echo_radio_connection_hint_shown.
+
+  - src/echo.py or equivalent helper (optional but preferred):
+      - Helper functions for:
+          - checking whether Echo is present at camp/Glade.
+          - getting/setting Echo rapport via the rapport system.
+          - handling the per-day "pet Echo" bonus (e.g. by tracking
+            last_day_pet_echo or similar).
+      - Keep this modular and limited to Echo-specific logic.
+
+  - src/engine.py / src/exploration.py / src/camp.py (depending on structure):
+      - Ensure:
+          - when the player first emerges from the charred tree, Echo is
+            present and described.
+          - camp/Glade action menus include:
+              - "Talk to Echo"
+              - "Pet Echo"
+            when Echo is present.
+      - Wire those actions to the appropriate Echo interaction helpers
+        (dialogue, petting, rapport updates).
+
+  - src/commands.py and UI modules (curses + non-curses):
+      - Add:
+          - handling for selecting "Talk to Echo" and "Pet Echo" from menus
+            or via commands.
+      - Ensure:
+          - prompts and options are always visible while waiting for input
+            (using the recently fixed curses behavior).
+
+  - Save/load logic:
+      - Confirm:
+          - Echo rapport is saved/loaded via existing rapport.
+          - echo_radio_connection_hint_shown and any new Echo presence flags
+            are saved/loaded.
+
+acceptance_criteria:
+  - Echo presence:
+      - On starting a new game and emerging from the charred tree:
+          - Echo is clearly present in the Glade description.
+      - At Glade/camp, Echo is considered present unless later story logic
+        removes her.
+
+  - Echo interactions:
+      - At Glade/camp, when Echo is present:
+          - The player sees "Talk to Echo" and "Pet Echo" options.
+      - Petting Echo:
+          - works,
+          - shows a short description,
+          - increases Echo rapport at least once per day, with diminishing
+            returns if spammed,
+          - never raises rapport beyond the global max.
+      - Talking to Echo:
+          - shows Echo-specific dialogue or multi-line interaction.
+          - uses rapport to vary tone/text between low and high rapport.
+          - can give small rapport bumps via certain choices.
+      - Over multiple days, the player can increase Echo rapport up to the
+        maximum tier.
+
+  - HT radio hint:
+      - At least one talking-to-Echo interaction:
+          - explicitly references the HT radio.
+          - sets echo_radio_connection_hint_shown when seen.
+      - After that, the flag persists across saves.
+
+  - Stability:
+      - No crashes starting a new game or loading old saves.
+      - No broken paths where Echo “disappears” unintentionally from the
+        starting Glade scene.
+      - Existing systems (dialogue for other NPCs, encounters, hunger,
+        seasons, runestones, Kirin, wayfinding, curses UI) continue to work
+        as before.
+
+non_goals:
+  - Do NOT:
+      - Implement full Echo–HT attunement or radio upgrades.
+      - Add heavy mechanical buffs from high Echo rapport (beyond flavor or
+        very minor tweaks, if any).
+      - Change Echo’s core story role; this phase is about interactions and
+        groundwork only.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Reuse the existing rapport and dialogue systems if they exist; do not
+    re-implement them.
+  - Keep Echo-specific logic modular so it's easy to reference in future
+    "radio attunement" and deeper relationship tasks.
+  - Keep pet/talk loops short and replayable; this is day-to-day camp
+    interaction, not a one-off cutscene.
+
+test_plan:
+  - New game:
+      - Start from the beginning; confirm:
+          - emerging from the charred tree shows Echo present.
+          - Glade/camp menus show "Talk to Echo" and "Pet Echo".
+      - Pet Echo a few times across days:
+          - confirm Echo rapport increases with some diminishing-return logic.
+      - Talk to Echo at low and high rapport:
+          - confirm tone/lines shift.
+      - Confirm at least one conversation path mentions the HT radio and sets
+        echo_radio_connection_hint_shown.
+  - Existing save:
+      - Load a save where the player is at the Glade:
+          - confirm Echo is present and interactions work.
+      - Verify Echo rapport, flags, and presence persist across save/load.

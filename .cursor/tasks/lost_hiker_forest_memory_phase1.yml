@@ -1,0 +1,235 @@
+name: "Lost Hiker - Forest Memory Phase 1 (Landmark Recall & Path Stability)"
+
+description: |
+  Implement a lightweight "forest memory" system that makes revisiting
+  landmarks more reliable and reflects the idea that repairing runestones
+  stabilizes paths.
+
+  The goal is:
+    - Give each discovered landmark a path stability score.
+    - Use that stability to bias exploration toward landmarks the player has
+      actually found, especially as the forest stabilizes.
+    - Make it easier (but not trivial) to return to key locations like Creek
+      Bend and runestone sites.
+    - Provide a minimal way for the player to see which landmarks the forest
+      "remembers" clearly.
+
+  This system should work alongside:
+    - Existing landmarks and exploration.
+    - Hunger + stamina caps.
+    - Runestone Repair Phases 1 and 2.
+    - Forest-wide effects based on repaired runestones.
+
+goals:
+  - Path stability per landmark:
+      - For each landmark in the Forest (e.g. Creek Bend, Fallen Giant,
+        Split Boulder, Stone Lantern Clearing, etc.), track a small "path
+        stability" value in game state.
+      - Suggested range: integer 0–3:
+          - 0 = unknown / not discovered.
+          - 1 = discovered, faint path.
+          - 2 = familiar path.
+          - 3 = well-established path.
+      - When a landmark is first discovered:
+          - Initialize its stability to 1.
+      - On each revisit to that landmark:
+          - Increase stability by +1 up to max (3).
+      - If a landmark has a fully repaired runestone associated with it:
+          - Optionally give it an extra stability boost when the stone is
+            repaired (e.g. minimum stability 2 or auto-bump by +1).
+
+  - Integrate path stability into exploration landmark selection:
+      - Modify the Forest exploration logic so that when deciding whether to
+        send the player to:
+          - a new random landmark,
+          - a generic forest event,
+          - or a previously discovered landmark,
+        the path stability of discovered landmarks is used as part of the
+        weighting.
+      - Basic rules:
+          - Unknown landmarks (stability 0) can still be discovered per the
+            existing rules.
+          - Known landmarks (stability 1–3) should be more likely to be rolled
+            than "unknown" ones, with higher stability giving higher weight.
+          - This should NOT completely replace existing depth-based and
+            forest_effects logic; stability should be an additional bias
+            inside whatever selection system already exists.
+      - Ensure that:
+          - Landmarks at inappropriate depths are still excluded.
+          - Runestone gating and forest_effects still apply.
+
+  - Context-sensitive biasing:
+      - Add light context-aware weighting based on player state:
+          - If the player is hungry (days_without_meal >= 1):
+              - Slightly increase the weight for food-capable landmarks
+                (e.g. Creek Bend, landmarks with forage options).
+          - If the player has primitive_mortar or mortar ingredients:
+              - Slightly increase the weight for landmarks with fractured
+                runestones.
+          - If the player has not yet repaired any runestones and is
+            approaching the intended "runestone by day X" soft cap (e.g.
+            day 10):
+              - Gradually increase the chance to discover or revisit a
+                fractured runestone landmark.
+      - This bias should be subtle and additive, not a hard teleport:
+          - The forest still feels organic, but less punishing / RNG-locked.
+
+  - Stable recall as the forest heals:
+      - Integrate repaired runestone count into path stability behavior:
+          - As more runestones are fully repaired:
+              - Slightly increase the chance of revisiting higher-stability
+                landmarks.
+              - Slightly reduce the chance of "getting completely lost" when
+                exploring in depth ranges where you already know landmarks.
+      - This should work with forest_effects from Runestone Repair Phase 2,
+        not replace it; forest_effects can call into forest memory if that keeps
+        the code cleaner.
+
+  - Player-facing "known landmarks" view (simple):
+      - Provide a minimal way for the player to see the landmarks that the
+        forest "remembers":
+          - Either:
+              - Extend an existing "status" or "journal" view, OR
+              - Add a simple "landmarks" command.
+      - For each known landmark, show:
+          - Name.
+          - A simple stability descriptor based on stability value:
+              - 1: "faint path"
+              - 2: "familiar path"
+              - 3: "well-worn path"
+      - This is mostly informational; it does not need to show coordinates
+        or exact depth values.
+
+  - Save/load:
+      - Add per-landmark path stability state to the save file.
+      - Ensure older saves load with:
+          - stability = 0 for all landmarks by default, OR
+          - stability = 1 for landmarks already marked as discovered,
+            whichever is safer with the current code.
+      - No crashes if forest memory data is missing.
+
+deliverables:
+  - data/landmarks_forest.json or equivalent:
+      - If not already present, ensure each Forest landmark has a unique ID.
+      - No major restructuring required; just confirm IDs exist and can be used
+        as keys in the forest memory system.
+      - Optionally add a "food_capable" and/or "has_runestone" tag if that
+        makes context-sensitive weighting easier (only if this fits neatly
+        into existing patterns).
+
+  - src/forest_memory.py (new module) or equivalent:
+      - Implement helper functions such as:
+          - init_landmark_memory(state)
+          - get_path_stability(state, landmark_id)
+          - bump_path_stability(state, landmark_id)
+          - adjust_landmark_weights_based_on_memory(state, candidate_landmarks, context)
+          - get_known_landmarks_with_stability(state)
+      - Keep this module focused on:
+          - per-landmark stability,
+          - weighting decisions,
+          - and simple queries for display.
+
+  - src/engine.py or src/exploration.py (wherever exploration is handled):
+      - Integrate forest_memory into the exploration landmark selection flow:
+          - When deciding whether to pick a landmark event, call into
+            forest_memory to:
+              - query path stability for discovered landmarks,
+              - adjust the selection weights accordingly.
+      - Ensure this layering respects:
+          - depth ranges,
+          - forest_effects from runestone repairs,
+          - any other filters already in place.
+
+  - src/landmarks.py or equivalent:
+      - On entering a landmark context:
+          - Increment its path stability.
+      - If the landmark has a fully repaired runestone:
+          - Optionally ensure its stability is at least a certain minimum
+            threshold, or apply a one-time bonus the first time it becomes
+            stable.
+
+  - src/commands.py and/or src/ui.py:
+      - Add a simple way for the player to view known landmarks and their
+        path stability:
+          - e.g. "landmarks" or "paths" command, or an extension of an
+            existing "status" or "journal" output.
+      - Output should be compact and readable in a text UI.
+
+  - Save/load logic:
+      - Extend the save data to include per-landmark stability values.
+      - Ensure backwards compatibility with save files created before this
+        feature existed.
+
+acceptance_criteria:
+  - Landmark stability:
+      - Newly discovered landmarks start with stability 1.
+      - Revisiting a landmark increases stability up to 3.
+      - Landmarks with repaired runestones can receive an extra stability
+        bump (if this is implemented as part of the design).
+  - Exploration behavior:
+      - After discovering several landmarks, revisiting them becomes more
+        common than stumbling into totally new or irrelevant locations—
+        while still keeping randomness and risk.
+      - When hungry, food-capable landmarks are slightly more likely to be
+        revisited.
+      - When holding mortar/mortar ingredients, runestone landmarks become
+        slightly more likely to be revisited.
+      - As the player approaches the intended "runestone by day X" limit,
+        the chance to find at least one fractured runestone landmark
+        increases noticeably without feeling like a hard script.
+  - Player view:
+      - The player can issue a simple command or open a status/journal view
+        to see a list of known landmarks and their path stability labels
+        ("faint path", "familiar path", "well-worn path").
+  - Save/load:
+      - Path stability persists correctly across saves.
+      - Old saves load with sane defaults and no crashes.
+  - Compatibility:
+      - The new forest memory system coexists cleanly with:
+          - existing landmarks,
+          - hunger and stamina caps,
+          - runestone repair,
+          - forest_effects from Phase 2.
+      - No regressions in exploration or landmark behavior.
+
+non_goals:
+  - Do NOT:
+      - Implement direct fast travel or teleportation.
+      - Implement full Kirin mechanics or portals.
+      - Overhaul all exploration events; only adjust weighting where necessary.
+      - Replace forest_effects logic; this should cooperate with it.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep forest memory logic centralized in its own module and called from
+    exploration/landmark code, rather than sprinkling stability checks
+    throughout the codebase.
+  - Use data-driven tags on landmarks (food_capable, has_runestone) only if
+    they fit the current data style and avoid hard-coding special cases.
+  - Favor small, readable weighting adjustments over complex probability math.
+
+test_plan:
+  - Start a new game and discover several landmarks (Creek Bend, Fallen
+    Giant, runestone sites):
+      - Confirm each starts at stability 1 upon discovery.
+      - Confirm revisiting a given landmark increases its stability.
+  - Explore multiple days:
+      - Confirm that known landmarks with higher stability are revisited more
+        often than landmarks you've only seen once.
+      - Confirm that when hungry, food-capable landmarks like Creek Bend
+        appear slightly more often.
+      - Confirm that when carrying primitive_mortar or ingredients, fractured
+        runestone landmarks appear slightly more often.
+  - Approach the soft "runestone by day X" boundary without repairing
+    anything:
+      - Confirm that the game begins surfacing fractured runestone landmarks
+        more reliably as you near that boundary.
+  - Save and reload mid-way:
+      - Confirm landmark stability values are preserved and recall behavior
+        continues as expected.
+  - Regression:
+      - Confirm that exploration, landmarks, hunger, runestones, and forest
+        effects all still behave as expected aside from the intentional
+        changes in recall behavior.
