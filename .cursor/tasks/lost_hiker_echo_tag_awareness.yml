@@ -1,0 +1,112 @@
+name: "Lost Hiker – Echo Tag Awareness & Forest Weirdness (Advanced Flavor)"
+
+description: |
+  Deepen Echo's awareness of the player's modular race configuration
+  (body_type, flavor_tags, size, archetype) and her role as a
+  commentator on the Forest's strange, non-physical rules:
+    - body shapes that shouldn't exist,
+    - swallowing that shouldn't be possible,
+    - synths, oozes, fungi, and hybrids the Forest has nevertheless adopted.
+
+  This is an advanced flavor pass on Echo ONLY. No mechanical changes.
+
+goals:
+  - Body-type-specific commentary:
+      - Expand Echo's dialogue to include:
+          - rare, insightful comments about:
+              - taur bodies,
+              - naga bodies,
+              - quadruped forms,
+              - humanoid forms when combined with unusual tags (slimy, chitinous, synthetic).
+      - Integrate these into:
+          - early camp scenes,
+          - radio chatter,
+          - some belly shelter scenes.
+
+  - Tag family awareness:
+      - Fungal / Mycelial:
+          - Echo remarks on:
+              - earth-rich scent,
+              - spores clinging to her scales,
+              - sense of being watched by the ground itself through the player.
+      - Slime / Ooze:
+          - Echo comments on:
+              - slipperiness,
+              - how it feels to coil around or swallow such a form,
+              - needing to adjust grip.
+      - Synth:
+          - Echo is intrigued but not hostile:
+              - “You’re warm, but not like flesh. The Forest accepted you anyway.”
+              - comments on resonant hums, harmless static, etc.
+      - Elemental / Psionic:
+          - Emberheart / frostbreath / stormtouched:
+              - remarks about warmth, chill, or tingle when coiling or swallowing.
+          - mindecho / astral / dreamlinked:
+              - remarks about faint impressions, shared dreams, or mental echoes.
+
+  - Size-magic commentary:
+      - Add explicit but low-frequency lines where Echo:
+          - acknowledges that predator/prey size logic "shouldn't work",
+          - reaffirms that:
+              - "The Forest stretches bellies to fit its stories.",
+              - "Size means little in here; the Forest decides who carries whom."
+      - Use when:
+          - predator size < prey size (player or creature),
+          - or when the player as pred swallows something obviously bigger by size tag.
+
+  - Belly-flavor expansions:
+      - For Echo specifically:
+          - Use body_type + tags to adjust how being inside her feels:
+              - slime/ooze characters spreading more evenly,
+              - fungal characters feeling the Forest more vividly,
+              - synth characters feeling vibrations and resonance differently,
+              - quadrupeds curling vs nagas coiling inside.
+      - Keep Act I non-lethal, gentle, and mostly cozy/intimate survival.
+
+deliverables:
+  - Updated Echo dialogue resources:
+      - general conversation,
+      - radio lines,
+      - belly/shelter scenes,
+      - small forest-logic monologues.
+  - Any small helper addition needed for:
+      - checking tag families and size relationships for Echo's lines.
+
+acceptance_criteria:
+  - Echo:
+      - occasionally references body_type in a way that matches the player's form.
+      - occasionally references fungal/ooze/synth/elemental/psionic/material tags.
+      - clearly reinforces, at least once, that:
+          - the Forest bends size and belly-space in non-physical ways.
+  - Belly scenes with Echo:
+      - feel more tailored and evocative when using unusual bodies (ooze, fungal, synth, etc.).
+      - remain non-lethal, non-gory, and aligned with Act I tone.
+  - No new mechanics are added; behavior remains the same.
+
+non_goals:
+  - No new questlines.
+  - No changes to swallow chances or mechanics.
+  - No pred/prey system overhaul.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep Echo's voice consistent: dry, amused, protective, a bit strange.
+  - Do not overuse tag-driven lines; keep them as occasional delights.
+
+test_plan:
+  - Create a variety of characters:
+      - taur, naga, quadruped, humanoid with:
+          - fungal tags,
+          - ooze tags,
+          - synth tags,
+          - elemental and psionic tags.
+  - Trigger:
+      - early Echo camp conversations,
+      - radio chatter,
+      - belly shelter.
+  - Verify:
+      - Echo occasionally comments on form and tags,
+      - Echo explicitly mentions Forest size-weirdness at least once per relevant run,
+      - generic lines still appear when tag-based ones do not.

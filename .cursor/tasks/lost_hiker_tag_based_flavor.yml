@@ -1,0 +1,152 @@
+name: "Lost Hiker – Tag-Based Flavor System (Body Type, Tags, Size, Archetype)"
+
+description: |
+  Use the modular race fields (body_type, flavor_tags, size, archetype)
+  to drive flavor-only variations in:
+    - exploration text,
+    - foraging text,
+    - belly/vore text (both as prey and as pred),
+    - resting/camping descriptions.
+
+  All differences are purely narrative; no mechanical behavior changes.
+
+goals:
+  - Define a central flavor access layer:
+      - Implement a helper or small module (e.g. flavor_profiles.py) that:
+          - reads the player’s:
+              - body_type,
+              - size,
+              - archetype,
+              - flavor_tags,
+          - returns small flavor snippets for:
+              - movement,
+              - posture/curling,
+              - temperature,
+              - surface contact (scales, fur, slime, chitin),
+              - “Forest weirdness” when size relationships are odd.
+      - Example inputs:
+          - body_type = "naga", tags = ["scaled", "caveborn"]
+          - body_type = "quadruped", tags = ["furred", "forestborn"]
+          - body_type = "humanoid", tags = ["slimy", "forestborn"]
+      - Example outputs:
+          - movement_snippet,
+          - belly_snippet_suffix,
+          - foraging_snippet_suffix,
+          - rest/snuggle_snippet.
+
+  - Exploration flavor:
+      - Add optional race/body_type/tag-based exploration flavor:
+          - body_type:
+              - naga: mention gliding, coils, tail traction.
+              - taur: mention hooves, mass, lowering/raising front.
+              - quadruped: mention paws, pads, low posture.
+              - humanoid: default biped text.
+          - flavor_tags:
+              - furred: emphasize brushing branches, catching burrs.
+              - scaled: emphasize cold surfaces, warmth of sun.
+              - slimy: emphasize dampness, soil impressions, careful seating.
+              - chitinous: emphasize clicking, scraping, hardness.
+              - feathered: emphasize ruffling, stray breeze, molting feathers.
+          - size:
+              - small: emphasize slipping through gaps, narrow spaces.
+              - large: emphasize branches bending, ground thudding.
+          - archetype:
+              - cave_creature: feel more at home near rocks, cave-mouths.
+              - forest_creature: feel at ease among trees.
+              - river_creature: drawn to water landmarks.
+      - Use this to occasionally append or swap a line in exploration messages.
+
+  - Foraging flavor:
+      - Use tags to adjust foraging text:
+          - slimy: care about not getting muck on your bulk.
+          - chitinous: claws/mandibles scraping bark.
+          - furred: fur brushing undergrowth.
+          - feathered: wings or feathers catching leaves.
+          - manylimbed: “you have plenty of limbs to pry and lift.”
+      - Body type:
+          - taur: lowering front half, bracing with hind legs.
+          - naga: coiling around logs/rocks to leverage.
+          - quadruped: nosing and pawing at the ground.
+          - humanoid: kneeling, crouching.
+
+  - Belly & vore flavor (both as prey and as pred):
+      - Use:
+          - body_type,
+          - size,
+          - flavor_tags,
+          - archetype,
+        to:
+          - slightly tweak belly descriptions (curling up, coils folding, etc.),
+          - describe how a player-pred holds prey (taur belly under torso,
+            naga coils, quadruped curl, humanoid gut).
+      - Also add a small “size-magic” flavor layer:
+          - If prey size category > pred size category:
+              - occasionally show a line like:
+                  - “The Forest stretches space around you both; this shouldn’t fit,
+                     but it does.”
+          - If predator is naturally smaller, add optional “Forest bending”
+            flavor once in a while.
+      - Strictly flavor-only; no mechanical changes to swallow chances or outcomes.
+
+  - Resting/camping flavor:
+      - Integrate body_type + tags into:
+          - how the player rests/sleeps at camp,
+          - how they are described if sheltered in a friendly belly.
+      - Examples:
+          - quadruped: curling up, tail across nose.
+          - naga: looping coils, tail tip tucked.
+          - taur: folding legs under, heavy, steady presence.
+          - slimy: leaving a faint damp outline; NPCs lay down extra cloth.
+
+deliverables:
+  - New flavor helper module (or extension of existing one) that:
+      - exposes simple functions to get flavor snippets based on:
+          - body_type, size, archetype, flavor_tags.
+  - Updated text-generating code for:
+      - exploration messages,
+      - foraging descriptions,
+      - belly/pred/prey text,
+      - camp/rest descriptions,
+    to optionally query these helpers.
+  - Simple configuration for:
+      - which situations actually use tag-based flavor (to avoid spam).
+
+acceptance_criteria:
+  - When the player uses different combinations (e.g. centipede-naga,
+    slug-humanoid, fox-quadruped, dragon-taur), the game:
+      - describes movement, foraging, rest, and belly scenes in ways that
+        loosely match their body_type and tags.
+  - Flavor differences are:
+      - occasional, not spammy,
+      - consistent with the Forest’s mystical tone,
+      - non-mechanical.
+  - “Size-magic” belly interactions:
+      - occasionally acknowledge that Forest magic is allowing odd size
+        combinations.
+      - never imply digestion, gore, or lethality in Act I.
+
+non_goals:
+  - No stat bonuses, perk systems, or mechanical penalties.
+  - No new UI.
+  - No combat changes.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep flavor logic modular; don’t scatter if/else checks everywhere.
+  - Prefer reusable helper functions and tag lookups.
+
+test_plan:
+  - Create and playtest characters with varied combinations, such as:
+      - humanoid elf (baseline),
+      - quadruped fox-kin,
+      - naga dragonborn,
+      - taur deer-kin,
+      - custom centipede-naga (chitinous, manylimbed, caveborn),
+      - custom slugborn (slimy, forestborn).
+  - Verify:
+      - exploration and foraging sometimes show appropriate flavor,
+      - belly scenes and rest text reflect body_type and tags,
+      - size-magic flavor appears occasionally when appropriate,
+      - generic text still works if flavor helpers are not triggered.

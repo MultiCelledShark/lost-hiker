@@ -1,8 +1,12 @@
 {
   "human": {
     "race_id": "human",
+    "display_name": "Human",
     "name": "Human",
     "description": "An adaptable hiker whose stubborn hope and trail savvy survive even portal fire.",
+    "body_type_default": "humanoid",
+    "size_default": "medium",
+    "archetype_default": "forest_creature",
     "body_type": "humanoid",
     "tags": ["biped", "tool-user"],
     "modifiers": [
@@ -10,17 +14,16 @@
     ],
     "flavor": { "camp": ["You warm your hands by the fire."] },
     "summary": "An adaptable hiker whose stubborn hope and trail savvy survive even portal fire.",
-    "flavor_tags": {
-      "species": "human",
-      "sensory_profile": "neutral",
-      "thermal_flavor": "neutral",
-      "magic_affinity": "none"
-    }
+    "flavor_tags": []
   },
   "wolf_kin": {
     "race_id": "wolf_kin",
+    "display_name": "Wolf-Kin",
     "name": "Wolf-Kin",
     "description": "Nose full of forest scents and muscles coiled to sprint, a wolf-kin is never far from the wild.",
+    "body_type_default": "humanoid",
+    "size_default": "medium",
+    "archetype_default": "forest_creature",
     "body_type": "furred",
     "tags": ["biped", "clawed", "furred", "keen-smell"],
     "modifiers": [
@@ -30,18 +33,16 @@
     ],
     "flavor": { "camp": ["You shake out your fur by the fire."] },
     "summary": "Nose full of forest scents and muscles coiled to sprint, a wolf-kin is never far from the wild.",
-    "flavor_tags": {
-      "species": "beastfolk",
-      "sensory_profile": "sharp_scent",
-      "thermal_flavor": "warm_natured",
-      "magic_affinity": "none",
-      "predator_reactions": ["predators_gradual_comfort"]
-    }
+    "flavor_tags": ["furred", "forestborn"]
   },
   "cow_kin": {
     "race_id": "cow_kin",
+    "display_name": "Cow-Kin",
     "name": "Cow-Kin",
     "description": "Herbivorous and sturdy, cow-kin bring a calm, steady presence to the wild forest.",
+    "body_type_default": "humanoid",
+    "size_default": "medium",
+    "archetype_default": "forest_creature",
     "body_type": "furred",
     "tags": ["biped", "hooved", "furred", "herbivorous"],
     "modifiers": [
@@ -49,18 +50,16 @@
     ],
     "flavor": { "camp": ["You settle comfortably by the fire, your hooves tucked beneath you."] },
     "summary": "Herbivorous and sturdy, cow-kin bring a calm, steady presence to the wild forest.",
-    "flavor_tags": {
-      "species": "beastfolk",
-      "sensory_profile": "warm_aromatic",
-      "thermal_flavor": "warm_natured",
-      "magic_affinity": "none",
-      "predator_reactions": ["predators_curiosity"]
-    }
+    "flavor_tags": ["furred", "forestborn"]
   },
   "elf": {
     "race_id": "elf",
+    "display_name": "Elf (Wilder Elf)",
     "name": "Elf (Wilder Elf)",
     "description": "Wilder elves feel the forest's pulse in ways others cannot, their connection to nature running deep.",
+    "body_type_default": "humanoid",
+    "size_default": "medium",
+    "archetype_default": "spiritborn",
     "body_type": "humanoid",
     "tags": ["biped", "keen-hearing", "forest-tuned"],
     "modifiers": [
@@ -68,18 +67,16 @@
     ],
     "flavor": { "camp": ["You listen to the forest's subtle rhythms as you rest."] },
     "summary": "Wilder elves feel the forest's pulse in ways others cannot, their connection to nature running deep.",
-    "flavor_tags": {
-      "species": "elf",
-      "sensory_profile": "forest_tuned",
-      "thermal_flavor": "neutral",
-      "magic_affinity": "mild_forest",
-      "mystical_creature_reactions": ["wisps_follow"]
-    }
+    "flavor_tags": ["ambient_magic", "forestborn"]
   },
   "dwarf": {
     "race_id": "dwarf",
+    "display_name": "Dwarf (Stoneborn)",
     "name": "Dwarf (Stoneborn)",
     "description": "Stoneborn dwarves carry the weight of mountains in their bones, steady and unshakeable.",
+    "body_type_default": "humanoid",
+    "size_default": "small",
+    "archetype_default": "cave_creature",
     "body_type": "humanoid",
     "tags": ["biped", "sturdy", "stone-sense"],
     "modifiers": [
@@ -87,17 +84,16 @@
     ],
     "flavor": { "camp": ["You feel the earth's warmth through your boots as you rest."] },
     "summary": "Stoneborn dwarves carry the weight of mountains in their bones, steady and unshakeable.",
-    "flavor_tags": {
-      "species": "dwarf",
-      "sensory_profile": "earth_tuned",
-      "thermal_flavor": "neutral",
-      "magic_affinity": "stone_resonance"
-    }
+    "flavor_tags": ["stoneborn"]
   },
   "lizard_folk": {
     "race_id": "lizard_folk",
+    "display_name": "Lizard-Folk",
     "name": "Lizard-Folk",
     "description": "Scaled and alert, lizard-folk navigate the forest with precise instincts and keen awareness.",
+    "body_type_default": "humanoid",
+    "size_default": "medium",
+    "archetype_default": "forest_creature",
     "body_type": "scaled",
     "tags": ["biped", "scaled", "cold-sensitive", "keen-sight"],
     "modifiers": [
@@ -105,17 +101,16 @@
     ],
     "flavor": { "camp": ["You bask in the fire's warmth, your scales reflecting the light."] },
     "summary": "Scaled and alert, lizard-folk navigate the forest with precise instincts and keen awareness.",
-    "flavor_tags": {
-      "species": "beastfolk",
-      "sensory_profile": "sharp_scent",
-      "thermal_flavor": "cold_natured",
-      "magic_affinity": "none"
-    }
+    "flavor_tags": ["scaled", "coldblooded", "forestborn"]
   },
   "deer_kin": {
     "race_id": "deer_kin",
+    "display_name": "Deer-Kin",
     "name": "Deer-Kin",
     "description": "Graceful and alert, deer-kin move through the forest with quiet elegance and sharp senses.",
+    "body_type_default": "humanoid",
+    "size_default": "medium",
+    "archetype_default": "forest_creature",
     "body_type": "furred",
     "tags": ["biped", "hooved", "furred", "keen-hearing", "herbivorous"],
     "modifiers": [
@@ -123,18 +118,16 @@
     ],
     "flavor": { "camp": ["You settle gracefully by the fire, ears twitching at distant sounds."] },
     "summary": "Graceful and alert, deer-kin move through the forest with quiet elegance and sharp senses.",
-    "flavor_tags": {
-      "species": "beastfolk",
-      "sensory_profile": "keen_hearing",
-      "thermal_flavor": "neutral",
-      "magic_affinity": "none",
-      "predator_reactions": ["predators_hesitate"]
-    }
+    "flavor_tags": ["furred", "forestborn"]
   },
   "fox_kin": {
     "race_id": "fox_kin",
+    "display_name": "Fox-Kin",
     "name": "Fox-Kin",
     "description": "Clever and quick, fox-kin bring a playful cunning to survival in the wild forest.",
+    "body_type_default": "humanoid",
+    "size_default": "small",
+    "archetype_default": "forest_creature",
     "body_type": "furred",
     "tags": ["biped", "clawed", "furred", "keen-smell", "quick"],
     "modifiers": [
@@ -142,17 +135,16 @@
     ],
     "flavor": { "camp": ["You curl up by the fire, your tail wrapped around you for warmth."] },
     "summary": "Clever and quick, fox-kin bring a playful cunning to survival in the wild forest.",
-    "flavor_tags": {
-      "species": "beastfolk",
-      "sensory_profile": "sharp_scent",
-      "thermal_flavor": "warm_natured",
-      "magic_affinity": "none"
-    }
+    "flavor_tags": ["furred", "forestborn"]
   },
   "gryphon_folk": {
     "race_id": "gryphon_folk",
+    "display_name": "Gryphon-Folk",
     "name": "Gryphon-Folk",
     "description": "Anthropomorphic gryphons with the keen eyes of eagles and the strength of lions, masters of wind and sky.",
+    "body_type_default": "humanoid",
+    "size_default": "medium",
+    "archetype_default": "spiritborn",
     "body_type": "feathered",
     "tags": ["biped", "feathered", "keen-sight", "wind-sense"],
     "modifiers": [
@@ -160,17 +152,16 @@
     ],
     "flavor": { "camp": ["You settle by the fire, your feathers ruffling in the breeze."] },
     "summary": "Anthropomorphic gryphons with the keen eyes of eagles and the strength of lions, masters of wind and sky.",
-    "flavor_tags": {
-      "species": "drakefolk",
-      "sensory_profile": "wind_affinity",
-      "thermal_flavor": "warm_natured",
-      "magic_affinity": "none"
-    }
+    "flavor_tags": ["feathered", "ambient_magic"]
   },
   "dragonborn": {
     "race_id": "dragonborn",
+    "display_name": "Dragonborn",
     "name": "Dragonborn",
     "description": "Anthro dragons whose draconic heritage shows in scales, presence, and an ancient connection to magic.",
+    "body_type_default": "humanoid",
+    "size_default": "large",
+    "archetype_default": "spiritborn",
     "body_type": "scaled",
     "tags": ["biped", "scaled", "draconic", "magic-touched"],
     "modifiers": [
@@ -178,11 +169,6 @@
     ],
     "flavor": { "camp": ["You rest by the fire, your scales gleaming with inner warmth."] },
     "summary": "Anthro dragons whose draconic heritage shows in scales, presence, and an ancient connection to magic.",
-    "flavor_tags": {
-      "species": "drakefolk",
-      "sensory_profile": "draconic_presence",
-      "thermal_flavor": "warm_natured",
-      "magic_affinity": "faint_draconic"
-    }
+    "flavor_tags": ["scaled", "ambient_magic"]
   }
 }

@@ -498,6 +498,150 @@
           "rapport_delta": 0
         }
       ]
+    },
+    {
+      "id": "fisher_archetype_river_creature",
+      "npc_id": "fisher",
+      "text": "You're river-folk, aren't you? The water calls to you. I can see it in how you move near the creek—you understand its flow, its moods. That'll help you find the best spots for mussels.",
+      "conditions": {
+        "require_archetype": "river_creature",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "The water feels natural to me.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_flavor_tag_slimy",
+      "npc_id": "fisher",
+      "text": "You're… moist. That's not a bad thing—water work suits you. The creek's creatures won't mind your presence. Might even make it easier to move through the water.",
+      "conditions": {
+        "require_flavor_tag": "slimy",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I suppose it does.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_flavor_tag_scaled",
+      "npc_id": "fisher",
+      "text": "Scales and water go well together. Your hide will protect you from the creek's chill, and the mussels won't be able to cut you if you're careful. Good combination for this work.",
+      "conditions": {
+        "require_flavor_tag": "scaled",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I'm glad it helps.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_body_type_quadruped",
+      "npc_id": "fisher",
+      "text": "Four legs by the water—you move differently along the bank. More stable, I'd say. The mud won't trip you up as easily. Just watch your footing on the rocks.",
+      "conditions": {
+        "require_body_type": "quadruped",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I'll be careful.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_size_small",
+      "npc_id": "fisher",
+      "text": "You're small. That's fine—the creek's shallow spots are perfect for you. You won't need to wade deep to find mussels. Just watch the current—it can still pull you if you're not careful.",
+      "conditions": {
+        "require_size": "small",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I'll stay in the shallows.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_size_large",
+      "npc_id": "fisher",
+      "text": "You're big. The deeper pools won't trouble you, and you can reach spots I can't. But be careful crossing—the creek's current is stronger than it looks, and your weight makes it harder to keep your footing.",
+      "conditions": {
+        "require_size": "large",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I'll be cautious.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_tag_family_ooze",
+      "npc_id": "fisher",
+      "text": "You're… soft. Near water, that's useful—you move through it easier. Just watch the current. Soft forms can get pulled downstream if you're not careful. The mussels won't mind your presence, though.",
+      "conditions": {
+        "require_tag_family": "slime",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I'll watch the current.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_tag_family_synth",
+      "npc_id": "fisher",
+      "text": "Metal parts in cold water. That's going to be uncomfortable. The creek's cold, and metal conducts that cold right into you. You'll feel it more than most. Still, you can reach deeper spots I can't.",
+      "conditions": {
+        "require_tag_family": "synth",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I'll manage.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "fisher_archetype_river_creature_water",
+      "npc_id": "fisher",
+      "text": "You're river-folk. You know the water better than most. The mussels, the currents, the way the creek moves—you understand it. That'll help you find the best spots.",
+      "conditions": {
+        "require_archetype": "river_creature",
+        "require_flag": "fisher_met"
+      },
+      "options": [
+        {
+          "text": "I do understand water.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
     }
   ]
 }

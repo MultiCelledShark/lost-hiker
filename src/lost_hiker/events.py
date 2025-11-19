@@ -274,22 +274,14 @@ class EventPool:
                 else:
                     text.append(f"You secure {item}.")
             
-            # Add optional race-aware foraging flavor
+            # Add optional tag-based foraging flavor
             try:
-                from .race_flavor import get_foraging_flavor
-                from .main import resolve_paths
-                import json
-                from pathlib import Path
-                data_dir, _ = resolve_paths()
-                races_path = data_dir / "races.json"
-                if races_path.exists():
-                    with races_path.open("r", encoding="utf-8") as handle:
-                        races_data = json.load(handle)
-                        race_flavor = get_foraging_flavor(state.character.race_id, races_data)
-                        if race_flavor:
-                            text.append(race_flavor)
+                from .flavor_profiles import get_foraging_flavor
+                flavor_text = get_foraging_flavor(state.character)
+                if flavor_text:
+                    text.append(flavor_text)
             except Exception:
-                # If race flavor fails, continue without it
+                # If flavor fails, continue without it
                 pass
         if event.event_type == "encounter":
             items = event.effects.get("inventory_add", [])

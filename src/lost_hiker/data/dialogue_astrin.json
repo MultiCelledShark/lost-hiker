@@ -771,6 +771,227 @@
           "rapport_delta": 0
         }
       ]
+    },
+    {
+      "id": "astrin_body_type_taur",
+      "npc_id": "astrin",
+      "text": "Your form is… substantial. I'll need to make sure my workspace can accommodate you comfortably when you rest here. The Glade welcomes all shapes, though.",
+      "conditions": {
+        "require_body_type": "taur",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I appreciate that.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_body_type_naga",
+      "npc_id": "astrin",
+      "text": "You coil so gracefully. I imagine resting here feels different for you—more space to stretch out. The Glade adapts to those who need it.",
+      "conditions": {
+        "require_body_type": "naga",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "It does feel comfortable here.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_body_type_quadruped",
+      "npc_id": "astrin",
+      "text": "Four legs must make resting here interesting. I've noticed you settle into the Glade's spaces differently—more naturally, perhaps. The plants don't mind.",
+      "conditions": {
+        "require_body_type": "quadruped",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "The Glade is welcoming.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_flavor_tag_plantlike",
+      "npc_id": "astrin",
+      "text": "You have a… botanical quality. I can sense it—the plants respond to you differently. Some of my teas brew stronger when you're near. It's fascinating.",
+      "conditions": {
+        "require_flavor_tag": "plantlike",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I hadn't noticed.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_flavor_tag_stoneborn",
+      "npc_id": "astrin",
+      "text": "There's stone in your essence. Interesting—most plants grow better near stone, but you carry it within you. My teas might need different brewing times for you.",
+      "conditions": {
+        "require_flavor_tag": "stoneborn",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I'm curious about that.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_flavor_tag_slimy",
+      "npc_id": "astrin",
+      "text": "You leave a… moist trail. The plants don't mind—some actually seem to appreciate it. Moisture helps them grow, after all.",
+      "conditions": {
+        "require_flavor_tag": "slimy",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I'm glad the plants like it.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_archetype_forest_creature",
+      "npc_id": "astrin",
+      "text": "You belong here, don't you? The forest recognizes you. My plants grow better when you're around—they sense a kindred spirit.",
+      "conditions": {
+        "require_archetype": "forest_creature",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "The forest feels like home.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_archetype_cave_creature",
+      "npc_id": "astrin",
+      "text": "You're more at home in the dark, aren't you? The Glade's open spaces must feel different. But the plants here don't judge—they welcome all who need rest.",
+      "conditions": {
+        "require_archetype": "cave_creature",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I'm adjusting.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_tag_family_fungal",
+      "npc_id": "astrin",
+      "text": "You're… part network. I can sense it—the mycelial threads, the spore connections. I'd love to study this, with your consent, of course. The way the plants respond to you is fascinating. They recognize a kindred structure.",
+      "conditions": {
+        "require_tag_family": "fungal",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I'm not sure what you mean.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "The plants respond differently?",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_tag_family_ooze",
+      "npc_id": "astrin",
+      "text": "Your form is… soft. I'll set out a mat for you to sit on—the ground here can be rough. And maybe adjust the cups so they don't slip. The plants don't mind your presence, though. Moisture helps them grow.",
+      "conditions": {
+        "require_tag_family": "slime",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "Thank you for the consideration.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_tag_family_synth",
+      "npc_id": "astrin",
+      "text": "Your frame hums. The herbs respond strangely—some curl away, others lean closer. It's like they're trying to understand something that isn't organic. I'm curious, but not alarmed. The Forest accepts all forms.",
+      "conditions": {
+        "require_tag_family": "synth",
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "The plants react to me?",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "astrin_flavor_tag_mossy",
+      "npc_id": "astrin",
+      "text": "You have moss on you—or maybe you are moss? Either way, the plants here recognize you. There's a strong affinity. My teas brew stronger when you're near. It's wonderful.",
+      "conditions": {
+        "require_flavor_tag": ["mossy", "mossfur"],
+        "require_state": {
+          "astrin_status": "at_glade"
+        }
+      },
+      "options": [
+        {
+          "text": "I'm glad the plants like me.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
     }
   ]
 }

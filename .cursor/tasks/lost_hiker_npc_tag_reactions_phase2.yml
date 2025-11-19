@@ -1,0 +1,125 @@
+name: "Lost Hiker – NPC Tag Reactions Phase 2 (Fungal, Ooze, Synth, Mix-Ins)"
+
+description: |
+  Enhance NPC dialogue so key NPCs react in richer ways to the expanded
+  tag packs:
+    - Fungal / Mycelial
+    - Slime / Ooze
+    - Synth / Construct
+    - Elemental / Psionic / Material mix-in tags
+
+  This is a second-phase pass building on the core NPC/tag reaction logic.
+  All changes are flavor-only and must respect each NPC's existing voice
+  and the tone of Lost Hiker.
+
+goals:
+  - Echo:
+      - Add optional lines keyed on:
+          - fungal/mycelial tags:
+              - comments about soil, spores, and mycelial scent.
+          - slime/ooze tags:
+              - comments about slipperiness and warmth.
+          - synth tags:
+              - comments about resonance, hums, and "unusual aliveness".
+          - elemental tags (emberheart, frostbreath, stormtouched, etc.):
+              - subtle notes about body temperature or ambient aura.
+      - Ensure these appear sparingly:
+          - e.g. first few conversations,
+          - occasional callbacks at camp or in belly scenes.
+
+  - Astrin (half-dryad):
+      - Fungal / Mycelial:
+          - excited, plant-nerd energy:
+              - “You’re… part network. I’d love to study— with consent.”
+          - Use tags: fungal, mycelial, sporeborne, rootmind, mossy.
+      - Slime / Ooze:
+          - practical adjustments, gentle humor:
+              - offering mats, adjusting cups, etc.
+      - Synth:
+          - curiosity about non-organic structures:
+              - “Your frame hums. The herbs respond strangely.”
+      - Verdant / Mossfur / plantlike:
+          - strong affinity and warmth.
+
+  - Druid:
+      - High-level commentary on:
+          - fungal as "forest memory",
+          - ooze as "soft forms of persistence",
+          - synth as "foreign but adopted by the Forest",
+          - elemental/psionic tags as "edges" of the Forest's will.
+      - Add rare, slightly more philosophical lines when multiple unusual tags
+        are present (e.g. fungal + synthetic, slime + emberheart, etc.).
+
+  - Fisherman:
+      - Specific acknowledgements of:
+          - slime/ooze near water,
+          - synth limbs / metal parts in cold rivers,
+          - aquatic or river archetypes tagged on the player.
+      - Keep voice blunt and practical.
+
+  - Naiad:
+      - Strong reactions to:
+          - slime/ooze (shared softness),
+          - aquatic, fishlike, or water-adjacent tags,
+          - synth/beepers entering water (curious but not hostile).
+      - Emphasize her perspective as a river-spirit witnessing strange bodies.
+
+  - General NPC reaction hooks:
+      - Extend NPC dialogue helpers so they can:
+          - check grouped tag families (fungal, ooze, synth, elemental, psionic, material),
+          - pick one or two lines from small optional pools.
+      - Ensure reactions are:
+          - occasional,
+          - short,
+          - fitted to NPC voice.
+
+deliverables:
+  - Updated dialogue files:
+      - Echo (if not fully covered by Echo-specific task),
+      - Astrin,
+      - Druid,
+      - Fisherman,
+      - Naiad,
+      - any other Forest Act I NPCs where a fungal/ooze/synth remark makes sense.
+  - Updated helper utilities:
+      - simple tag-family detection:
+          - e.g. is_fungal(), is_ooze(), is_synth(), is_elemental(), is_psionic(), is_material().
+
+acceptance_criteria:
+  - For each NPC (Echo, Astrin, Druid, Fisherman, Naiad):
+      - there is at least one optional line for:
+          - fungal/mycelial tags,
+          - slime/ooze tags,
+          - synth tags,
+        where appropriate.
+  - For elemental/psionic/material tags:
+      - at least some NPCs (especially Druid, Echo, Astrin) have rare optional lines.
+  - Lines are:
+      - sparse (not every interaction),
+      - consistent with the game's tone,
+      - do not promise mechanical effects ("you take less damage", etc.).
+  - No new mechanics are introduced.
+
+non_goals:
+  - No stat changes or perk systems.
+  - No new quests or long dialogues chains.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Avoid deeply nested if/else; prefer simple tag family checks.
+  - Keep each NPC’s voice intact and consistent.
+
+test_plan:
+  - Create several test characters:
+      - fungal (fungal + mycelial),
+      - ooze (slimy + gelatinous),
+      - synth (synthetic + lightcore),
+      - elemental (emberheart, frostbreath),
+      - psionic (mindecho, dreamlinked),
+      - mixed (e.g. fungal + synthetic).
+  - Talk repeatedly with each NPC and verify:
+      - the new lines can appear,
+      - they don’t spam,
+      - they fit naturally into existing dialogue.

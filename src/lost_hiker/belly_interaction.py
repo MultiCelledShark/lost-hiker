@@ -22,6 +22,7 @@ from .vore import is_vore_enabled
 from .rapport import change_rapport, get_rapport
 
 if TYPE_CHECKING:
+    from .character import Character
     from .state import GameState
 
 ECHO_ID = "echo"
@@ -74,6 +75,94 @@ def _get_echo_belly_race_flavor(race_id: str) -> Optional[str]:
     }
     
     return race_flavor_map.get(race_id)
+
+
+def _get_echo_belly_tag_family_flavor(character: "Character") -> Optional[str]:
+    """
+    Get tag family-aware flavor text for Echo's belly interactions.
+    
+    Returns Echo's comments about tag families (fungal, ooze, synth, elemental, psionic)
+    when the player is in her belly. These reinforce the Forest's size-bending lore.
+    
+    Args:
+        character: Player character with flavor_tags
+        
+    Returns:
+        Optional tag family-aware flavor text, or None
+    """
+    from .dialogue import is_fungal, is_ooze, is_synth, is_elemental, is_psionic
+    
+    if is_fungal(character):
+        return random.choice([
+            "You spread evenly inside me—mycelial, earthy. The Forest feels you more vividly here. The ground recognizes you as kin.",
+            "Spores drift in the warmth. The Forest watches through you, even in here. You're connected to something deeper.",
+        ])
+    
+    if is_ooze(character):
+        return random.choice([
+            "You flow and adjust—slippery, but the Forest makes space. You spread evenly, fitting where you need to fit.",
+            "Your form shifts and adapts. The Forest stretches my belly to accommodate you. Physics doesn't apply here.",
+        ])
+    
+    if is_synth(character):
+        return random.choice([
+            "Your resonance hums against me—mechanical, but warm. The Forest accepted you, and so do I. You fit perfectly.",
+            "There's a steady pulse, a vibration. Not flesh, but alive. The Forest doesn't care about such distinctions.",
+        ])
+    
+    if is_elemental(character):
+        player_tags = set(character.flavor_tags)
+        if "emberheart" in player_tags:
+            return "You radiate warmth—gentle heat that spreads through me. The Forest amplifies it. Comforting."
+        elif "frostbreath" in player_tags:
+            return "A cool presence, but not unpleasant. The chill is gentle, balanced. The Forest moderates everything."
+        elif "stormtouched" in player_tags or "mistborne" in player_tags:
+            return "There's a tingle, a crackle—elemental energy. The Forest channels it safely. You're safe here."
+        return "Elemental power flows through you. The Forest recognizes it, channels it. You're safe here."
+    
+    if is_psionic(character):
+        return random.choice([
+            "Your thoughts brush against mine—faint impressions, shared dreams. The Forest bends minds as easily as space. We're connected.",
+            "Mental echoes resonate. The radio translates some of it, but there's more. The Forest makes strange connections.",
+        ])
+    
+    return None
+
+
+def _get_echo_belly_body_type_flavor(character: "Character") -> Optional[str]:
+    """
+    Get body type-aware flavor text for Echo's belly interactions.
+    
+    Returns Echo's comments about body types (taur, naga, quadruped) when the player
+    is in her belly. These reinforce how the Forest bends size and space.
+    
+    Args:
+        character: Player character with body_type
+        
+    Returns:
+        Optional body type-aware flavor text, or None
+    """
+    body_type = character.body_type
+    
+    if body_type == "naga":
+        return random.choice([
+            "You coil inside me—familiar, serpentine. Your coils fold and curl, fitting perfectly. The Forest recognizes our kinship.",
+            "Two serpents, one inside the other. Your coils settle naturally. The Forest makes space for what belongs together.",
+        ])
+    
+    if body_type == "taur":
+        return random.choice([
+            "Your bulk is substantial, but the Forest stretches space. You fit where you shouldn't. Size is just a suggestion here.",
+            "Four legs, strong frame—but you settle in comfortably. The Forest makes room. It always does.",
+        ])
+    
+    if body_type == "quadruped":
+        return random.choice([
+            "You curl up inside me—four legs tucked close. The Forest accepts all forms. You fit perfectly.",
+            "Your quadruped form compresses naturally. The Forest doesn't care about how many limbs you have—you're safe here.",
+        ])
+    
+    return None
 
 
 def _get_race_belly_flavor(
@@ -144,24 +233,64 @@ def enter_belly_state(
                 "Echo's presence surrounds you—gentle, protective, safe. "
                 "The rhythmic pulse of her breathing is steady and calming.\n"
             )
-            # Add optional race-aware flavor
+            # Add optional race-aware flavor (keep old system for Echo's radio comments)
             race_flavor = _get_echo_belly_race_flavor(state.character.race_id)
             if race_flavor and random.random() < 0.5:  # 50% chance to show race flavor
                 ui.echo(f"[RADIO] {race_flavor}\n")
+            
+            # Add optional tag family-aware flavor (prioritize tag families over body type)
+            tag_family_flavor = _get_echo_belly_tag_family_flavor(state.character)
+            if tag_family_flavor and random.random() < 0.4:  # 40% chance
+                ui.echo(f"[RADIO] {tag_family_flavor}\n")
+            elif not tag_family_flavor:
+                # If no tag family flavor, try body type flavor
+                body_type_flavor = _get_echo_belly_body_type_flavor(state.character)
+                if body_type_flavor and random.random() < 0.3:  # 30% chance
+                    ui.echo(f"[RADIO] {body_type_flavor}\n")
+            
             ui.echo(base_text)
+            
+            # Add optional tag-based belly flavor
+            try:
+                from .flavor_profiles import get_belly_flavor
+                flavor_text = get_belly_flavor(state.character, "enter", is_predator=False)
+                if flavor_text:
+                    ui.echo(f"{flavor_text}\n")
+            except Exception:
+                pass
         elif mode == "predator":
             creature_name = creature_id.replace("_", " ").title()
-            ui.echo(
+            base_text = (
                 f"\nYou're pulled into darkness, warmth, and a crushing pressure "
                 f"that's somehow not suffocating. The {creature_name} carries you "
                 "through the forest, and you're helpless but safe—for now.\n"
             )
+            ui.echo(base_text)
+            
+            # Add optional tag-based belly flavor
+            try:
+                from .flavor_profiles import get_belly_flavor
+                flavor_text = get_belly_flavor(state.character, "enter", is_predator=False)
+                if flavor_text:
+                    ui.echo(f"{flavor_text}\n")
+            except Exception:
+                pass
         else:  # friend mode
             creature_name = creature_id.replace("_", " ").title()
-            ui.echo(
+            base_text = (
                 f"\nThe {creature_name} has taken you in, offering warmth and shelter. "
                 "You're safe here, though the experience is still disorienting.\n"
             )
+            ui.echo(base_text)
+            
+            # Add optional tag-based belly flavor
+            try:
+                from .flavor_profiles import get_belly_flavor
+                flavor_text = get_belly_flavor(state.character, "enter", is_predator=False)
+                if flavor_text:
+                    ui.echo(f"{flavor_text}\n")
+            except Exception:
+                pass
 
 
 def exit_belly_state(state: GameState) -> None:
@@ -231,6 +360,16 @@ def _handle_soothe(
         race_flavor = _get_echo_belly_race_flavor(state.character.race_id)
         if race_flavor and random.random() < 0.3:  # 30% chance to show race flavor
             ui.echo(f"[RADIO] {race_flavor}\n")
+        
+        # Add optional tag family or body type flavor
+        tag_family_flavor = _get_echo_belly_tag_family_flavor(state.character)
+        if tag_family_flavor and random.random() < 0.3:  # 30% chance
+            ui.echo(f"[RADIO] {tag_family_flavor}\n")
+        elif not tag_family_flavor:
+            body_type_flavor = _get_echo_belly_body_type_flavor(state.character)
+            if body_type_flavor and random.random() < 0.25:  # 25% chance
+                ui.echo(f"[RADIO] {body_type_flavor}\n")
+        
         ui.echo(base_text)
         return False
     
@@ -345,7 +484,7 @@ def _handle_struggle(
             # Failed: jostled
             ui.echo(
                 f"You struggle, but the {creature_name} holds firm. You're shaken around "
-                "and exhausted, but still trapped.\n"
+                "and exhausted, though still trapped.\n"
             )
             return False
 
@@ -365,6 +504,24 @@ def _handle_relax(
         race_flavor = _get_echo_belly_race_flavor(state.character.race_id)
         if race_flavor and random.random() < 0.5:  # 50% chance to show race flavor
             ui.echo(f"[RADIO] {race_flavor}\n")
+        
+        # Add optional tag family or body type flavor with size-bending lore
+        tag_family_flavor = _get_echo_belly_tag_family_flavor(state.character)
+        if tag_family_flavor and random.random() < 0.4:  # 40% chance
+            ui.echo(f"[RADIO] {tag_family_flavor}\n")
+        elif not tag_family_flavor:
+            body_type_flavor = _get_echo_belly_body_type_flavor(state.character)
+            if body_type_flavor and random.random() < 0.35:  # 35% chance
+                ui.echo(f"[RADIO] {body_type_flavor}\n")
+        
+        # Occasionally reinforce Forest size-bending lore
+        if random.random() < 0.2:  # 20% chance
+            size_lore = random.choice([
+                "[RADIO] The Forest stretches bellies to fit its stories. You fit perfectly, regardless of size.",
+                "[RADIO] Size means nothing here. The Forest makes space where it needs to.",
+            ])
+            ui.echo(f"{size_lore}\n")
+        
         ui.echo(
             "You give in to the warmth and safety. Time passes in a blur of gentle "
             "movement and steady breathing. When awareness returns, you find yourself "
@@ -396,10 +553,12 @@ def _handle_relax(
     creature_data = creatures.get(creature_id, {})
     is_friendly_belly = creature_data.get("is_friendly_belly", False)
     
-    race_flavor = None
-    races_data = races or _load_races_if_needed()
-    if races_data:
-        race_flavor = _get_race_belly_flavor(state.character.race_id, races_data, "relax")
+    # Get tag-based belly flavor
+    try:
+        from .flavor_profiles import get_belly_flavor
+        flavor_text = get_belly_flavor(state.character, "relax", is_predator=False)
+    except Exception:
+        flavor_text = None
     
     if is_friendly_belly:
         base_text = (
@@ -407,8 +566,8 @@ def _handle_relax(
             "Time passes peacefully as you're carried through the forest. "
             "The creature seems to understand you mean no harm, and the journey is gentle.\n"
         )
-        if race_flavor:
-            ui.echo(base_text.rstrip() + f" {race_flavor}\n")
+        if flavor_text:
+            ui.echo(base_text.rstrip() + f" {flavor_text}\n")
         else:
             ui.echo(base_text)
     else:
@@ -417,8 +576,8 @@ def _handle_relax(
             "Time blurs as you're moved through the forest. "
             "When awareness returns, you find yourself somewhere else.\n"
         )
-        if race_flavor:
-            ui.echo(base_text.rstrip() + f" {race_flavor}\n")
+        if flavor_text:
+            ui.echo(base_text.rstrip() + f" {flavor_text}\n")
         else:
             ui.echo(base_text)
     
@@ -463,6 +622,16 @@ def _handle_call(
         race_flavor = _get_echo_belly_race_flavor(state.character.race_id)
         if race_flavor and random.random() < 0.3:  # 30% chance to show race flavor
             ui.echo(f"[RADIO] {race_flavor}\n")
+        
+        # Add optional tag family or body type flavor
+        tag_family_flavor = _get_echo_belly_tag_family_flavor(state.character)
+        if tag_family_flavor and random.random() < 0.3:  # 30% chance
+            ui.echo(f"[RADIO] {tag_family_flavor}\n")
+        elif not tag_family_flavor:
+            body_type_flavor = _get_echo_belly_body_type_flavor(state.character)
+            if body_type_flavor and random.random() < 0.25:  # 25% chance
+                ui.echo(f"[RADIO] {body_type_flavor}\n")
+        
         ui.echo(base_text)
         return False
     

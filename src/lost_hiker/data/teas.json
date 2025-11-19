@@ -3,7 +3,7 @@
     "name": "Soothing Mint Tea",
     "requires": ["mint"],
     "duration_days": 1,
-    "description": "Steeps the mint you gathered into a calming tea. Echo claims the aroma softens predator tempers.",
+    "description": "You steep the mint you gathered into a calming tea. Echo claims the aroma softens predator tempers.",
     "modifiers": [
       { "add": { "beast_calm": 1 } }
     ]
@@ -12,7 +12,7 @@
     "name": "Brambleroot Decoction",
     "requires": ["bramble root"],
     "duration_days": 2,
-    "description": "A bitter brew that leaves your tools slick, helping hack through bramble snarls.",
+    "description": "A bitter brew that leaves your tools slick, helping you hack through bramble snarls.",
     "modifiers": [
       { "add": { "bramble_clear": 1 } }
     ]

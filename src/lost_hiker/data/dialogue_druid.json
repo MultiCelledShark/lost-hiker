@@ -351,7 +351,166 @@
           "rapport_delta": 0
         }
       ]
-    }
+    },
+    {
+      "id": "druid_body_type_comment",
+      "npc_id": "druid",
+      "text": "The Forest enjoys making new shapes. Your form—unusual, perhaps, but the Forest doesn't judge. It only asks that you survive, that you adapt. Race, form, texture… the Forest doesn't care. Only that you persist.",
+      "conditions": {
+        "require_body_type": ["taur", "naga", "quadruped"],
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "I'm doing my best.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_modular_nature",
+      "npc_id": "druid",
+      "text": "Race, form, texture… the Forest doesn't care. Only that you survive. I've seen all manner of combinations—scaled and furred, small and large, cave-dwellers and river-folk. The Forest accepts them all, so long as they adapt.",
+      "conditions": {
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "The Forest is accepting.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_archetype_forest_creature",
+      "npc_id": "druid",
+      "text": "You're a forest creature, through and through. The trees recognize you. The Shroomlings' disturbance must feel particularly wrong to you—like a violation of the natural order.",
+      "conditions": {
+        "require_archetype": "forest_creature",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "It does feel wrong.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_archetype_cave_creature",
+      "npc_id": "druid",
+      "text": "You're built for the caves, aren't you? The Shroomlings rising to the surface—that must feel like a deeper wrong to you. They belong underground, where you're most at home.",
+      "conditions": {
+        "require_archetype": "cave_creature",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "They shouldn't be on the surface.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_archetype_river_creature",
+      "npc_id": "druid",
+      "text": "The water calls to you. River-folk understand flow, rhythm—the way things should move. The fractured runestones disrupt that flow, and you feel it more keenly than most.",
+      "conditions": {
+        "require_archetype": "river_creature",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "I can feel the disruption.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_tag_family_fungal",
+      "npc_id": "druid",
+      "text": "You carry the forest's memory in your form. The mycelial network remembers—it's how the Forest knows itself, how it persists across seasons. You're part of that memory now, part of how the land remembers.",
+      "conditions": {
+        "require_tag_family": "fungal",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "The Forest remembers through me?",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_tag_family_ooze",
+      "npc_id": "druid",
+      "text": "Soft forms of persistence. Your body adapts, flows, reshapes itself. The Forest values that—the ability to change without breaking. There's wisdom in softness, in forms that yield rather than shatter.",
+      "conditions": {
+        "require_tag_family": "slime",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "I hadn't thought of it that way.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_tag_family_synth",
+      "npc_id": "druid",
+      "text": "Your form is foreign to the Forest—not born of soil or seed. But the Forest has adopted you. It recognizes persistence, adaptation, survival. Even if your frame hums with something that isn't organic, you're part of the ecosystem now.",
+      "conditions": {
+        "require_tag_family": "synth",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "The Forest accepts me?",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_tag_family_elemental",
+      "npc_id": "druid",
+      "text": "You carry the edges of the Forest's will—fire, ice, storm. These are the boundaries where the Forest touches something else, something older. The elemental forces flow through you, and the Forest recognizes that connection.",
+      "conditions": {
+        "require_tag_family": "elemental",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "I'm connected to the Forest?",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "druid_tag_family_psionic",
+      "npc_id": "druid",
+      "text": "Your mind touches edges the Forest doesn't usually reach—astral planes, dream spaces, the veil between worlds. You're a bridge, a connection point. The Forest notices when minds reach beyond the material.",
+      "conditions": {
+        "require_tag_family": "psionic",
+        "require_flag": "druid_met"
+      },
+      "options": [
+        {
+          "text": "The Forest is aware of my mind?",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
   ]
 }
 

@@ -1,0 +1,128 @@
+{
+  "events": [
+    {
+      "id": "fungal_bioluminescent_recognition",
+      "name": "Bioluminescent Recognition",
+      "text": "As you move through the damp undergrowth, the bioluminescent fungi scattered around you begin to pulse in a slow, rhythmic pattern. The gentle glow seems to follow your movements, and you notice tiny spores drifting gently toward you—not away. For a moment, you feel a strange sense of recognition, as if the mycelial network beneath your feet is acknowledging your presence. The forest remembers its own.",
+      "trigger_chance": 0.08,
+      "max_triggers": 2,
+      "prerequisites": {
+        "flavor_tags_any": ["fungal", "mycelial", "sporeborne"],
+        "zones": ["forest", "glade"],
+        "time_of_day_any": ["Night", "Dusk"],
+        "landmark_tags_any": ["mystical", "damp", "cave-adjacent"]
+      }
+    },
+    {
+      "id": "fungal_mycelial_whisper",
+      "name": "Mycelial Whisper",
+      "text": "You pause near a moss-covered log, and something makes you place your hand on the decaying wood. Beneath the surface, you feel a faint vibration—like a distant heartbeat. The mycelial threads seem to resonate with something in your own body. For a heartbeat, you sense an invitation, a connection to the vast underground network that links the entire forest. The moment passes, leaving you with a sense of profound kinship.",
+      "trigger_chance": 0.06,
+      "max_triggers": 1,
+      "prerequisites": {
+        "flavor_tags_any": ["fungal", "mycelial", "sporeborne"],
+        "zones": ["forest"],
+        "time_of_day_any": ["Dawn", "Day"],
+        "landmark_tags_any": ["damp", "mystical"]
+      }
+    },
+    {
+      "id": "ooze_slime_mimicry",
+      "name": "Slime Mimicry",
+      "text": "You notice a cluster of tiny, translucent blobs near a muddy patch of ground. As you approach, they begin to wobble in sync with your movements, shifting and flowing in a mimicry that feels almost playful. When you stop, they pause. When you take a step, they ripple. For a moment, you feel an odd kinship with these simple life forms—they recognize something familiar in your form, and you in theirs.",
+      "trigger_chance": 0.07,
+      "max_triggers": 2,
+      "prerequisites": {
+        "flavor_tags_any": ["slimy", "gelatinous", "amorphous", "ooze"],
+        "zones": ["forest", "glade"],
+        "landmark_tags_any": ["damp", "water", "marsh"]
+      }
+    },
+    {
+      "id": "ooze_water_communion",
+      "name": "Water Communion",
+      "text": "Near a stream's edge, you watch the water flow over smooth stones. A small ooze slides down from a nearby rock, merging briefly with the stream before reforming. As you dip your hand into the water, you feel a strange resonance—the boundary between your own form and the liquid seems to blur for an instant. The ooze watches you, and you sense a kind of curiosity, a recognition of shared fluidity.",
+      "trigger_chance": 0.08,
+      "max_triggers": 1,
+      "prerequisites": {
+        "flavor_tags_any": ["slimy", "gelatinous", "amorphous", "ooze"],
+        "zones": ["forest"],
+        "landmark_tags_any": ["water", "creek", "stream"]
+      }
+    },
+    {
+      "id": "synth_leyline_resonance",
+      "name": "Leyline Resonance",
+      "text": "As you pass near a fractured runestone, you feel a sudden ping—like a distant radio signal, but deeper, more fundamental. The ley-lines beneath your feet seem to recognize something in your frame, and for a moment, you sense a strange harmonics running through your body. Faint interference patterns dance at the edge of your perception. The Forest is tuning itself, and you are part of the frequency.",
+      "trigger_chance": 0.09,
+      "max_triggers": 2,
+      "prerequisites": {
+        "flavor_tags_any": ["synthetic", "composite", "lightcore", "mechanical"],
+        "zones": ["forest"],
+        "landmark_tags_any": ["runestone", "mystical", "leyline"]
+      }
+    },
+    {
+      "id": "synth_wisp_orbital",
+      "name": "Wisp Orbital",
+      "text": "Wisps of light drift near you, their usual erratic patterns shifting into something more deliberate. They begin to orbit you in a slow, clockwise spiral, their soft glow pulsing in time with something you sense but can't quite name. If you have any light-emitting components, they seem to respond in kind. The wisps recognize you—not as prey or predator, but as kin. A brief, wordless communication passes between you.",
+      "trigger_chance": 0.07,
+      "max_triggers": 1,
+      "prerequisites": {
+        "flavor_tags_any": ["synthetic", "composite", "lightcore"],
+        "zones": ["forest", "glade"],
+        "time_of_day_any": ["Night", "Dusk"]
+      }
+    },
+    {
+      "id": "elemental_emberheart_pulse",
+      "name": "Emberheart Pulse",
+      "text": "You feel a sudden heat pulse near what looks like an Ember-Root tree—its bark glowing faintly with inner warmth. Your own body responds, and for a moment, you feel a resonance between the tree's internal fire and something similar in your chest. The heat isn't burning; it's welcoming. The Forest recognizes the fire in you, and the fire recognizes the Forest.",
+      "trigger_chance": 0.08,
+      "max_triggers": 2,
+      "prerequisites": {
+        "flavor_tags_any": ["emberheart", "fireborn", "heat-core"],
+        "zones": ["forest"],
+        "archetype_any": ["forest_creature", "spiritborn"]
+      }
+    },
+    {
+      "id": "elemental_frostbreath_pattern",
+      "name": "Frostbreath Pattern",
+      "text": "In the cool morning air, you notice frost forming in unusual patterns—spirals and crystalline branches that seem to follow your breath. The frost isn't random; it responds to your presence, growing more intricate as you watch. Your own breath crystallizes in matching patterns, creating a brief, beautiful symmetry between you and the winter-touched forest. For a moment, the cold feels like home.",
+      "trigger_chance": 0.07,
+      "max_triggers": 1,
+      "prerequisites": {
+        "flavor_tags_any": ["frostbreath", "iceborn", "cold-core"],
+        "zones": ["forest", "glade"],
+        "time_of_day_any": ["Dawn", "Day"],
+        "season_any": ["winter", "fall"]
+      }
+    },
+    {
+      "id": "psionic_mindecho_whispers",
+      "name": "Mindecho Whispers",
+      "text": "Near an ancient, gnarled root system, you hear faint whispers—not with your ears, but with something deeper. The whispers aren't words, exactly; they're feelings, fragments of memory from trees that have stood for centuries. For a moment, you feel connected to the Forest's collective consciousness, hearing echoes of seasons past, of storms weathered, of creatures that came and went. The Forest remembers, and it shares those memories with you.",
+      "trigger_chance": 0.06,
+      "max_triggers": 1,
+      "prerequisites": {
+        "flavor_tags_any": ["mindecho", "astral", "dreamlinked", "veilborn", "psionic"],
+        "zones": ["forest"],
+        "landmark_tags_any": ["mystical", "ancient"]
+      }
+    },
+    {
+      "id": "psionic_stormtouched_resonance",
+      "name": "Stormtouched Resonance",
+      "text": "The air grows charged around you, and you feel a familiar tension—the kind that comes before a storm. But this isn't weather; it's magic. The ley-lines respond to something in your essence, and for a heartbeat, you feel like you could call the lightning, or ride the wind, or become one with the tempest. The Forest recognizes the storm in you, and for a moment, you recognize it back.",
+      "trigger_chance": 0.08,
+      "max_triggers": 2,
+      "prerequisites": {
+        "flavor_tags_any": ["stormtouched", "windborn", "storm-core"],
+        "zones": ["forest", "glade"],
+        "season_any": ["spring", "summer"]
+      }
+    }
+  ]
+}
+

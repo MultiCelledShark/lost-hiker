@@ -1,0 +1,132 @@
+name: "Lost Hiker – NPC & Echo Reactions to Modular Races (Tags + Body Type)"
+
+description: |
+  Make key NPCs (Echo, Astrin, Druid, Fisherman, Naiad, and others as
+  appropriate) react not only to race_id, but also to:
+    - body_type,
+    - flavor_tags (furred, scaled, slimy, chitinous, feathered, etc.),
+    - size category,
+    - archetype.
+
+  This task is flavor-only: NPCs’ behavior does not change mechanically.
+
+goals:
+  - Echo:
+      - Extend Echo’s dialogue so that, beyond race_id:
+          - she can occasionally comment on:
+              - body_type:
+                  - naga: “You’re built more like me than most.”
+                  - taur: “You carry your weight well. Literally.”
+                  - quadruped: “Four legs give you stability; useful out here.”
+                  - humanoid: default, no special mention unless tagged.
+              - flavor_tags:
+                  - slimy: “You leave a strange trail. Not unpleasant.”
+                  - chitinous: “Your shell catches the moonlight.”
+                  - feathered: “Loose feathers mark your path.”
+                  - furred: “Your fur holds the forest’s scent.”
+              - size:
+                  - small: “Easy to hide. Harder to spot.”
+                  - large: “The forest feels you coming before it sees you.”
+              - archetype:
+                  - cave_creature: “The dark doesn’t bother you, does it?”
+                  - river_creature: “You always drift toward the water.”
+                  - forest_creature: “You belong among these trees.”
+          - integrate “Forest reshapes bellies” lore:
+              - occasionally comment when the player (or a predator) swallows
+                something that “shouldn’t fit”:
+                  - “Size means little here. The Forest stretches space for us.”
+
+  - Astrin (half-dryad):
+      - Add short optional lines reacting to:
+          - plantlike/stoneborn/slimy tags,
+          - forestborn vs caveborn archetypes,
+          - unusual body_types (taur, naga, quadruped) in the context of
+            tea brewing and resting in the Glade.
+
+  - Druid:
+      - Add occasional comments that:
+          - acknowledge strange body combinations:
+              - “The Forest enjoys making new shapes.”
+          - explicitly reference the modular nature:
+              - “Race, form, texture… the Forest doesn’t care. Only that you survive.”
+          - mention archetypes (forest_creature, cave_creature, river_creature).
+
+  - Fisherman:
+      - Add flavor lines relating:
+          - river_creature archetype,
+          - slimy or scaled tags,
+          - quadruped movement near water,
+          - size (small creatures vs large ones in river crossings).
+
+  - Naiad:
+      - React to:
+          - river_creature vs cave/forest creatures,
+          - slime/scale/feather/fur in water,
+          - body_type naga vs taur vs quadruped in river context.
+
+  - General NPC template hooks:
+      - Ensure dialogue system can:
+          - check body_type, tags, size, archetype alongside race_id,
+          - choose lines from small optional pools keyed by these properties.
+      - Keep usage sparse so NPCs don’t sound like walking morphology analyzers.
+
+deliverables:
+  - Updated dialogue resources for:
+      - Echo,
+      - Astrin,
+      - Druid,
+      - Fisherman,
+      - Naiad,
+      - any other Forest Act I NPCs where a small tag-based reaction makes sense.
+  - Small helper utilities for:
+      - building NPC conditional branches based on tags/body_type/size/archetype
+        in a clean, data-driven way.
+
+acceptance_criteria:
+  - NPCs occasionally acknowledge:
+      - unusual shapes (taur, naga, quadruped),
+      - unusual textures (slimy, chitinous, feathered, mossy, etc.),
+      - size category,
+      - broad ecology archetype.
+  - Echo:
+      - explicitly reinforces the lore that the Forest can bend size and
+        stomach-space in non-lethal ways.
+  - Custom races (e.g. centipede-naga, slugborn) feel:
+      - noticed,
+      - accepted,
+      - normalized within the Forest’s weirdness.
+  - No NPC gains mechanical bias or extra gameplay effects based on player
+    morphology; this remains flavor-only.
+
+non_goals:
+  - No new questlines tied to morphology.
+  - No stat adjustments or resistances.
+  - No new systems.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep NPC logic readable and data-driven.
+  - Prefer simple tag checks over deeply nested if/else branches.
+  - Maintain each NPC’s voice and tone from the design doc.
+
+test_plan:
+  - Create several characters:
+      - canonical races with default body_types,
+      - custom centipede-naga (chitinous, manylimbed, caveborn),
+      - custom slugborn (slimy, forestborn),
+      - quadruped fox-kin,
+      - taur dragonborn.
+  - Talk to:
+      - Echo,
+      - Astrin,
+      - Druid,
+      - Fisherman,
+      - Naiad.
+  - Confirm:
+      - they sometimes acknowledge body_type, tags, size, archetype in a
+        way that fits their personality,
+      - size/magic comments from Echo appear sometimes when swallowing
+        interactions are odd in size relationship,
+      - generic dialogue still covers cases where tags/body_type are not used.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import random
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -10,6 +11,7 @@ from typing import Dict, List, Optional, Any
 from .state import GameState
 from .rapport import get_rapport, get_rapport_tier, change_rapport
 from .runestones import get_runestone_state
+from .flavor_tags import TAG_FAMILIES
 
 
 @dataclass(frozen=True)
@@ -112,6 +114,7 @@ class DialogueCatalog:
         Get the starting node for an NPC (node with id 'start' or first node).
         
         For Echo, also checks for race-aware greeting nodes that match the player's race.
+        Occasionally checks for tag/body_type/archetype-aware reaction nodes.
         """
         npc_nodes = self._by_npc.get(npc_id, [])
         if not npc_nodes:
@@ -124,6 +127,60 @@ class DialogueCatalog:
             race_node = self._by_id.get(race_greeting_id)
             if race_node and check_node_conditions(race_node, state, npc_id):
                 return race_node
+        
+        # Occasionally (15% chance) check for tag/body_type/archetype-aware reaction nodes
+        # This makes NPCs occasionally comment on player morphology
+        if state and random.random() < 0.15:
+            character = state.character
+            # Check body_type reactions
+            body_type_nodes = [
+                f"{npc_id}_body_type_{character.body_type}",
+            ]
+            for node_id in body_type_nodes:
+                node = self._by_id.get(node_id)
+                if node and check_node_conditions(node, state, npc_id):
+                    return node
+            
+            # Check tag family reactions (check before individual tags for priority)
+            tag_family_checks = [
+                ("fungal", is_fungal),
+                ("ooze", is_ooze),
+                ("synth", is_synth),
+                ("elemental", is_elemental),
+                ("psionic", is_psionic),
+                ("material", is_material),
+            ]
+            for family_name, check_func in tag_family_checks:
+                if check_func(character):
+                    family_node_id = f"{npc_id}_tag_family_{family_name}"
+                    node = self._by_id.get(family_node_id)
+                    if node and check_node_conditions(node, state, npc_id):
+                        return node
+            
+            # Check flavor_tag reactions (check first matching tag)
+            for tag in character.flavor_tags:
+                tag_node_id = f"{npc_id}_flavor_tag_{tag}"
+                node = self._by_id.get(tag_node_id)
+                if node and check_node_conditions(node, state, npc_id):
+                    return node
+            
+            # Check size reactions
+            size_node_id = f"{npc_id}_size_{character.size}"
+            node = self._by_id.get(size_node_id)
+            if node and check_node_conditions(node, state, npc_id):
+                return node
+            
+            # Check archetype reactions
+            archetype_node_id = f"{npc_id}_archetype_{character.archetype}"
+            node = self._by_id.get(archetype_node_id)
+            if node and check_node_conditions(node, state, npc_id):
+                return node
+            
+            # Special: Echo's Forest size-bending lore (5% chance when other reactions don't trigger)
+            if npc_id == "echo" and random.random() < 0.33:
+                node = self._by_id.get("echo_forest_size_bending")
+                if node and check_node_conditions(node, state, npc_id):
+                    return node
         
         # Look for a node with id ending in "_start" or just "start"
         # First, try race-aware start nodes (e.g., "astrin_glade_start_elf")
@@ -151,6 +208,58 @@ class DialogueCatalog:
                 if check_node_conditions(node, state, npc_id):
                     return node
         return npc_nodes[0] if npc_nodes else None
+
+
+def has_tag_family(character: "Character", family: str) -> bool:
+    """
+    Check if a character has any tags from a specific tag family.
+    
+    Args:
+        character: The character to check
+        family: The tag family name (e.g., "fungal", "slime", "synth")
+        
+    Returns:
+        True if character has any tag from the family, False otherwise
+    """
+    family_tags = TAG_FAMILIES.get(family, [])
+    player_tags = set(character.flavor_tags)
+    return any(tag in player_tags for tag in family_tags)
+
+
+def is_fungal(character: "Character") -> bool:
+    """Check if character has fungal/mycelial tags."""
+    return has_tag_family(character, "fungal")
+
+
+def is_ooze(character: "Character") -> bool:
+    """Check if character has slime/ooze tags."""
+    return has_tag_family(character, "slime")
+
+
+def is_synth(character: "Character") -> bool:
+    """Check if character has synth/construct tags."""
+    return has_tag_family(character, "synth")
+
+
+def is_elemental(character: "Character") -> bool:
+    """Check if character has elemental tags (emberheart, frostbreath, stormtouched)."""
+    player_tags = set(character.flavor_tags)
+    elemental_tags = ["emberheart", "frostbreath", "stormtouched", "mistborne"]
+    return any(tag in player_tags for tag in elemental_tags)
+
+
+def is_psionic(character: "Character") -> bool:
+    """Check if character has psionic tags (mindecho, astral, dreamlinked, veilborn)."""
+    player_tags = set(character.flavor_tags)
+    psionic_tags = ["mindecho", "astral", "dreamlinked", "veilborn"]
+    return any(tag in player_tags for tag in psionic_tags)
+
+
+def is_material(character: "Character") -> bool:
+    """Check if character has material tags (saplike, rubberlike, fungal_leather, crystalhide, mossfur, boneplated)."""
+    player_tags = set(character.flavor_tags)
+    material_tags = ["saplike", "rubberlike", "fungal_leather", "crystalhide", "mossfur", "boneplated"]
+    return any(tag in player_tags for tag in material_tags)
 
 
 def check_condition(
@@ -266,6 +375,46 @@ def check_condition(
         # Check if radio version meets requirement (for Echo dialogue)
         required_version = int(condition_value)
         return state.radio_version >= required_version
+
+    elif condition_key == "require_body_type":
+        # Check if player's body_type matches
+        required_types = condition_value
+        if isinstance(required_types, str):
+            required_types = [required_types]
+        return state.character.body_type in required_types
+
+    elif condition_key == "require_flavor_tag":
+        # Check if player has a specific flavor_tag
+        required_tags = condition_value
+        if isinstance(required_tags, str):
+            required_tags = [required_tags]
+        player_tags = set(state.character.flavor_tags)
+        return any(tag in player_tags for tag in required_tags)
+
+    elif condition_key == "require_tag_family":
+        # Check if player has any tag from a specific tag family
+        required_family = str(condition_value)
+        # Handle special tag families that aren't in TAG_FAMILIES
+        if required_family == "elemental":
+            return is_elemental(state.character)
+        elif required_family == "psionic":
+            return is_psionic(state.character)
+        else:
+            return has_tag_family(state.character, required_family)
+
+    elif condition_key == "require_size":
+        # Check if player's size category matches
+        required_sizes = condition_value
+        if isinstance(required_sizes, str):
+            required_sizes = [required_sizes]
+        return state.character.size in required_sizes
+
+    elif condition_key == "require_archetype":
+        # Check if player's archetype matches
+        required_archetypes = condition_value
+        if isinstance(required_archetypes, str):
+            required_archetypes = [required_archetypes]
+        return state.character.archetype in required_archetypes
 
     return False
 

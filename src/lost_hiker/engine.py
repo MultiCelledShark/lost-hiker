@@ -6,7 +6,7 @@ import math
 import random
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, Protocol
+from typing import Any, Dict, Iterable, Optional, Protocol
 
 from .character import TimedModifier
 from .events import Event, EventPool
@@ -69,6 +69,7 @@ from .wayfinding import (
 from .encounters import EncounterEngine, load_encounter_definitions
 from .rapport import get_rapport_tier
 from .npcs import NPCCatalog, load_npc_catalog
+from .rare_lore_events import RareLoreEventSystem
 from .dialogue import (
     DialogueCatalog,
     load_dialogue_catalog,
@@ -135,6 +136,7 @@ class Engine:
     encounter_engine: EncounterEngine | None = None
     npc_catalog: NPCCatalog = field(default_factory=lambda: NPCCatalog([]))
     dialogue_catalog: DialogueCatalog = field(default_factory=lambda: DialogueCatalog([]))
+    rare_lore_events: Optional[RareLoreEventSystem] = field(default=None, init=False)
     _ate_proper_meal_yesterday: bool = field(default=False, init=False)
     _day_start_inventory: list[str] = field(default_factory=list, init=False)
     _day_start_rapport: dict[str, int] = field(default_factory=dict, init=False)
@@ -150,6 +152,17 @@ class Engine:
         self._command_parser = CommandParser()
         # Initialize forest memory system
         init_landmark_memory(self.state)
+    
+    def _get_rare_lore_events(self) -> RareLoreEventSystem | None:
+        """Lazy-load rare lore events system."""
+        if self.rare_lore_events is None:
+            try:
+                from . import main
+                data_dir, _ = main.resolve_paths()
+                self.rare_lore_events = RareLoreEventSystem.load(data_dir, "rare_lore_events.json")
+            except Exception:
+                self.rare_lore_events = RareLoreEventSystem([])
+        return self.rare_lore_events
 
     def run(self) -> None:
         """Run until the player chooses to exit."""
@@ -328,6 +341,17 @@ class Engine:
             )
             from .forest_act1 import mark_completion_acknowledged
             mark_completion_acknowledged(self.state)
+        
+        # Check for rare lore events when entering Glade (especially at night)
+        from .time_of_day import get_time_of_day
+        time_of_day = get_time_of_day(self.state)
+        if time_of_day.value in ("Night", "Dusk"):
+            rare_events = self._get_rare_lore_events()
+            if rare_events:
+                event = rare_events.check_for_event(self.state, "glade", self.landmarks)
+                if event:
+                    text = rare_events.trigger_event(event, self.state)
+                    self.ui.echo(f"\n{text}\n")
         
         self._set_scene_highlights(zone_id="glade", depth=0, extras=())
         glade_commands = "move, look, ping, brew, camp, status, bag, help"
@@ -1535,6 +1559,8 @@ class Engine:
                 # Enter belly interaction state
                 creature_data = self.creatures.get(encounter.creature_id, {})
                 creature_name = creature_data.get("name", encounter.creature_id.replace("_", " ").title())
+                predator_size = creature_data.get("size_class", "medium")
+                player_size = self.state.character.size
                 
                 self.ui.echo(
                     f"\nYou freeze, submitting to the {creature_name}'s dominance. "
@@ -1542,6 +1568,15 @@ class Engine:
                     "You're pulled into darkness, warmth, and a crushing pressure "
                     "that's somehow not suffocating.\n"
                 )
+                
+                # Add Forest magic flavor if player is larger than predator
+                try:
+                    from .flavor_profiles import get_forest_magic_size_flavor
+                    magic_flavor = get_forest_magic_size_flavor(player_size, predator_size)
+                    if magic_flavor:
+                        self.ui.echo(f"{magic_flavor}\n")
+                except Exception:
+                    pass
                 
                 enter_belly_state(
                     self.state,
@@ -2099,6 +2134,14 @@ class Engine:
         
         self.ui.echo(f"\n{landmark.short_description}\n")
         
+        # Check for rare lore events after entering landmark
+        rare_events = self._get_rare_lore_events()
+        if rare_events:
+            event = rare_events.check_for_event(self.state, zone_id, self.landmarks)
+            if event:
+                text = rare_events.trigger_event(event, self.state)
+                self.ui.echo(f"\n{text}\n")
+        
         # Check for NPCs at this landmark using appearance logic
         from .npc_appearance import get_present_npcs, get_npc_presence_description
         present_npcs = get_present_npcs(self.npc_catalog, self.state, landmark.landmark_id)
@@ -2452,7 +2495,19 @@ class Engine:
                         "cave_forage": "You gather spores, grubs, and fungi from near the cave entrance.",
                         "mystical_herbs": "You carefully gather magical herbs and plants from this mystical place.",
                     }
-                    self.ui.echo(f"{messages.get(food_type, 'You gather some food.')}\n")
+                    base_message = messages.get(food_type, "You gather some food.")
+                    
+                    # Add optional tag-based foraging flavor
+                    try:
+                        from .flavor_profiles import get_foraging_flavor
+                        flavor_text = get_foraging_flavor(self.state.character)
+                        if flavor_text:
+                            self.ui.echo(f"{base_message} {flavor_text}\n")
+                        else:
+                            self.ui.echo(f"{base_message}\n")
+                    except Exception:
+                        # If flavor fails, use base message
+                        self.ui.echo(f"{base_message}\n")
                     return True
         
         # Check for sand/clay gathering at Creek Bend
@@ -2870,6 +2925,15 @@ class Engine:
         advance_time_of_day(self.state, steps=1)
         self.ui.echo("You make camp and rest by the fire.\n")
         
+        # Add optional tag-based resting flavor
+        try:
+            from .flavor_profiles import get_resting_flavor
+            flavor_text = get_resting_flavor(self.state.character, context="camp")
+            if flavor_text:
+                self.ui.echo(f"{flavor_text}\n")
+        except Exception:
+            pass
+        
         # Check for Blue Fireflies event (Spring night at Glade)
         if zone_id == "glade":
             from .micro_quests import check_blue_fireflies_event, trigger_blue_fireflies_event
@@ -2883,6 +2947,14 @@ class Engine:
                 trigger_echo_checkin(self.state, self.ui)
             elif check_echo_favor(self.state):
                 trigger_echo_favor(self.state, self.ui)
+        
+        # Check for rare lore events at camp
+        rare_events = self._get_rare_lore_events()
+        if rare_events:
+            event = rare_events.check_for_event(self.state, zone_id, self.landmarks)
+            if event:
+                text = rare_events.trigger_event(event, self.state)
+                self.ui.echo(f"\n{text}\n")
         
         # Check for Kirin intro at landmark with high stability
         current_landmark = self._get_current_landmark()
@@ -3117,24 +3189,15 @@ class Engine:
                         encounter_text = self._resolve_encounter(event)
                         summary = summary.rstrip("\n") + "\n" + encounter_text
                     
-                    # Add optional race-aware exploration flavor (for non-encounter events)
+                    # Add optional tag-based exploration flavor (for non-encounter events)
                     if event.event_type != "encounter":
                         try:
-                            from .race_flavor import get_exploration_flavor
-                            from .main import resolve_paths
-                            import json
-                            data_dir, _ = resolve_paths()
-                            races_path = data_dir / "races.json"
-                            if races_path.exists():
-                                with races_path.open("r", encoding="utf-8") as handle:
-                                    races_data = json.load(handle)
-                                    race_flavor = get_exploration_flavor(
-                                        self.state.character.race_id, races_data
-                                    )
-                                    if race_flavor:
-                                        summary = summary.rstrip("\n") + f"\n{race_flavor}"
+                            from .flavor_profiles import get_exploration_flavor
+                            flavor_text = get_exploration_flavor(self.state.character)
+                            if flavor_text:
+                                summary = summary.rstrip("\n") + f"\n{flavor_text}"
                         except Exception:
-                            # If race flavor fails, continue without it
+                            # If flavor fails, continue without it
                             pass
                     
                     if not summary.endswith("\n"):

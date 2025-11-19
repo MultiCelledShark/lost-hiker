@@ -1299,7 +1299,7 @@
   },
   "wisp_hive_slug": {
     "name": "Wisp-Hive Slug",
-    "description": "A friendly mystical slug that shelters will-o'-wisps in its translucent body. It moves slowly but purposefully, offering safe passage to those who respect it.",
+    "description": "A friendly mystical slug that shelters will-o'-wisps within its translucent body. It moves slowly but purposefully, offering safe passage to those who show respect.",
     "type": "predator",
     "tame_threshold": 3,
     "tags": ["neutral", "forest", "mystical"],

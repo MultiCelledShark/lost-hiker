@@ -1,0 +1,152 @@
+name: "Lost Hiker – Tag Pack Expansion (Fungal, Ooze, Synth, Mix-In Tags)"
+
+description: |
+  Expand the modular race system by introducing new tag families:
+    - Fungal / Mycelial
+    - Slime / Ooze / Amorphous
+    - Synth / Construct / Biotech
+    - Mix-In tags for hybrid, elemental, psionic, and material variants
+
+  This task:
+    - Extends the curated flavor_tag options available during character creation
+      (especially custom race creation).
+    - Updates player state handling so these tags persist normally.
+    - Updates the flavor tag registry so these tags are recognized
+      by the tag-based flavor engine (movement, belly flavor, foraging, etc.)
+      WITHOUT adding new behavior or NPC dialogue here.
+    - Adds well-organized tag packs so future tasks can use them for rare lore reactions.
+
+  No mechanical or numerical behavior is added in this task. Flavor only.
+
+goals:
+  - Extend the flavor_tag system:
+      - Add new tag families to the curated list of selectable tags.
+      - Ensure these tags integrate with the existing "flavor_tags" structure
+        in player state and in races.json (for canonical races if desired).
+
+  - Add the following tag families:
+
+      - Fungal / Mycelial:
+          - fungal
+          - mycelial
+          - sporeborne
+          - decomposer
+          - glowcap
+          - rootmind
+          - softbloom
+          - mossy
+
+      - Slime / Ooze:
+          - slimy
+          - gelatinous
+          - amorphous
+          - viscous
+          - elastic
+          - transparent
+          - pseudopods
+          - softbodied
+
+      - Synth / Construct:
+          - synthetic
+          - composite
+          - alloyed
+          - modular
+          - smoothplate
+          - softservo
+          - lightcore
+          - resonanceframe
+
+      - Mix-In (hybrids / elemental / psionic / materials):
+          - hybrid
+          - stitched
+          - grafted
+          - emberheart
+          - frostbreath
+          - stormtouched
+          - mistborne
+          - mindecho
+          - astral
+          - dreamlinked
+          - veilborn
+          - saplike
+          - rubberlike
+          - fungal_leather
+          - crystalhide
+          - mossfur
+          - boneplated
+
+  - Character creation updates:
+      - In the custom race flow, allow players to select:
+          - one "tag pack" (optional), which pre-selects 2–3 tags,
+          - or manually choose 2–4 tags individually.
+      - Tag packs should be presented as a high-level option:
+          - "Fungal Essence"
+          - "Ooze / Slime Form"
+          - "Synthetic / Construct"
+          - "None / Manual Selection"
+      - Selecting a pack should prefill tags, but players should still be able to add/remove individual tags afterward.
+
+  - Player data:
+      - Ensure selected tags (whether from packs or manual) are saved in
+        player.flavor_tags normally.
+      - Do not modify any existing saves except to guarantee:
+          - flavor_tags exists (as a list),
+          - it loads/saves cleanly.
+
+  - Tag registry / flavor helper integration:
+      - Update or create a flavor_tag registry file (or module) that:
+          - lists all allowed tags,
+          - organizes them into families,
+          - exposes them via the tag-based flavor engine.
+      - Do NOT change any existing flavor behavior — only expand valid inputs.
+
+deliverables:
+  - Updated character creation code to:
+      - allow browsing tag packs,
+      - allow manual tag selection,
+      - store player.flavor_tags correctly.
+  - Updated race/tag schema if needed.
+  - A new or extended flavor tag registry defining:
+      - all tag families,
+      - all new tags,
+      - metadata structure for future use.
+
+acceptance_criteria:
+  - Custom race creation allows players to pick:
+      - a tag pack OR manual tags,
+      - 2–4 tags total.
+  - The following examples MUST work:
+      - centipede-naga with flavor_tags ["chitinous", "manylimbed", "caveborn", "pseudopods"]
+      - slug-quadruped with slimy + softbodied tags
+      - synth-naga with synthetic + smoothplate + lightcore
+      - fungal-taur with fungal + sporeborne + rootmind
+  - Player.save writes & loads flavor_tags cleanly.
+  - No changes occur to:
+      - game mechanics,
+      - balance,
+      - predator/prey chances,
+      - quest logic.
+
+non_goals:
+  - No NPC reactions added here (that is part of Rare Lore task).
+  - No new dialogue.
+  - No new systems or stats.
+  - No belly capacity or combat mechanics.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep tag lists in a centralized registry.
+  - Make tag packs data-driven (JSON or dict), not hard-coded in logic.
+  - Keep CC UI minimal and curses-friendly.
+
+test_plan:
+  - Create multiple custom races selecting:
+      - fungal pack,
+      - slime pack,
+      - synth pack,
+      - mix-in combinations,
+      - manual-only tags.
+  - Save/load and verify tags persist properly.
+  - Confirm the flavor engine recognizes new tags without crashing.

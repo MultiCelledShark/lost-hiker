@@ -6,7 +6,7 @@
       "depth_min": 8,
       "depth_max": 12,
       "tags": ["resting", "safe", "mystical"],
-      "short_description": "A colossal fallen tree with a hollow trunk, roots twisted into an almost-arch.",
+      "short_description": "A colossal fallen tree with a hollow trunk, its roots twisted into a natural archway.",
       "long_description": "The Fallen Giant sprawls across the forest floor, its massive trunk hollowed by time and weather. The roots have twisted into a natural archway, creating a sheltered space beneath. The interior is dry and surprisingly spacious, with soft moss carpeting the ground. Faint runic traces mark the inner walls, hinting at ancient significance. At the heart of the hollow, a fractured runestone is embedded in the wood, its magical pulse erratic and broken. This feels like a safe haven, a place where predators rarely venture.",
       "features": {
         "has_runestone": true,
@@ -23,7 +23,7 @@
       "depth_max": 16,
       "tags": ["runestone", "mystical", "damaged"],
       "short_description": "A huge boulder split cleanly in half, with faint, weathered runes along the fracture plane.",
-      "long_description": "The Split Boulder stands like a monument to some ancient cataclysm. A massive stone, easily twice your height, has been cleaved perfectly in half. The fracture plane reveals intricate runes carved deep into the stone's heart—runes that pulse with a faint, distorted light. The magical energy here feels wrong, fractured, like a song played out of tune. At the center of the split, a fractured runestone glimmers with unstable magic.",
+      "long_description": "The Split Boulder stands like a monument to some ancient cataclysm. A massive stone, easily twice your height, has been cleaved perfectly in half. The fracture plane reveals intricate runes carved deep into the stone's heart—runes that pulse with faint, distorted light. The magical energy here feels wrong, fractured, like a song played out of tune. At the center of the split, a fractured runestone glimmers with unstable magic.",
       "features": {
         "has_runestone": true,
         "has_creek": false,
@@ -37,7 +37,7 @@
       "depth_max": 10,
       "tags": ["runestone", "ritual", "mystical"],
       "short_description": "A small clearing ringed by mossy stone lanterns with shallow rune-scratches.",
-      "long_description": "The Stone Lantern Clearing feels like a place of ceremony. Ancient stone lanterns, weathered and moss-covered, form a rough circle around a central clearing. Each lantern bears shallow rune-scratches that seem to shift when you're not looking directly at them. At the center, a rune-etched plinth rises from the earth, its surface cracked and damaged. The fractured runestone embedded in the plinth hums with distorted resonance, the magical pulse erratic and broken. This was clearly a ritual site, now fallen into disrepair.",
+      "long_description": "The Stone Lantern Clearing feels like a place of ceremony. Ancient stone lanterns, weathered and moss-covered, form a rough circle around a central clearing. Each lantern bears shallow rune-scratches that seem to shift when you're not looking directly at them. At the center, a rune-etched plinth rises from the earth, its surface cracked and damaged. The fractured runestone embedded in the plinth hums with distorted resonance, its magical pulse erratic and broken. This was clearly a ritual site, now fallen into disrepair.",
       "features": {
         "has_runestone": true,
         "has_creek": false,
@@ -53,7 +53,7 @@
       "depth_max": 9,
       "tags": ["creek", "resource", "gathering"],
       "short_description": "A slow bend in a forest stream with sandy banks and exposed clay along the inner curve.",
-      "long_description": "The Creek Bend offers a peaceful respite. The stream curves lazily here, creating a wide, shallow pool on the inner bank. Sandy deposits line the water's edge, perfect for sifting. Along the inner curve, the current has exposed rich clay deposits—dark, sticky earth that would be ideal for crafting. A tarnished tin pan lies half-buried in the sand, its handle rusted but still serviceable. This place feels like a resource-rich haven, where you could gather materials for future projects.",
+      "long_description": "The Creek Bend offers a peaceful respite. The stream curves lazily here, creating a wide, shallow pool on the inner bank. Sandy deposits line the water's edge, perfect for sifting. Along the inner curve, the current has exposed rich clay deposits—dark, sticky earth ideal for crafting. A tarnished tin pan lies half-buried in the sand, its handle rusted but still serviceable. This place feels like a resource-rich haven, where you could gather materials for future projects.",
       "features": {
         "has_runestone": false,
         "has_creek": true,
@@ -88,7 +88,7 @@
       "depth_max": 10,
       "tags": ["water", "mystical", "npc"],
       "short_description": "A natural spring that has sunken into a shallow depression, its waters clear and strangely still.",
-      "long_description": "The Sunken Spring forms a natural pool in a depression between ancient roots. The water is crystal clear and unnaturally still, reflecting the canopy above like a perfect mirror. Strange, bioluminescent plants line the edges, their soft glow making the water shimmer with an otherworldly light. The air here feels charged with magic, and the water seems to pulse with a rhythm that matches the forest's ley-lines. This place feels both peaceful and powerful, a nexus where water and magic intertwine.",
+      "long_description": "The Sunken Spring forms a natural pool in a depression between ancient roots. The water is crystal clear and unnaturally still, reflecting the canopy above like a perfect mirror. Strange, bioluminescent plants line the edges, their soft glow making the water shimmer with otherworldly light. The air here feels charged with magic, and the water seems to pulse with a rhythm that matches the forest's ley-lines. This place feels both peaceful and powerful, a nexus where water and magic intertwine.",
       "features": {
         "has_runestone": false,
         "has_creek": false,
@@ -120,7 +120,7 @@
       "depth_max": 8,
       "tags": ["creek", "resource", "gathering", "npc"],
       "short_description": "An old, well-worn bend in the creek where the water has carved deep pools and exposed rocky banks.",
-      "long_description": "The Old Creek Bend is a familiar spot where generations of travelers have stopped to rest and gather. The creek here has carved deep pools along the outer curve, while the inner bank is lined with smooth, water-worn stones. Mussels cling to the rocks beneath the water's surface, and the sandy bottom is rich with river life. A lizard-folk figure can sometimes be seen here during the day, their webbed hands moving with practiced efficiency as they examine the creek's offerings. This place feels like a reliable resource point, a place where the forest provides.",
+      "long_description": "The Old Creek Bend is a familiar spot where generations of travelers have stopped to rest and gather. The creek here has carved deep pools along the outer curve, while the inner bank is lined with smooth, water-worn stones. Mussels cling to the rocks beneath the water's surface, and the sandy bottom is rich with river life. A lizard-folk figure can sometimes be seen here during the day, their webbed hands moving with practiced efficiency as they examine the creek's offerings. This place feels like a reliable resource point, where the forest provides.",
       "features": {
         "has_runestone": false,
         "has_creek": true,

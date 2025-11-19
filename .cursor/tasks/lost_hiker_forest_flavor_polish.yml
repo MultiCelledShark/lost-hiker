@@ -1,0 +1,153 @@
+name: "Lost Hiker – Forest Act I Flavor Polish (Text-Only)"
+
+description: |
+  Perform a holistic, text-only polish pass over Forest Act I content:
+    - make descriptions clearer, more evocative, and more consistent,
+    - trim repetition,
+    - fix awkward phrasing/typos,
+    - keep tone and content aligned with the design doc.
+
+  IMPORTANT:
+    - Do NOT change mechanics, logic, or balance.
+    - Do NOT add or remove game systems.
+    - Do NOT change numerical values, timers, or probabilities.
+    - Only edit strings and simple text templates.
+
+  Focus scope:
+    - Forest exploration messages,
+    - landmark descriptions,
+    - Forest creature encounter text,
+    - Belly Phase 1 text (hostile + friendly, including Echo),
+    - race-aware flavor lines (NPCs, exploration, foraging, belly),
+    - tea and brewing descriptions (including Astrin’s lines),
+    - Kirin fast-travel text and Wisp/Slug/Moss-Mare descriptions.
+
+goals:
+  - Consistent tone and voice:
+      - Ensure narrative tone across Forest Act I is:
+          - grounded, slightly eerie, and gently cozy,
+          - consistent with the design doc’s “mystical wilderness survival” feel.
+      - Remove jarringly modern slang or jokes that break immersion.
+      - Align Echo, Astrin, Druid, Naiad, and Fisherman voices with their
+        intended personalities.
+
+  - Remove repetition and clutter:
+      - Identify description strings that repeat the same phrasing too often
+        (e.g. reused belly lines, overused “you feel…” intros).
+      - Reword or rotate these lines so repeated events feel fresh without
+        altering the underlying meaning.
+      - Keep descriptions short enough to be readable in curses, but still
+        flavorful.
+
+  - Clarify Forest landmarks and encounters:
+      - For Forest landmarks (Glade, creek landmarks, Birch Circle, Sunken
+        Spring, cave-mouth edges, fallen giant, etc.):
+          - Make sure each has a distinct “hook” line that’s easy to remember.
+          - Clarify spatial hints (e.g. “deeper than before”, “near the creek”)
+            without adding map mechanics.
+      - For creature encounters:
+          - Ensure first-encounter text clearly conveys:
+              - rough size,
+              - temperament (hostile, wary, mystical, friendly-shelter),
+              - what’s happening when belly outcomes trigger.
+          - Avoid making any predator sound lethally gorey; keep it tense but
+            non-graphic, consistent with non-lethal Act I vore rules.
+
+  - Belly Phase 1 polish:
+      - Review belly descriptions for:
+          - Echo (safe shelter),
+          - hostile predators (transport or shelter),
+          - friendly bellies (Moss-Treader, Glow-Elk, Wisp-Hive Slug, Moss-Mare).
+      - Ensure:
+          - no digestion, gore, or lethal implications in Act I,
+          - sensory detail is consistent with each creature’s biology and vibe,
+          - race-aware variants feel like tasteful variations, not spam.
+      - Trim or rewrite any lines that:
+          - contradict the “non-lethal belly” contract in Act I,
+          - feel redundant or clunky.
+
+  - Race-aware flavor alignment:
+      - Check race-based lines for:
+          - consistency with race descriptions (from races.json),
+          - no direct mechanical promises (e.g. “you see better,” “you’re faster”),
+          - no contradicting the “no stat bonuses” rule.
+      - Smooth any lines that feel mean-spirited out of character; teasing is
+        allowed, but NPCs should remain broadly sympathetic.
+
+  - Tea & brewing flavor:
+      - Make sure tea descriptions:
+          - clearly communicate general effect category (calming, stamina, clarity,
+            warmth, mystical) in flavor text,
+          - add race-aware overlays sparingly and smoothly,
+          - match Astrin’s persona (practical, plant-savvy, mildly playful).
+      - Remove redundant “this is tea” wording and focus on how it feels.
+
+  - Kirin, Wisp-Hive Slug, Moss-Mare & other mystical:
+      - Ensure:
+          - Kirin’s fast-travel text is clear and readable, explains what the
+            player is choosing without a lore-dump.
+          - Wisp-Hive Slug and Moss-Mare feel gentle, weird, and safe in Act I.
+          - Wisps, Glow-Elk, and other mysticals share a coherent magical “language.”
+
+  - Spelling, grammar, and punctuation:
+      - Fix obvious typos.
+      - Normalize quotation marks and ellipsis usage.
+      - Keep sentences readable in a terminal-sized text box.
+
+deliverables:
+  - Updated data/dialogue_*.json for:
+      - Echo (only if needed beyond the Echo patch task),
+      - Astrin,
+      - Druid,
+      - Fisherman,
+      - Naiad,
+      - other Forest Act I NPCs as needed.
+  - Updated Forest text resources:
+      - landmark descriptions,
+      - exploration messages,
+      - encounter descriptions,
+      - belly text templates,
+      - race-aware exploration and foraging strings.
+  - Updated tea/brewing text:
+      - tea item descriptions,
+      - brewing messages,
+      - Astrin’s tea-related dialogue.
+
+acceptance_criteria:
+  - Forest Act I feels:
+      - tonally consistent,
+      - less repetitive,
+      - clearer in spatial/environmental hints,
+      - flavorful but not verbose.
+  - All belly descriptions:
+      - match non-lethal vore rules for Act I,
+      - are internally consistent with each creature’s profile,
+      - play nicely with race-aware variants.
+  - No mechanics, numerics, or logic are changed:
+      - no timing, no stamina/hunger values, no encounter odds.
+  - No new systems or UI are introduced.
+
+non_goals:
+  - No new quests, creatures, teas, or mechanics.
+  - No expansion into Act II zones.
+  - No combat changes.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Do not touch code branches that change gameplay behavior.
+  - Keep changes limited to string content and small template adjustments.
+  - Avoid “purple prose”; favor clear, precise imagery.
+
+test_plan:
+  - Play through a fresh Forest Act I run:
+      - from waking in the Glade,
+      - through exploration, first encounters, belly events,
+      - through at least one Echo shelter night,
+      - interacting with Astrin, Druid, Fisherman, Naiad,
+      - drinking a few teas and using basic Forest fast-travel.
+  - Confirm:
+      - descriptions feel consistent and improved,
+      - no text references abilities the player doesn’t mechanically have,
+      - no regressions or crashes due to missing string keys.

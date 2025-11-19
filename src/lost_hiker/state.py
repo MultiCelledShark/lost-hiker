@@ -93,6 +93,8 @@ class GameState:
     # Lost bag recovery hooks (for predator den recovery gameplay)
     lost_bag_predator_id: Optional[str] = None  # ID of predator that took the bag
     lost_bag_den_location_id: Optional[str] = None  # ID of landmark/den where bag was taken
+    # Rare lore event tracking (counts how many times each event has triggered)
+    rare_event_triggers: Dict[str, int] = field(default_factory=dict)
 
     def get_season_name(self) -> str:
         """Get the current season name."""
@@ -225,6 +227,7 @@ class GameState:
             time_of_day=data.get("time_of_day", "Day"),
             is_sheltered=bool(data.get("is_sheltered", False)),
             flags=dict(data.get("flags", {})),
+            rare_event_triggers=dict(data.get("rare_event_triggers", {})),
         )
 
 
@@ -279,6 +282,30 @@ class GameStateRepository:
         character = data["character"]
         if not character.get("race_id"):
             character["race_id"] = "human"
+        
+        # Migrate character fields for modular race system
+        # If missing, set defaults and try to load from races.json if available
+        if "body_type" not in character:
+            character["body_type"] = "humanoid"
+        if "size" not in character:
+            character["size"] = "medium"
+        if "archetype" not in character:
+            character["archetype"] = "forest_creature"
+        if "flavor_tags" not in character:
+            # Try to load default flavor_tags from races.json
+            default_flavor_tags = []
+            try:
+                from . import main
+                data_dir, _ = main.resolve_paths()
+                races = main.load_races(data_dir)
+                race_id = character.get("race_id", "human")
+                if race_id in races:
+                    race_data = races[race_id]
+                    default_flavor_tags = list(race_data.get("flavor_tags", []))
+            except Exception:
+                pass
+            character["flavor_tags"] = default_flavor_tags
+        
         data["schema_version"] = CURRENT_VERSION
         if schema_version < 2:
             data.setdefault("recent_events", [])
@@ -410,4 +437,6 @@ class GameStateRepository:
         data.setdefault("is_sheltered", False)
         # General flags
         data.setdefault("flags", {})
+        # Rare lore event tracking
+        data.setdefault("rare_event_triggers", {})
         return data

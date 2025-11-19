@@ -12,6 +12,11 @@ from typing import Callable, Dict, Iterable, List, Optional, Pattern
 from .character import Character, build_character_from_race, sync_character_with_race
 from .engine import Engine, UI
 from .events import load_event_pool
+from .flavor_tags import (
+    get_all_tags,
+    get_all_tag_packs,
+    get_tag_pack,
+)
 from .scenes import load_scene_catalog
 from .state import GameState, GameStateRepository
 from .seasons import load_season_config
@@ -438,7 +443,8 @@ def settings_menu(ui: UI, state: GameState) -> None:
     ui.prompt("Press Enter to return to main menu")
 
 
-def choose_race(ui: UI, races: Dict[str, Dict[str, object]]) -> str:
+def choose_race(ui: UI, races: Dict[str, Dict[str, object]]) -> Optional[str]:
+    """Choose a race, or return None for custom race."""
     ordered = sorted(races.items())
     display = []
     for race_id, data in ordered:
@@ -448,9 +454,203 @@ def choose_race(ui: UI, races: Dict[str, Dict[str, object]]) -> str:
             display.append(f"{name} - {description}")
         else:
             display.append(f"{name}")
+    display.append("Custom Race - Create your own race")
     selection = ui.menu("Choose a race:", display)
     index = display.index(selection)
-    return ordered[index][0]
+    if index < len(ordered):
+        return ordered[index][0]
+    return None  # Custom race
+
+
+def choose_body_type(ui: UI, default: str = "humanoid") -> str:
+    """Choose a body type."""
+    options = ["humanoid", "taur", "naga", "quadruped"]
+    display = [opt.title() for opt in options]
+    try:
+        default_idx = options.index(default.lower())
+        # Highlight default if UI supports it
+    except ValueError:
+        default_idx = 0
+    
+    selection = ui.menu(f"Choose body type (default: {default}):", display)
+    idx = display.index(selection)
+    return options[idx]
+
+
+def choose_size(ui: UI, default: str = "medium") -> str:
+    """Choose a size category."""
+    options = ["small", "medium", "large"]
+    display = [opt.title() for opt in options]
+    
+    selection = ui.menu(f"Choose size (default: {default}):", display)
+    idx = display.index(selection)
+    return options[idx]
+
+
+def choose_archetype(ui: UI, default: str = "forest_creature") -> str:
+    """Choose an ecology archetype."""
+    options = [
+        "forest_creature",
+        "cave_creature",
+        "river_creature",
+        "spiritborn",
+        "leyline_touched",
+        "beastfolk",
+    ]
+    display = [opt.replace("_", " ").title() for opt in options]
+    
+    selection = ui.menu(f"Choose archetype (default: {default.replace('_', ' ').title()}):", display)
+    idx = display.index(selection)
+    return options[idx]
+
+
+def choose_flavor_tags(
+    ui: UI, min_tags: int = 2, max_tags: int = 4
+) -> List[str]:
+    """Choose flavor tags with optional tag pack preselection."""
+    available_tags = get_all_tags()
+    display = [tag.replace("_", " ").title() for tag in available_tags]
+    selected_tags: List[str] = []
+    
+    # Ask if they want to use a tag pack
+    ui.echo(f"\nChoose {min_tags}-{max_tags} flavor tags:\n")
+    ui.echo("Would you like to start with a tag pack?\n")
+    
+    tag_packs = get_all_tag_packs()
+    pack_options = []
+    pack_ids = []
+    for pack_id, pack_data in tag_packs.items():
+        pack_options.append(f"{pack_data['name']} - {pack_data['description']}")
+        pack_ids.append(pack_id)
+    
+    pack_selection = ui.menu("Select a tag pack (or None for manual selection):", pack_options)
+    pack_idx = pack_options.index(pack_selection)
+    selected_pack_id = pack_ids[pack_idx]
+    
+    # If a pack was selected (not "none"), prefill tags
+    if selected_pack_id != "none":
+        pack = get_tag_pack(selected_pack_id)
+        if pack:
+            selected_tags = list(pack["tags"])
+            ui.echo(f"\nSelected pack: {pack['name']}\n")
+            ui.echo(f"Prefilled tags: {', '.join([t.replace('_', ' ').title() for t in selected_tags])}\n")
+            ui.echo("You can add or remove tags to reach 2-4 total.\n")
+    
+    # Manual tag selection/adjustment
+    while len(selected_tags) < min_tags or (
+        len(selected_tags) < max_tags and len(selected_tags) < len(available_tags)
+    ):
+        # Show current selection
+        if selected_tags:
+            ui.echo(f"\nSelected: {', '.join([t.replace('_', ' ').title() for t in selected_tags])} ({len(selected_tags)}/{max_tags})\n")
+        
+        # Build available options
+        available_display = []
+        available_indices = []
+        for i, tag in enumerate(available_tags):
+            if tag not in selected_tags:
+                available_display.append(display[i])
+                available_indices.append(i)
+        
+        # Add option to remove tags if we have any
+        if selected_tags:
+            available_display.append("Remove a tag")
+        
+        if len(selected_tags) >= min_tags:
+            available_display.append("Done")
+        
+        prompt = f"Select tag ({len(selected_tags)}/{max_tags}):"
+        selection = ui.menu(prompt, available_display)
+        
+        if selection == "Done":
+            break
+        
+        if selection == "Remove a tag":
+            # Show tags to remove
+            remove_options = [t.replace("_", " ").title() for t in selected_tags]
+            remove_selection = ui.menu("Remove which tag?", remove_options)
+            remove_idx = remove_options.index(remove_selection)
+            removed_tag = selected_tags.pop(remove_idx)
+            ui.echo(f"Removed: {removed_tag.replace('_', ' ').title()}\n")
+            continue
+        
+        idx = available_display.index(selection)
+        if idx < len(available_indices):
+            tag_idx = available_indices[idx]
+            selected_tags.append(available_tags[tag_idx])
+            ui.echo(f"Added: {display[tag_idx]}\n")
+    
+    # Ensure we have at least min_tags
+    if len(selected_tags) < min_tags:
+        ui.echo(f"\nWarning: You have {len(selected_tags)} tags, minimum is {min_tags}.\n")
+        # Force selection of remaining tags
+        while len(selected_tags) < min_tags:
+            available_display = []
+            available_indices = []
+            for i, tag in enumerate(available_tags):
+                if tag not in selected_tags:
+                    available_display.append(display[i])
+                    available_indices.append(i)
+            
+            selection = ui.menu(f"Select tag ({len(selected_tags) + 1}/{min_tags}):", available_display)
+            idx = available_display.index(selection)
+            if idx < len(available_indices):
+                tag_idx = available_indices[idx]
+                selected_tags.append(available_tags[tag_idx])
+                ui.echo(f"Added: {display[tag_idx]}\n")
+    
+    return selected_tags
+
+
+def create_custom_race(ui: UI, races: Dict[str, Dict[str, object]]) -> tuple[str, Dict[str, object]]:
+    """Create a custom race through UI prompts."""
+    ui.heading("Create Custom Race")
+    ui.echo("You will now create your own custom race.\n")
+    
+    # Get race name
+    name = ""
+    while not name:
+        name = ui.prompt("Enter your race name:").strip()
+        if not name:
+            ui.echo("Race name cannot be empty.\n")
+    
+    # Generate race_id from name
+    race_id = "custom_" + re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+    
+    # Ensure unique race_id
+    base_race_id = race_id
+    counter = 1
+    while race_id in races:
+        race_id = f"{base_race_id}_{counter}"
+        counter += 1
+    
+    # Choose attributes
+    body_type = choose_body_type(ui, "humanoid")
+    ui.echo("\n")
+    size = choose_size(ui, "medium")
+    ui.echo("\n")
+    archetype = choose_archetype(ui, "forest_creature")
+    ui.echo("\n")
+    flavor_tags = choose_flavor_tags(ui, min_tags=2, max_tags=4)
+    
+    # Create race data
+    race_data = {
+        "race_id": race_id,
+        "display_name": name,
+        "name": name,
+        "description": f"A custom race: {name}",
+        "body_type_default": body_type,
+        "size_default": size,
+        "archetype_default": archetype,
+        "tags": [],
+        "modifiers": [],
+        "flavor": {},
+        "summary": f"A custom race: {name}",
+        "flavor_tags": flavor_tags,
+    }
+    
+    ui.echo(f"\nCustom race '{name}' created with ID: {race_id}\n")
+    return race_id, race_data
 
 
 def ask_vore_preferences(ui: UI) -> tuple[bool, bool]:
@@ -509,12 +709,49 @@ def create_character(ui: UI, races: Dict[str, Dict[str, object]]) -> tuple[Chara
     Returns:
         Tuple of (character, vore_enabled, player_as_pred_enabled)
     """
+    # Choose or create race
     race_id = choose_race(ui, races)
-    name = ui.prompt("Enter your name")
-    character = build_character_from_race(race_id, races[race_id], name or "Wanderer")
     
-    # Ask vore preferences after name entry
+    # Handle custom race creation
+    if race_id is None:
+        race_id, custom_race_data = create_custom_race(ui, races)
+        # Add custom race to races dict for this session
+        races[race_id] = custom_race_data
+    
+    race_data = races[race_id]
+    
+    # Get character name
+    name = ui.prompt("Enter your name") or "Wanderer"
     ui.echo("\n")
+    
+    # Choose body type, size, and archetype
+    body_type_default = str(race_data.get("body_type_default", "humanoid"))
+    body_type = choose_body_type(ui, body_type_default)
+    ui.echo("\n")
+    
+    size_default = str(race_data.get("size_default", "medium"))
+    size = choose_size(ui, size_default)
+    ui.echo("\n")
+    
+    archetype_default = str(race_data.get("archetype_default", "forest_creature"))
+    archetype = choose_archetype(ui, archetype_default)
+    ui.echo("\n")
+    
+    # Use race's flavor_tags as default, but player can override if needed
+    flavor_tags = list(race_data.get("flavor_tags", []))
+    
+    # Build character with selected attributes
+    character = build_character_from_race(
+        race_id=race_id,
+        race_data=race_data,
+        name=name,
+        body_type=body_type,
+        size=size,
+        archetype=archetype,
+        flavor_tags=flavor_tags,
+    )
+    
+    # Ask vore preferences after character setup
     vore_enabled, player_as_pred_enabled = ask_vore_preferences(ui)
     
     return character, vore_enabled, player_as_pred_enabled

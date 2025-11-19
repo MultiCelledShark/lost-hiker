@@ -1,0 +1,139 @@
+name: "Lost Hiker – Rare Lore Events (Tag-Driven Micro-Encounters)"
+
+description: |
+  Add rare, tag-driven micro-encounters and flavor events that react to
+  the player's modular race properties (body_type, flavor_tags, size,
+  archetype). These events are purely narrative: short scenes, comments,
+  or small discoveries. They do not change mechanics, stats, or progress.
+
+  Examples:
+    - Wisps gathering around bioluminescent or lightcore characters at night.
+    - Mushrooms reacting to fungal / mycelial characters.
+    - Naiad addressing aquatic, ooze, or synth characters in unusual ways.
+    - The Forest itself "noticing" synthetics, oozes, or fungal folk.
+
+goals:
+  - Implement a rare lore event framework:
+      - Add a small, data-driven system that:
+          - can periodically check conditions like:
+              - zone (Glade, Forest),
+              - time of day,
+              - season,
+              - player tags (body_type, flavor_tags, archetype, size),
+              - runestone progress (optional, for flavor),
+          - has an event definition format, e.g.:
+              - id / name,
+              - prerequisites (tags, archetype, etc.),
+              - rarity / max times to trigger,
+              - text lines or description templates.
+      - Keep this framework minimal:
+          - do NOT create a full quest/event system,
+          - only small, self-contained scenes.
+
+  - Add several thematic rare events:
+
+      - Fungal / Mycelial Events:
+          - Example: bioluminescent fungi "bow" toward fungal/mycelial characters.
+          - Trigger conditions:
+              - flavor_tags includes "fungal" or "mycelial" or "sporeborne",
+              - Forest or cave-adjacent landmark,
+              - low chance at night or in damp conditions.
+          - Text flavor:
+              - spores drifting gently,
+              - sense of being recognized by the mycelial network.
+
+      - Ooze / Slime Events:
+          - Example: tiny slimes mimic the player briefly near wet ground.
+          - Trigger conditions:
+              - flavor_tags includes "slimy" or "gelatinous" or "amorphous",
+              - near water, mud, or marshy landmarks.
+          - Text flavor:
+              - small ooze blobs wobble in sync with your movements.
+
+      - Synth / Construct Events:
+          - Example: ley-lines or runestones "ping" you; wisps orbit your lightcore.
+          - Trigger conditions:
+              - flavor_tags includes "synthetic" or "composite" or "lightcore",
+              - runestone vicinity or strong ley-line landmarks.
+          - Text flavor:
+              - faint interference, resonance, or strange harmonics in your frame.
+
+      - Mix-in / Elemental / Psionic Events:
+          - Example: emberheart characters feel a heat pulse near Ember-Root;
+            frostbreath characters see frost form in odd patterns; mindecho
+            characters hear faint whispers around old roots.
+          - Trigger conditions:
+              - tags like "emberheart", "frostbreath", "stormtouched",
+                "mindecho", "astral", "dreamlinked", "veilborn".
+              - related zones or landmarks (creek, storms, runestones, etc.).
+
+  - Control rarity and repetition:
+      - Each rare event definition should allow:
+          - max trigger count per save (e.g. 1–3 times),
+          - a base chance (e.g. 5–10%) when conditions are met.
+      - Ensure events:
+          - never spam,
+          - feel like secrets.
+
+deliverables:
+  - A small data structure (JSON or Python dict) defining:
+      - a handful of rare events for:
+          - fungal/mycelial,
+          - slime/ooze,
+          - synth/construct,
+          - elemental/psionic mix-ins,
+        each with:
+          - id, name,
+          - prerequisites (tags, archetype, etc.),
+          - rarity (max triggers),
+          - text payload.
+  - A thin integration layer:
+      - e.g. a function called during:
+          - camp,
+          - first entering Glade at night,
+          - after certain landmarks,
+        that checks for eligible events and triggers at most one.
+
+acceptance_criteria:
+  - At least:
+      - 2 fungal-focused events,
+      - 2 ooze-focused events,
+      - 2 synth-focused events,
+      - 2 mix-in element/psionic events,
+    are defined and can trigger in the Forest/Glade context.
+  - Events never:
+      - alter stats, items, or progression,
+      - add or remove quests.
+  - Events are:
+      - rare,
+      - short (1–3 paragraphs max),
+      - consistent with existing tone (mystical, cozy-eerie, non-gory).
+  - If the player has no relevant tags, these events simply never trigger.
+
+non_goals:
+  - No full questlines.
+  - No mechanical rewards or penalties.
+  - No combat changes.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep the event checking logic minimal and readable.
+  - Prefer data-driven event definitions.
+  - Make it easy to add new events later.
+
+test_plan:
+  - Create characters with:
+      - fungal tags,
+      - ooze/slime tags,
+      - synth tags,
+      - elemental/psionic mix-in tags.
+  - Play through:
+      - multiple nights in the Glade,
+      - several Forest excursions,
+      - runestone interactions.
+  - Verify:
+      - each tag type can trigger at least one rare event,
+      - events do not repeat excessively,
+      - events never affect mechanics.

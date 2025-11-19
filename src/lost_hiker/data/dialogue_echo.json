@@ -922,6 +922,677 @@
           "rapport_delta": 0
         }
       ]
+    },
+    {
+      "id": "echo_body_type_naga",
+      "npc_id": "echo",
+      "text": "[RADIO] You're built more like me than most. The coils, the glide—I recognize the form. Comforting.",
+      "conditions": {
+        "require_body_type": "naga",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I appreciate that.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_body_type_taur",
+      "npc_id": "echo",
+      "text": "[RADIO] You carry your weight well. Literally. Four legs and a strong frame—the forest respects that kind of stability.",
+      "conditions": {
+        "require_body_type": "taur",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "Thank you.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_body_type_quadruped",
+      "npc_id": "echo",
+      "text": "[RADIO] Four legs give you stability; useful out here. The forest's uneven ground doesn't trouble you as much.",
+      "conditions": {
+        "require_body_type": "quadruped",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "It does help.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_flavor_tag_slimy",
+      "npc_id": "echo",
+      "text": "[RADIO] You leave a strange trail. Not unpleasant—just different. The forest notices these things.",
+      "conditions": {
+        "require_flavor_tag": "slimy",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I suppose it does.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_flavor_tag_chitinous",
+      "npc_id": "echo",
+      "text": "[RADIO] Your shell catches the moonlight. Hard, protective—the forest appreciates those who can weather its storms.",
+      "conditions": {
+        "require_flavor_tag": "chitinous",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I try to be resilient.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_flavor_tag_feathered",
+      "npc_id": "echo",
+      "text": "[RADIO] Loose feathers mark your path. Soft, light—the forest remembers where you've been.",
+      "conditions": {
+        "require_flavor_tag": "feathered",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I hadn't noticed.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_flavor_tag_furred",
+      "npc_id": "echo",
+      "text": "[RADIO] Your fur holds the forest's scent. You carry the woods with you, even when you leave.",
+      "conditions": {
+        "require_flavor_tag": "furred",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I suppose I do.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_size_small",
+      "npc_id": "echo",
+      "text": "[RADIO] Easy to hide. Harder to spot. The forest's dangers pass over you more easily when you're small.",
+      "conditions": {
+        "require_size": "small",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "That's true.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_size_large",
+      "npc_id": "echo",
+      "text": "[RADIO] The forest feels you coming before it sees you. Your presence is… substantial. The ground remembers your steps.",
+      "conditions": {
+        "require_size": "large",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I try to be careful.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_archetype_cave_creature",
+      "npc_id": "echo",
+      "text": "[RADIO] The dark doesn't bother you, does it? You're built for the depths. The caves call to you.",
+      "conditions": {
+        "require_archetype": "cave_creature",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I'm comfortable in the dark.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_archetype_river_creature",
+      "npc_id": "echo",
+      "text": "[RADIO] You always drift toward the water. The currents speak to you in ways they don't to others.",
+      "conditions": {
+        "require_archetype": "river_creature",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "Water feels like home.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_archetype_forest_creature",
+      "npc_id": "echo",
+      "text": "[RADIO] You belong among these trees. The forest recognizes you as kin—it's in your bones, your breath, your very presence.",
+      "conditions": {
+        "require_archetype": "forest_creature",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The forest is my home.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_forest_size_bending",
+      "npc_id": "echo",
+      "text": "[RADIO] Size means little here. The Forest stretches space for us—bellies, paths, even time itself. What shouldn't fit… does. The Forest reshapes reality to accommodate us.",
+      "conditions": {
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "That's… remarkable.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "The Forest is strange.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_tag_family_fungal",
+      "npc_id": "echo",
+      "text": "[RADIO] You carry the scent of soil and spores. The mycelial network beneath us recognizes you—there's a kinship there, a shared connection to the earth's memory.",
+      "conditions": {
+        "require_tag_family": "fungal",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I hadn't noticed.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_tag_family_ooze",
+      "npc_id": "echo",
+      "text": "[RADIO] Your form is… fluid. Warm, slippery. The forest's moisture clings to you differently. There's a softness in your presence that the ground remembers.",
+      "conditions": {
+        "require_tag_family": "slime",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I suppose it does.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_tag_family_synth",
+      "npc_id": "echo",
+      "text": "[RADIO] Your frame hums. There's a resonance—unusual, but not unwelcome. The radio picks it up, translates it into something almost… alive. The Forest has adopted you, strange as you are.",
+      "conditions": {
+        "require_tag_family": "synth",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest accepts me?",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_tag_family_elemental",
+      "npc_id": "echo",
+      "text": "[RADIO] Your body temperature is… unusual. There's an aura around you—heat, cold, or something else. The ambient energy shifts when you're near. The Forest notices.",
+      "conditions": {
+        "require_tag_family": "elemental",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I hadn't thought about it.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_body_type_taur_comment",
+      "npc_id": "echo",
+      "text": "[RADIO] Your form is… substantial. Four legs, a strong frame—the forest notices when you move. But even with all that bulk, the Forest will make space when it needs to. Size is just a suggestion here.",
+      "conditions": {
+        "require_body_type": "taur",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest is accommodating.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I appreciate the reassurance.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_body_type_naga_comment",
+      "npc_id": "echo",
+      "text": "[RADIO] You coil like I do. There's something familiar in your movement—the way you glide, the way you settle. When I wrap around you, it feels like… kin. The Forest recognizes that connection.",
+      "conditions": {
+        "require_body_type": "naga",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I'm glad we understand each other.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "There's comfort in similarity.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_body_type_quadruped_comment",
+      "npc_id": "echo",
+      "text": "[RADIO] Four legs give you stability, but they also mark you as different from the two-legs. The Forest doesn't care about such distinctions—it accepts all forms. You'll fit where you need to fit, regardless of how many limbs you have.",
+      "conditions": {
+        "require_body_type": "quadruped",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest is accepting.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "That's reassuring.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_body_type_humanoid_unusual",
+      "npc_id": "echo",
+      "text": "[RADIO] Two legs, but something else beneath the surface. Your form speaks of other worlds, other natures. The Forest sees past the humanoid shape—it recognizes what you truly are.",
+      "conditions": {
+        "require_body_type": "humanoid",
+        "require_flavor_tag": ["slimy", "chitinous", "synthetic", "fungal", "gelatinous"],
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest sees deeply.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I'm more than my shape.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_tag_family_fungal",
+      "npc_id": "echo",
+      "text": "[RADIO] You smell of earth and decay—rich, fertile. Spores cling to my scales when I coil around you. The Forest watches through you, I think. The ground itself recognizes you as kin.",
+      "conditions": {
+        "require_tag_family": "fungal",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest and I are connected.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I feel that connection too.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_tag_family_slime",
+      "npc_id": "echo",
+      "text": "[RADIO] You're slippery. Hard to hold, but not unpleasant. When I coil around you, you spread and flow—adjusting to fit. It's strange, but the Forest accepts strange. You'll fit where you need to fit, even if physics says otherwise.",
+      "conditions": {
+        "require_tag_family": "slime",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest makes space.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I'm glad you're not bothered by it.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_tag_family_synth",
+      "npc_id": "echo",
+      "text": "[RADIO] You're warm, but not like flesh. There's a hum, a resonance—mechanical, but alive. The Forest accepted you anyway. It doesn't care if you're made of metal or meat. You belong here as much as any of us.",
+      "conditions": {
+        "require_tag_family": "synth",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest is accepting.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I'm grateful for that.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_tag_family_elemental",
+      "npc_id": "echo",
+      "text": "[RADIO] You radiate… something. Heat, or cold, or the crackle of storms. When I coil around you, I feel it—warmth, chill, or a tingle. The Forest recognizes elemental power. It flows through you, and through me when we're close.",
+      "conditions": {
+        "require_tag_family": "elemental",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest amplifies it.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I feel that connection.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_tag_family_psionic",
+      "npc_id": "echo",
+      "text": "[RADIO] Your thoughts brush against mine—faint impressions, shared dreams, echoes. The radio translates some of it, but there's more beneath. The Forest bends minds as easily as it bends space. You and I… we're connected in ways beyond words.",
+      "conditions": {
+        "require_tag_family": "psionic",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I feel that connection too.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        },
+        {
+          "text": "The Forest makes strange connections.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_forest_bellies_lore",
+      "npc_id": "echo",
+      "text": "[RADIO] The Forest stretches bellies to fit its stories. Predator, prey—size means nothing. A small creature can carry a large one. A large creature can be carried by a small one. The Forest decides who carries whom, and it makes the space.",
+      "conditions": {
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "That's… impossible, but true.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "The Forest rewrites the rules.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_body_type_taur",
+      "npc_id": "echo",
+      "text": "[RADIO] Your form comes through the static—powerful, steady. Four legs, strong frame. The forest feels your presence before you arrive. But remember: size is just a suggestion here. The Forest will make space when it needs to.",
+      "conditions": {
+        "require_body_type": "taur",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I'll remember that.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_body_type_naga",
+      "npc_id": "echo",
+      "text": "[RADIO] Your coils resonate through the radio—familiar, serpentine. When you move, I feel it. When you rest, I sense your presence settling. There's kinship in our forms, even through static.",
+      "conditions": {
+        "require_body_type": "naga",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I feel that connection.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_tag_family_fungal",
+      "npc_id": "echo",
+      "text": "[RADIO] The radio picks up something else—earth-rich scent, spores, the sense of being watched by the ground itself. You carry the Forest's awareness with you. The mycelium recognizes you.",
+      "conditions": {
+        "require_tag_family": "fungal",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest and I are one.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_tag_family_slime",
+      "npc_id": "echo",
+      "text": "[RADIO] Your presence flows through the static—slippery, shifting. The radio struggles to hold your form, but it translates enough. You're hard to grasp, but the Forest doesn't need to grasp. It accepts you as you are.",
+      "conditions": {
+        "require_tag_family": "slime",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest is accepting.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_radio_tag_family_synth",
+      "npc_id": "echo",
+      "text": "[RADIO] There's a hum in your resonance—mechanical, but alive. Harmless static, a steady pulse. You're not flesh, but the Forest accepted you anyway. The radio translates your presence just fine.",
+      "conditions": {
+        "require_tag_family": "synth",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I'm glad the Forest accepts me.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_camp_body_type_taur",
+      "npc_id": "echo",
+      "text": "[RADIO] You settle heavily at camp—four legs, strong frame. The ground shifts under your weight. But even with all that bulk, if you need shelter, the Forest will make space. Size doesn't matter here.",
+      "conditions": {
+        "require_body_type": "taur",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest is accommodating.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I'll remember that.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_camp_body_type_naga",
+      "npc_id": "echo",
+      "text": "[RADIO] You coil at camp, settling into familiar loops. When I wrap around you, it feels natural—two serpents finding comfort together. The Forest recognizes that connection.",
+      "conditions": {
+        "require_body_type": "naga",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "There's comfort in similarity.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I'm glad we understand each other.",
+          "next_node_id": "END",
+          "rapport_delta": 1
+        }
+      ]
+    },
+    {
+      "id": "echo_camp_tag_family_fungal",
+      "npc_id": "echo",
+      "text": "[RADIO] At camp, your presence is… grounding. Earth-rich scent, spores drifting. The Forest watches through you. When I coil around you, I feel the mycelium recognizing its own.",
+      "conditions": {
+        "require_tag_family": "fungal",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest and I are connected.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I feel that connection too.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_camp_tag_family_slime",
+      "npc_id": "echo",
+      "text": "[RADIO] At camp, you spread and flow—adjusting to the space. Slippery, but not unpleasant. When I coil around you, I need to adjust my grip, but the Forest makes it work. You'll fit where you need to fit.",
+      "conditions": {
+        "require_tag_family": "slime",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "The Forest makes space.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I'm glad you're patient with me.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "echo_camp_tag_family_synth",
+      "npc_id": "echo",
+      "text": "[RADIO] At camp, your hum is steady—mechanical, but warm. The radio picks up your resonance clearly. You're not flesh, but you're alive. The Forest accepted you, and so do I.",
+      "conditions": {
+        "require_tag_family": "synth",
+        "min_rapport_tier": "neutral"
+      },
+      "options": [
+        {
+          "text": "I'm grateful for that acceptance.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "The Forest doesn't discriminate.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
     }
   ]
 }

@@ -3,7 +3,7 @@
     {
       "id": "mossback_stag_first",
       "creature_id": "mossback_stag",
-      "intro_text": "A large stag with moss-covered antlers steps into view between the trees. Its dark eyes watch you warily, muscles tensed for flight.",
+      "intro_text": "A large stag with moss-covered antlers steps into view between the trees. Its dark eyes watch you warily, muscles tensed and ready for flight.",
       "choices": [
         {
           "text": "Stay perfectly still and observe",
@@ -35,19 +35,19 @@
       ],
       "outcomes": {
         "observe_neutral": {
-          "text": "The stag holds your gaze for a long moment, then gracefully turns and melts back into the forest. You feel a sense of mutual respect.",
+          "text": "The stag holds your gaze for a long moment, then gracefully turns and melts back into the forest. A sense of mutual respect lingers in the air.",
           "rapport_delta": {
             "mossback_stag": 1
           },
           "stamina_delta": 0.0
         },
         "retreat_neutral": {
-          "text": "You step back slowly. The stag relaxes slightly, watching you go. No harm, no trust gained.",
+          "text": "You step back slowly. The stag relaxes slightly, watching you go. No harm done, but no trust gained.",
           "rapport_delta": {},
           "stamina_delta": 0.0
         },
         "offer_food": {
-          "text": "You extend your hand with the offering. The stag approaches cautiously, takes the food delicately, then nuzzles your hand before retreating. A small bond forms.",
+          "text": "You extend your hand with the offering. The stag approaches cautiously, takes the food delicately, then nuzzles your hand before retreating. A small bond forms between you.",
           "rapport_delta": {
             "mossback_stag": 2
           },
@@ -77,7 +77,7 @@
     {
       "id": "mossback_stag_friendly",
       "creature_id": "mossback_stag",
-      "intro_text": "The familiar mossback stag emerges from the trees, antlers glistening with morning dew. It recognizes you and approaches with cautious curiosity.",
+      "intro_text": "The familiar mossback stag emerges from the trees, its antlers glistening with morning dew. It recognizes you and approaches with cautious curiosity.",
       "choices": [
         {
           "text": "Wait calmly for it to approach",
@@ -128,7 +128,7 @@
     {
       "id": "red_wolf_first",
       "creature_id": "red_wolf",
-      "intro_text": "A lean red wolf steps onto the trail ahead, blocking your path. Its amber eyes lock onto you, and you hear a low growl rumbling in its chest. It's not attacking—yet—but the tension is palpable.",
+      "intro_text": "A lean red wolf steps onto the trail ahead, blocking your path. Its amber eyes lock onto you, and a low growl rumbles in its chest. It's not attacking—yet—but the tension is palpable.",
       "choices": [
         {
           "text": "Stand your ground, meet its gaze calmly",
@@ -152,19 +152,19 @@
       ],
       "outcomes": {
         "stand_calm": {
-          "text": "You hold the wolf's gaze without flinching. After a tense moment, it relaxes slightly, gives a short yip, and steps aside. You pass by safely, but your heart pounds.",
+          "text": "You hold the wolf's gaze without flinching. After a tense moment, it relaxes slightly, gives a short yip, and steps aside. You pass by safely, though your heart still pounds.",
           "rapport_delta": {
             "red_wolf": 1
           },
           "stamina_delta": -0.5
         },
         "retreat_calm": {
-          "text": "You back away slowly. The wolf watches you go, then turns and disappears into the brush. You're safe, but shaken.",
+          "text": "You back away slowly. The wolf watches you go, then turns and disappears into the brush. You're safe, though shaken.",
           "rapport_delta": {},
           "stamina_delta": -0.5
         },
         "offer_food_wolf": {
-          "text": "You toss the food toward the wolf. It sniffs cautiously, then takes it. The growl stops, and it gives you a curious look before moving off the trail. A small measure of trust is earned.",
+          "text": "You toss the food toward the wolf. It sniffs cautiously, then takes it. The growl stops, and it gives you a curious look before moving off the trail. A small measure of trust has been earned.",
           "rapport_delta": {
             "red_wolf": 2
           },
@@ -172,7 +172,7 @@
           "inventory_remove": []
         },
         "aggressive_negative": {
-          "text": "Your aggressive display triggers the wolf's instincts. It lunges forward with a snarl, teeth snapping inches from your face before it pulls back. You stumble backward, heart racing. That was too close.",
+          "text": "Your aggressive display triggers the wolf's instincts. It lunges forward with a snarl, teeth snapping inches from your face before it pulls back. You stumble backward, heart racing. That was far too close.",
           "rapport_delta": {
             "red_wolf": -2
           },
@@ -1074,7 +1074,7 @@
     {
       "id": "brown_bear_first",
       "creature_id": "brown_bear",
-      "intro_text": "A massive brown bear lumbers into view, its honey-scented fur glistening in the sunlight. It stops and rises on its hind legs, sniffing the air.",
+      "intro_text": "A massive brown bear lumbers into view, its honey-scented fur glistening in the sunlight. It stops and rises on its hind legs, sniffing the air with deep, rumbling breaths.",
       "choices": [
         {
           "text": "Freeze and stay perfectly still",
@@ -1091,14 +1091,14 @@
       ],
       "outcomes": {
         "freeze_neutral": {
-          "text": "You remain perfectly still. The bear sniffs the air, then drops to all fours and ambles away. Your heart pounds, but you're safe.",
+          "text": "You remain perfectly still. The bear sniffs the air, then drops to all fours and ambles away. Your heart pounds, though you're safe.",
           "rapport_delta": {
             "brown_bear": 1
           },
           "stamina_delta": -0.5
         },
         "retreat_calm": {
-          "text": "You back away slowly, never turning your back. The bear watches you go, then returns to whatever it was doing. You're safe, but shaken.",
+          "text": "You back away slowly, never turning your back. The bear watches you go, then returns to whatever it was doing. You're safe, though shaken.",
           "rapport_delta": {},
           "stamina_delta": -0.5
         },
@@ -1224,7 +1224,7 @@
     {
       "id": "verdant_broodmother_first",
       "creature_id": "verdant_broodmother",
-      "intro_text": "A massive verdant serpent coils around the fallen giant, its scales shimmering with an otherworldly green light. This is the Verdant Broodmother, and you're in her territory.",
+      "intro_text": "A massive verdant serpent coils around the fallen giant, its scales shimmering with otherworldly green light. This is the Verdant Broodmother, and you're in her territory.",
       "choices": [
         {
           "text": "Back away slowly",
@@ -1241,7 +1241,7 @@
       ],
       "outcomes": {
         "retreat_calm": {
-          "text": "You back away slowly. The Broodmother watches you go, her massive form shifting slightly. You're safe, but you've learned to respect her territory.",
+          "text": "You back away slowly. The Broodmother watches you go, her massive form shifting slightly. You're safe, though you've learned to respect her territory.",
           "rapport_delta": {
             "verdant_broodmother": 1
           },
@@ -1433,7 +1433,7 @@
     {
       "id": "glow_elk_encounter",
       "creature_id": "glow_elk",
-      "intro_text": "A magnificent Glow-Elk steps into view, its antlers pulsing with bioluminescent light. This is a rare, mystical creature, and its presence fills the air with an otherworldly energy.",
+      "intro_text": "A magnificent Glow-Elk steps into view, its antlers pulsing with bioluminescent light. This is a rare, mystical creature, and its presence fills the air with otherworldly energy.",
       "choices": [
         {
           "text": "Bow respectfully",

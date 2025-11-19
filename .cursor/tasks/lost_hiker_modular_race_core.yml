@@ -1,0 +1,142 @@
+name: "Lost Hiker – Modular Race System Core (Custom Races + Body Types)"
+
+description: |
+  Extend the race system to be fully modular and tag-driven, while
+  preserving all existing races and saves. Add:
+    - explicit body_type (humanoid, taur, naga, quadruped),
+    - morphological flavor tags (furred, scaled, slimy, chitinous, feathered, etc.),
+    - size category (small, medium, large),
+    - ecology archetype (forest_creature, cave_creature, river_creature, spiritborn, etc.),
+    - a "Custom Race" option in character creation.
+
+  This task:
+    - updates race data schema,
+    - updates character creation flow,
+    - adds custom race creation UI,
+    - ensures all fields stay FLAVOR-ONLY (no mechanical changes).
+
+goals:
+  - Extend race schema:
+      - Update data/races.json (or equivalent) so each race entry supports:
+          - race_id
+          - display_name
+          - description
+          - body_type_default: one of ["humanoid", "taur", "naga", "quadruped"]
+          - size_default: one of ["small", "medium", "large"]
+          - archetype_default: e.g. "forest_creature", "cave_creature",
+            "river_creature", "spiritborn", "leyline_touched", "beastfolk", etc.
+          - flavor_tags: array of short tags like:
+              - "furred", "scaled", "feathered", "slimy", "chitinous",
+                "plantlike", "stoneborn", "coldblooded", "ambient_magic",
+                "forestborn", "caveborn", "riverborn", "manylimbed", etc.
+      - Existing canonical races (human, wolf_kin, cow_kin, elf, dwarf,
+        lizard_folk, deer_kin, fox_kin, gryphon_folk, dragonborn) must be
+        updated with reasonable defaults without changing any mechanics.
+
+  - Add body_type selection in character creation:
+      - After choosing race, allow the player to pick a body_type:
+          - humanoid
+          - taur
+          - naga
+          - quadruped
+      - Default selection should be race.body_type_default.
+      - All races can select any body_type; no hard-coded restrictions.
+      - Body type is stored in the player’s persistent state (e.g. save.json).
+
+  - Add size category and archetype selection:
+      - Optional but supported:
+          - Ask the player to choose a size category:
+              - small / medium / large
+            with default from race.size_default.
+          - Ask the player to choose an ecology archetype:
+              - forest_creature
+              - cave_creature
+              - river_creature
+              - spiritborn
+              - leyline_touched
+              - beastfolk
+              - (etc., controlled by a fixed list).
+      - Store size and archetype in player state.
+
+  - Morphological flavor tags:
+      - Add a field in player state for flavor_tags.
+      - For canonical races:
+          - populate sensible defaults (e.g. wolf_kin: ["furred", "forestborn"],
+            dragonborn: ["scaled", "ambient_magic"], etc.).
+      - For custom races (see below):
+          - allow the player to choose a small set of tags (2–4) from a curated list.
+
+  - Custom Race option:
+      - Add a new race entry in character creation:
+          - "Custom Race"
+      - When selected, guide the player through:
+          - naming their race (e.g. "centipede naga", "slugborn", etc.),
+          - picking body_type (humanoid, taur, naga, quadruped),
+          - picking size (small/medium/large),
+          - picking archetype (forest_creature, cave_creature, etc.),
+          - picking 2–4 flavor tags from a curated list (furred, scaled,
+            slimy, chitinous, feathered, plantlike, stoneborn, manylimbed,
+            ambient_magic, coldblooded, forestborn, caveborn, riverborn).
+      - Generate a safe race_id from the name, e.g.:
+          - "custom_centipede_naga"
+          - slugify and prefix with "custom_".
+      - Store this as a fully valid race entry in save.json/player state
+        (it does NOT have to be written back into races.json unless that’s
+        already part of your architecture).
+
+  - Backwards compatibility:
+      - If a save file has a race_id without body_type or size/archetype:
+          - default body_type to "humanoid",
+          - default size to "medium",
+          - default archetype to "forest_creature",
+          - default flavor_tags from the matching entry in races.json if present.
+      - Do NOT break existing saves.
+
+deliverables:
+  - Updated data/races.json with extended schema and canonical race entries.
+  - Updated character creation flow:
+      - race selection (existing),
+      - body_type selection,
+      - size selection,
+      - archetype selection,
+      - custom race flow (name, body_type, size, archetype, tags).
+  - Updated save/load logic to:
+      - persist race_id, body_type, size, archetype, and flavor_tags cleanly.
+
+acceptance_criteria:
+  - Players can:
+      - create a canonical race character with explicit body_type/size/archetype,
+      - create a custom race with name, body_type, size, archetype, and tags.
+  - All existing races continue to function without mechanical changes.
+  - No crashes from missing fields:
+      - old saves are migrated cleanly with sane defaults.
+  - All new fields (body_type, size, archetype, flavor_tags) are used
+    only for flavor; no behavior or numeric values change here.
+
+non_goals:
+  - No new mechanics, stats, or balance changes.
+  - No changes to hunger, stamina, encounter odds, or damage.
+  - No new quest logic.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Keep the modular race data and player state data-driven.
+  - Use simple enum-like strings for body_type, size, archetype.
+  - Avoid hard-coded race-specific logic; rely on tags and IDs.
+
+test_plan:
+  - Start a new game and:
+      - create a character for each canonical race, picking different
+        body_types/sizes/archetypes.
+      - create at least 2 custom races:
+          - e.g. "centipede naga" (naga, chitinous, manylimbed, caveborn),
+          - e.g. "slugborn" (humanoid or quadruped, slimy, forestborn).
+      - confirm:
+          - character creation completes without errors,
+          - race data is persisted in save.json,
+          - loading a game restores all modular race fields correctly.
+  - Load old saves and:
+      - ensure characters are migrated successfully with default body_type,
+        size, archetype, and tags, and game still runs normally.

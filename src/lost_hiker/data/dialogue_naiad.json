@@ -320,6 +320,219 @@
           }
         }
       ]
+    },
+    {
+      "id": "naiad_archetype_river_creature",
+      "npc_id": "naiad",
+      "text": "The water recognizes you. River-folk understand the currents, the flow—you hear the water's song in a way others cannot. The springs welcome you.",
+      "conditions": {
+        "require_archetype": "river_creature",
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "The water feels like home.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_archetype_cave_creature",
+      "npc_id": "naiad",
+      "text": "You're more at home in the dark depths, aren't you? The surface waters must feel strange—too bright, too open. But the underground currents flow through these springs too. You're welcome here.",
+      "conditions": {
+        "require_archetype": "cave_creature",
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "I'm adjusting to the surface.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_archetype_forest_creature",
+      "npc_id": "naiad",
+      "text": "The forest calls to you, but the water has its own voice. Listen—the springs remember the trees, and the trees remember the water. They're connected, just as you are to both.",
+      "conditions": {
+        "require_archetype": "forest_creature",
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "I can feel the connection.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_flavor_tag_slimy",
+      "npc_id": "naiad",
+      "text": "You're… moist. The water recognizes that quality—you move through it more easily, don't you? The currents flow around you differently. It's a gift.",
+      "conditions": {
+        "require_flavor_tag": "slimy",
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "I suppose it is.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_flavor_tag_scaled",
+      "npc_id": "naiad",
+      "text": "Your scales catch the light in the water—beautiful, really. The water flows over them smoothly. You're built for this element, aren't you?",
+      "conditions": {
+        "require_flavor_tag": "scaled",
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "Water feels natural to me.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_flavor_tag_feathered",
+      "npc_id": "naiad",
+      "text": "Feathers and water… that's an interesting combination. Your feathers must get heavy when wet, but the water itself doesn't seem to trouble you. The springs welcome all forms.",
+      "conditions": {
+        "require_flavor_tag": "feathered",
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "I manage.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_flavor_tag_furred",
+      "npc_id": "naiad",
+      "text": "Fur holds water, doesn't it? You must feel the weight of it when you're near the springs. But the water doesn't judge—it accepts all who come to it.",
+      "conditions": {
+        "require_flavor_tag": "furred",
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "The water is accepting.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_body_type_naga",
+      "npc_id": "naiad",
+      "text": "You coil through the water so gracefully. Your form is built for this element—the currents flow around you naturally. The springs recognize a kindred spirit.",
+      "conditions": {
+        "require_body_type": "naga",
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "The water feels like home.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_body_type_taur",
+      "npc_id": "naiad",
+      "text": "Your form is substantial—the water must feel different when you enter it. The deeper pools welcome you, but the shallows might be tricky. Still, the springs adapt to all who need them.",
+      "conditions": {
+        "require_body_type": "taur",
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "I'll be careful in the shallows.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_body_type_quadruped",
+      "npc_id": "naiad",
+      "text": "Four legs in the water—you move differently through the currents. More stable, perhaps, but the water's flow might feel strange at first. The springs welcome all forms.",
+      "conditions": {
+        "require_body_type": "quadruped",
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "I'm learning to navigate it.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_tag_family_ooze",
+      "npc_id": "naiad",
+      "text": "You share a softness with the water. Your form flows, adapts—there's a kinship there. The currents recognize that shared fluidity. When you enter the springs, the water welcomes you as something familiar, something that understands its nature.",
+      "conditions": {
+        "require_tag_family": "slime",
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "The water feels welcoming.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_tag_family_synth",
+      "npc_id": "naiad",
+      "text": "Your form is strange—metal and mechanisms entering my waters. The springs have never felt a body like yours. But you're not hostile, and the water doesn't reject you. I'm curious. How does it feel, to be something that isn't organic, yet moves through water as if you belong?",
+      "conditions": {
+        "require_tag_family": "synth",
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "The water feels… different.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I'm still learning.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "naiad_flavor_tag_aquatic",
+      "npc_id": "naiad",
+      "text": "You're water-touched. The springs recognize you—your form, your movement, the way you understand the currents. There's a deep connection. The water remembers you, even if you don't remember it.",
+      "conditions": {
+        "require_flavor_tag": ["aquatic", "fishlike", "riverborn", "water_affinity"],
+        "require_flag": "naiad_met"
+      },
+      "options": [
+        {
+          "text": "The water feels like home.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        }
+      ]
     }
   ]
 }

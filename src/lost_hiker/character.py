@@ -38,6 +38,10 @@ class Character:
 
     name: str = ""
     race_id: str = "human"
+    body_type: str = "humanoid"
+    size: str = "medium"
+    archetype: str = "forest_creature"
+    flavor_tags: List[str] = field(default_factory=list)
     tags: List[str] = field(default_factory=list)
     base_stats: Dict[str, float] = field(
         default_factory=lambda: dict(DEFAULT_BASE_STATS)
@@ -81,6 +85,10 @@ class Character:
         return {
             "name": self.name,
             "race_id": self.race_id,
+            "body_type": self.body_type,
+            "size": self.size,
+            "archetype": self.archetype,
+            "flavor_tags": list(self.flavor_tags),
             "tags": list(self.tags),
             "base_stats": dict(self.base_stats),
             "race_modifiers": list(self.race_modifiers),
@@ -93,6 +101,10 @@ class Character:
         return cls(
             name=str(data.get("name", "")),
             race_id=str(data.get("race_id", "human")),
+            body_type=str(data.get("body_type", "humanoid")),
+            size=str(data.get("size", "medium")),
+            archetype=str(data.get("archetype", "forest_creature")),
+            flavor_tags=list(data.get("flavor_tags", [])),
             tags=list(data.get("tags", [])),
             base_stats=dict(data.get("base_stats", DEFAULT_BASE_STATS)),
             race_modifiers=tuple(data.get("race_modifiers", [])),
@@ -104,6 +116,10 @@ def build_character_from_race(
     race_id: str,
     race_data: Dict[str, object],
     name: str,
+    body_type: Optional[str] = None,
+    size: Optional[str] = None,
+    archetype: Optional[str] = None,
+    flavor_tags: Optional[List[str]] = None,
 ) -> Character:
     """Construct a character using race-driven modifiers."""
     tags = list(race_data.get("tags", []))
@@ -111,6 +127,10 @@ def build_character_from_race(
     return Character(
         name=name,
         race_id=race_id,
+        body_type=body_type or str(race_data.get("body_type_default", "humanoid")),
+        size=size or str(race_data.get("size_default", "medium")),
+        archetype=archetype or str(race_data.get("archetype_default", "forest_creature")),
+        flavor_tags=list(flavor_tags) if flavor_tags is not None else list(race_data.get("flavor_tags", [])),
         tags=tags,
         race_modifiers=modifiers,
     )

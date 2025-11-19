@@ -322,11 +322,21 @@ def _do_sheltered_rest(
         ]
         shelter = random.choice(shelter_types)
         
-        ui.echo(
+        base_text = (
             f"You find yourself in {shelter}, safe and protected. "
             "Time passes in a blur—when you emerge, you feel more rested, "
             "though you're not entirely sure how long you were there.\n"
         )
+        ui.echo(base_text)
+        
+        # Add optional tag-based resting flavor
+        try:
+            from .flavor_profiles import get_resting_flavor
+            flavor_text = get_resting_flavor(state.character, context="sheltered")
+            if flavor_text:
+                ui.echo(f"{flavor_text}\n")
+        except Exception:
+            pass
 
 
 def _do_transport(
