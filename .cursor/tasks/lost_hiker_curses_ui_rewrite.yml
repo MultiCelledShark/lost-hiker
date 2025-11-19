@@ -1,0 +1,148 @@
+name: "Lost Hiker – Curses UI Rewrite (Output/Input Windows + Pagination)"
+
+description: |
+  Refactor the curses UI so text is readable and input is stable:
+
+  - Split the UI into:
+      - a main OUTPUT window for all scene text, menus, and descriptions
+      - a 1–2 line INPUT window pinned at the bottom
+  - Stop letting text stack endlessly down the terminal.
+  - Fix menus so that long option lists (e.g. race selection) never render
+    off-screen and are paginated when they exceed available vertical space.
+  - Ensure input is always visible and not pushed off-screen.
+
+  This is a structural UI pass; it does not change game logic, mechanics, or
+  narrative content. It only changes how things are drawn to the terminal.
+
+goals:
+  - Create dedicated output and input windows:
+      - Use stdscr.getmaxyx() to determine terminal size.
+      - Create:
+          - output_win: takes most of the screen height.
+          - input_win: 1–2 lines at the bottom.
+      - Example layout:
+          - output_win: (0, 0) to (max_y - 3, max_x)
+          - input_win:  (max_y - 2, 0) to bottom of screen
+      - All scene text, menus, descriptions, error messages, etc. should render
+        into output_win.
+      - All commands / prompts ("Glade command >", etc.) should use input_win.
+
+  - Centralize output printing:
+      - Add helper functions to render text into output_win, for example:
+          - render_text(output_win, text: str)
+          - render_menu(output_win, title: str, options: List[str], ...)
+      - Each time new scene text is shown:
+          - output_win.erase()
+          - write the new content starting from (0, 0)
+          - output_win.refresh()
+      - This prevents text from endlessly stacking and running off-screen.
+      - Implement basic line-wrapping so long lines don’t overflow horizontally.
+
+  - Centralize input handling:
+      - Add a helper like:
+          - get_command(input_win, prompt="> ") -> str
+      - This helper should:
+          - clear input_win (erase),
+          - print the prompt on the first line,
+          - refresh,
+          - then call getstr() (or equivalent) to capture user input.
+      - Ensure input is always drawn to the same line at the bottom of the screen.
+      - Do NOT use stdscr directly for input anymore; route everything via input_win.
+
+  - Implement menu pagination for long lists:
+      - For any menu that might exceed available lines (e.g. race selection),
+        implement paging.
+      - Example approach:
+          - Calculate max option rows:
+              - e.g. max_rows = output_height - 4 (for title/instructions).
+          - Split options into pages of max_rows.
+          - Display:
+              - title,
+              - current page of options numbered 1..N for that page,
+              - small footer with page info and controls, e.g.:
+                  - "(n) Next page, (p) Previous page, (q) Back"
+          - Allow navigation between pages with simple keys (n/p) or arrow keys.
+      - Ensure a menu can never print beyond output_win’s height.
+
+  - Ensure character creation menus are fully readable:
+      - Specifically fix:
+          - race selection menus (canonical + custom races),
+          - body_type selection,
+          - tag selection (including tag packs + manual tags).
+      - No menu option should appear below the bottom of the visible window.
+      - If there are more races/tags than available lines, they MUST paginate.
+
+  - Preserve and improve command prompts:
+      - Anywhere the game previously printed a prompt like:
+          - "Glade command >"
+          - or similar,
+        refactor to:
+          - write any instructions to output_win,
+          - then use input_win to collect the actual input.
+      - Ensure the player is never forced to type while the prompt is off-screen.
+
+  - Make the UI resilient to smaller terminals:
+      - If the terminal is too small (e.g. fewer than ~18–20 lines), detect this
+        and show a warning or minimal fallback:
+          - e.g. "Terminal too small; please resize to at least 20 rows."
+      - Do not crash when the window is small; fail gracefully where possible.
+
+deliverables:
+  - Updated curses UI codebase:
+      - output_win + input_win creation and management.
+      - central rendering helpers for text and menus.
+      - central input helper for commands.
+      - pagination for long menus.
+  - Updated character creation UI:
+      - all options (races, body types, tags) visible via paging.
+  - Updated core game loop UI:
+      - Glade, Forest exploration, camp interactions, Echo interactions all
+        use the new output/input window model.
+
+acceptance_criteria:
+  - During character creation:
+      - All race options and other choices are viewable via paging.
+      - No options are cut off at the bottom of the screen.
+  - During gameplay:
+      - The main output area only shows the current scene/menu/text, not an
+        endlessly growing scrollback.
+      - Input prompt is always visible at the bottom and never overlaps or
+        appears off-screen.
+      - Typing commands is comfortable; the player sees what they are responding
+        to without needing scrollback.
+  - No regressions:
+      - All previous commands and menus still function logically; they just
+        render via the new windows.
+
+non_goals:
+  - No changes to game logic, quests, combat, hunger, vore, or fast travel.
+  - No mouse support or advanced UI widgets.
+  - No separate scrollback buffer or transcript viewer in this task.
+
+context:
+  - docs/design/Lost_Hiker_Design.md
+
+coding_guidelines:
+  - Do not mix direct stdscr writes with the new windows once they are created.
+    All display should go through output_win and input_win.
+  - Keep new helper functions small, well-named, and placed somewhere central
+    (e.g. a ui or view module) so they can be reused everywhere.
+  - Be careful with getmaxyx() calls; always handle potential off-by-one errors.
+
+test_plan:
+  - Run the game in a typical 80x24 terminal and:
+      - Go through full character creation:
+          - Verify all races/body types/tags can be seen by paging.
+      - Play for several in-game days:
+          - Explore, camp, talk to Echo, travel, brew tea, interact with Kirin
+            (if reachable).
+          - Confirm the output window is always readable and doesn’t accumulate
+            past content indefinitely.
+          - Confirm the input prompt stays fixed at the bottom.
+  - Test a smaller terminal (e.g. 24x80 and smaller):
+      - Verify the UI still works or shows a usable warning if too small.
+  - Attempt edge cases:
+      - Opening long menus (tag selection, race selection),
+      - rapidly issuing commands,
+      - triggering multiple dialog scenes in sequence.
+      - Confirm no curses errors, assertion errors, or crashes occur.

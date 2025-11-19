@@ -175,10 +175,15 @@ class Engine:
         resolve_belly_on_load(self.state, ui=self.ui)
         
         while self.state.stage == "intro":
-            self._intro_sequence()
+            result = self._intro_sequence()
+            if result == "quit":
+                return
         keep_playing = True
         while keep_playing:
-            self._run_day()
+            result = self._run_day()
+            if result == "quit":
+                keep_playing = False
+                continue
             if self.state.stage == "game_over":
                 keep_playing = False
                 self.ui.echo("Game over.\n")
@@ -194,7 +199,7 @@ class Engine:
                 keep_playing = False
                 self.ui.echo("Game saved. See you soon.\n")
 
-    def _run_day(self) -> None:
+    def _run_day(self) -> str | None:
         self.state.prune_expired_effects()
         # Reset landmark food gathering flags for the new day
         for landmark_id in self.state.landmark_flags:
@@ -212,11 +217,15 @@ class Engine:
         
         active_zone = self.state.active_zone or "glade"
         if active_zone == "glade":
-            self._glade_phase()
+            result = self._glade_phase()
+            if result == "quit":
+                return "quit"
         elif active_zone == "echo_belly":
             self._belly_phase()
         else:
-            self.explore_zone(active_zone)
+            result = self.explore_zone(active_zone)
+            if result == "quit":
+                return "quit"
 
     def _wake_phase(self) -> None:
         self.state.stage = "wake"
@@ -322,7 +331,7 @@ class Engine:
         if active_zone == "glade" and can_trigger_kirin_intro(self.state):
             trigger_kirin_intro(self.state, self.ui, context="glade")
 
-    def _glade_phase(self) -> None:
+    def _glade_phase(self) -> str | None:
         self.state.stage = "glade"
         self.state.active_zone = "glade"
         stamina_max = self.state.character.get_stat(
@@ -354,7 +363,7 @@ class Engine:
                     self.ui.echo(f"\n{text}\n")
         
         self._set_scene_highlights(zone_id="glade", depth=0, extras=())
-        glade_commands = "move, look, ping, brew, camp, status, bag, help"
+        glade_commands = "move, look, ping, brew, camp, status, bag, save, quit, help"
         if is_echo_present_at_glade(self.state):
             glade_commands += ", approach echo"
         if can_use_kirin_travel(self.state):
@@ -376,6 +385,8 @@ class Engine:
                 return
             if outcome == "leave":
                 return
+            if outcome == "quit":
+                return "quit"
             # outcome == "stay": loop continues
 
     def _belly_phase(self) -> None:
@@ -468,7 +479,7 @@ class Engine:
                 return
             # Continue loop
 
-    def _intro_sequence(self) -> None:
+    def _intro_sequence(self) -> str | None:
         zone_id = "charred_tree_interior"
         if self.state.stage != "intro":
             return
@@ -489,6 +500,8 @@ class Engine:
             if action == "leave":
                 self._transition_from_hollow()
                 return
+            if action == "quit":
+                return "quit"
             if action == "stay":
                 continue
 
@@ -528,6 +541,8 @@ class Engine:
                     "leave — step into the Glade",
                     "status — review notebook",
                     "bag — check supplies",
+                    "save — save your progress",
+                    "quit — save and exit the game",
                 ]
                 self.ui.echo(
                     "Commands:\n" + "\n".join(f"  {line}" for line in lines) + "\n"
@@ -549,6 +564,14 @@ class Engine:
         if verb in {"camp", "return"}:
             self.ui.echo("There's no camp to make inside the burned trunk.\n")
             return "stay"
+        if verb == "save":
+            self.repo.save(self.state)
+            self.ui.echo("Game saved.\n")
+            return "stay"
+        if verb in {"quit", "exit"}:
+            self.repo.save(self.state)
+            self.ui.echo("Game saved. See you soon.\n")
+            return "quit"
         if verb == "wait":
             self.ui.echo("Ash settles as you catch your breath.\n")
             return "stay"
@@ -695,6 +718,14 @@ class Engine:
             else:
                 self.ui.echo("Echo isn't here right now.\n")
                 return "stay"
+        if verb == "save":
+            self.repo.save(self.state)
+            self.ui.echo("Game saved.\n")
+            return "stay"
+        if verb in {"quit", "exit"}:
+            self.repo.save(self.state)
+            self.ui.echo("Game saved. See you soon.\n")
+            return "quit"
         if verb == "help":
             self._print_help("glade")
             return "stay"
@@ -985,6 +1016,14 @@ class Engine:
                 return "stay"
             self._describe_zone(zone_id, depth=depth)
             return "stay"
+        if verb == "save":
+            self.repo.save(self.state)
+            self.ui.echo("Game saved.\n")
+            return "stay"
+        if verb in {"quit", "exit"}:
+            self.repo.save(self.state)
+            self.ui.echo("Game saved. See you soon.\n")
+            return "quit"
         if verb == "help":
             self._print_help("forest")
             return "stay"
@@ -1174,6 +1213,8 @@ class Engine:
                 "landmarks — view known landmarks and path stability",
                 "check sky — observe the sky and light conditions",
                 "camp — rest the day away",
+                "save — save your progress",
+                "quit — save and exit the game",
                 "help — list commands",
             ]
             if is_echo_present_at_glade(self.state):
@@ -1194,6 +1235,8 @@ class Engine:
                 "landmarks — view known landmarks and path stability",
                 "check sky — observe the sky and light conditions",
                 "camp — make camp on the spot",
+                "save — save your progress",
+                "quit — save and exit the game",
                 "help — list commands",
             ]
         self.ui.echo("Commands:\n" + "\n".join(f"  {line}" for line in lines) + "\n")
@@ -2827,7 +2870,7 @@ class Engine:
             current_rapport = get_rapport(self.state, "echo")
             self.ui.echo(f"Echo's rapport: {current_rapport}\n")
 
-    def explore_zone(self, zone_id: str) -> None:
+    def explore_zone(self, zone_id: str) -> str | None:
         """Handle repeated exploration choices within a specific zone."""
         self.state.stage = f"explore:{zone_id}"
         self.state.active_zone = zone_id
@@ -2910,6 +2953,8 @@ class Engine:
                 continue
             if outcome == "leave":
                 return
+            if outcome == "quit":
+                return "quit"
 
     def _camp_phase(self, *, zone_id: str, stamina_max: float) -> None:
         from .time_of_day import advance_time_of_day

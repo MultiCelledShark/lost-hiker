@@ -8,13 +8,20 @@
   "stage": "camp",
   "active_zone": "glade",
   "character": {
-    "name": "Rhew",
-    "race_id": "dragonborn",
+    "name": "Skyr",
+    "race_id": "gryphon_folk",
+    "body_type": "quadruped",
+    "size": "large",
+    "archetype": "beastfolk",
+    "flavor_tags": [
+      "feathered",
+      "ambient_magic"
+    ],
     "tags": [
       "biped",
-      "scaled",
-      "draconic",
-      "magic-touched"
+      "feathered",
+      "keen-sight",
+      "wind-sense"
     ],
     "base_stats": {
       "stamina_max": 4.0,
@@ -34,18 +41,18 @@
     ],
     "permanent_modifiers": []
   },
-  "stamina": 6.4,
+  "stamina": 4.4,
   "inventory": [
     "water_bottle",
-    "forest_berries",
-    "forest_berries"
+    "trail_nuts",
+    "dried_berries"
   ],
-  "days_without_meal": 1,
+  "days_without_meal": 2,
   "ate_snack_today": false,
   "water_drinks_today": 0,
   "rest_type": "camp",
   "rapport": {
-    "echo": 2
+    "echo": 5
   },
   "timed_modifiers": [],
   "recent_events": [],
@@ -54,7 +61,7 @@
     "charred_tree_interior": 0
   },
   "vore_enabled": true,
-  "player_as_pred_enabled": false,
+  "player_as_pred_enabled": true,
   "radio_version": 1,
   "pending_radio_upgrade": false,
   "pending_radio_return_day": null,
@@ -85,23 +92,51 @@
   "kirin_last_travel_day": null,
   "wayfinding_ready": false,
   "npc_flags": {
-    "echo": {
-      "echo_radio_connection_hint_shown": true
-    }
+    "echo": {}
   },
   "npc_state": {
-    "echo_race_greeting_shown": true
+    "echo_race_greeting_shown": true,
+    "hermit_met": false,
+    "hermit_explained_runestones": false,
+    "naiad_met": false,
+    "naiad_share_recipe": false,
+    "druid_met": false,
+    "druid_shroomling_quest_started": false,
+    "druid_shroomling_quest_completed": false,
+    "fisher_met": false,
+    "fisher_mussel_quest_started": false,
+    "fisher_mussel_quest_completed": false,
+    "astrin_status": "missing",
+    "astrin_tea_unlocked": false,
+    "echo_checkin_last_day": null,
+    "echo_favor_last_day": null,
+    "hermit_trinket_quest_started": false,
+    "hermit_trinket_quest_completed": false,
+    "hermit_sketch_given": false,
+    "naiad_blessing_quest_started": false,
+    "naiad_blessing_quest_completed": false,
+    "naiad_blessing_last_week": null,
+    "druid_night_ritual_available": false,
+    "fisher_mussel_mastery_learned": false,
+    "fisher_mussel_mastery_expires_day": null,
+    "fisher_trap_quest_started": false,
+    "fisher_trap_quest_completed": false,
+    "astrin_herb_id_last_day": null,
+    "astrin_request_quest_started": false,
+    "astrin_request_quest_completed": false,
+    "blue_fireflies_seen": false
   },
   "echo_present_at_glade": true,
-  "echo_radio_connection_hint_shown": true,
+  "echo_radio_connection_hint_shown": false,
   "echo_last_pet_day": 1,
-  "echo_vore_tension": 0.0,
-  "echo_last_vore_tension_day": null,
+  "echo_vore_tension": 0.2,
+  "echo_last_vore_tension_day": 1,
   "belly_state": null,
   "condition": 0,
-  "time_of_day": "Dawn",
+  "time_of_day": "Night",
   "is_sheltered": false,
   "flags": {},
   "lost_bag_predator_id": null,
-  "lost_bag_den_location_id": null
+  "lost_bag_den_location_id": null,
+  "rare_event_triggers": {}
 }

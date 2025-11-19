@@ -45,12 +45,37 @@ def _get_exploration_race_flavor(
         return None
     
     race_data = races_data.get(race_id, {})
-    flavor_tags = race_data.get("flavor_tags", {})
+    flavor_tags = race_data.get("flavor_tags", [])
     if not flavor_tags:
         return None
     
-    sensory = flavor_tags.get("sensory_profile", "")
-    magic = flavor_tags.get("magic_affinity", "")
+    # Handle both old dict format (backwards compatibility) and new list format
+    if isinstance(flavor_tags, dict):
+        # Old format: dict with sensory_profile and magic_affinity
+        sensory = flavor_tags.get("sensory_profile", "")
+        magic = flavor_tags.get("magic_affinity", "")
+    else:
+        # New format: list of tag strings
+        # Check for tags that correspond to old sensory/magic profiles
+        flavor_tag_list = list(flavor_tags) if flavor_tags else []
+        race_tags = list(race_data.get("tags", []))
+        
+        # Map new tags to old logic
+        has_forest_magic = "ambient_magic" in flavor_tag_list and "forestborn" in flavor_tag_list
+        has_stone_resonance = "stoneborn" in flavor_tag_list
+        has_wind_affinity = "feathered" in flavor_tag_list and "ambient_magic" in flavor_tag_list
+        has_sharp_scent = "keen-smell" in race_tags
+        
+        sensory = ""
+        magic = ""
+        if has_forest_magic:
+            magic = "mild_forest"
+        elif has_stone_resonance:
+            magic = "stone_resonance"
+        elif has_wind_affinity:
+            sensory = "wind_affinity"
+        elif has_sharp_scent:
+            sensory = "sharp_scent"
     
     # Optional flavor variants for foraging events
     if event_category == "forage":
