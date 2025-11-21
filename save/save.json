@@ -5,21 +5,24 @@
   "day_in_season": 1,
   "season_index": 0,
   "season_day": 0,
-  "stage": "glade",
-  "active_zone": "glade",
+  "stage": "intro",
+  "active_zone": "charred_tree_interior",
   "character": {
-    "name": "Blob",
-    "race_id": "custom_blob",
-    "body_type": "taur",
-    "size": "medium",
-    "archetype": "leyline_touched",
+    "name": "Mila",
+    "race_id": "cow_kin",
+    "body_type": "humanoid",
+    "size": "large",
+    "archetype": "beastfolk",
     "flavor_tags": [
-      "slimy",
-      "gelatinous",
-      "amorphous",
-      "saplike"
+      "furred",
+      "forestborn"
     ],
-    "tags": [],
+    "tags": [
+      "biped",
+      "hooved",
+      "furred",
+      "herbivorous"
+    ],
     "base_stats": {
       "stamina_max": 4.0,
       "stamina_wake_restore": 1.0,
@@ -28,22 +31,28 @@
       "camp_meal_cost": 1.0,
       "inventory_slots": 20.0
     },
-    "race_modifiers": [],
+    "race_modifiers": [
+      {
+        "add": {
+          "stamina_max": 4,
+          "inventory_slots": 10
+        }
+      }
+    ],
     "permanent_modifiers": []
   },
-  "stamina": 2.2,
+  "stamina": 8.0,
   "inventory": [
     "water_bottle",
+    "forest_berries",
     "dried_berries",
     "forest_berries"
   ],
-  "days_without_meal": 2,
+  "days_without_meal": 0,
   "ate_snack_today": false,
   "water_drinks_today": 0,
   "rest_type": null,
-  "rapport": {
-    "echo": 5
-  },
+  "rapport": {},
   "timed_modifiers": [],
   "recent_events": [],
   "zone_steps": {},
@@ -82,42 +91,12 @@
   "kirin_last_travel_day": null,
   "wayfinding_ready": false,
   "npc_flags": {},
-  "npc_state": {
-    "hermit_met": false,
-    "hermit_explained_runestones": false,
-    "naiad_met": false,
-    "naiad_share_recipe": false,
-    "druid_met": false,
-    "druid_shroomling_quest_started": false,
-    "druid_shroomling_quest_completed": false,
-    "fisher_met": false,
-    "fisher_mussel_quest_started": false,
-    "fisher_mussel_quest_completed": false,
-    "astrin_status": "missing",
-    "astrin_tea_unlocked": false,
-    "echo_checkin_last_day": null,
-    "echo_favor_last_day": null,
-    "hermit_trinket_quest_started": false,
-    "hermit_trinket_quest_completed": false,
-    "hermit_sketch_given": false,
-    "naiad_blessing_quest_started": false,
-    "naiad_blessing_quest_completed": false,
-    "naiad_blessing_last_week": null,
-    "druid_night_ritual_available": false,
-    "fisher_mussel_mastery_learned": false,
-    "fisher_mussel_mastery_expires_day": null,
-    "fisher_trap_quest_started": false,
-    "fisher_trap_quest_completed": false,
-    "astrin_herb_id_last_day": null,
-    "astrin_request_quest_started": false,
-    "astrin_request_quest_completed": false,
-    "blue_fireflies_seen": false
-  },
+  "npc_state": {},
   "echo_present_at_glade": true,
   "echo_radio_connection_hint_shown": false,
-  "echo_last_pet_day": 1,
-  "echo_vore_tension": 1.3,
-  "echo_last_vore_tension_day": 1,
+  "echo_last_pet_day": null,
+  "echo_vore_tension": 0.0,
+  "echo_last_vore_tension_day": null,
   "belly_state": null,
   "condition": 0,
   "time_of_day": "Day",

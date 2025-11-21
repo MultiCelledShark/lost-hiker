@@ -9,6 +9,7 @@ from .landmarks import Landmark, LandmarkCatalog
 from .forest_memory import get_path_stability
 from .forest_effects import get_max_reliable_depth, should_allow_deep_depth_roll
 from .encounter_outcomes import EncounterOutcome, OutcomeContext, resolve_encounter_outcome
+from .hunger import apply_stamina_cap
 
 
 class UI(Protocol):
@@ -166,11 +167,13 @@ def execute_wayfinding_teleport(
     state.wayfinding_ready = False
     
     # Show arrival message
-    stamina_max = state.character.get_stat(
+    base_stamina_max = state.character.get_stat(
         "stamina_max",
         timed_modifiers=state.timed_modifiers,
         current_day=state.day,
     )
+    # Apply caps (rest, hunger, condition) to get actual maximum
+    capped_stamina_max = apply_stamina_cap(state, base_stamina_max)
     ui.echo(f"You arrive at {destination_name}.\n")
-    ui.echo(f"Stamina: {state.stamina:.0f}/{stamina_max:.0f}\n")
+    ui.echo(f"Stamina: {state.stamina:.0f}/{capped_stamina_max:.0f}\n")
     ui.echo("\n")

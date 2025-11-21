@@ -1544,14 +1544,16 @@ class Engine:
         
         # For threat encounters, show condition and stamina
         if encounter.encounter_type == "threat":
-            stamina_max = self.state.character.get_stat(
+            base_stamina_max = self.state.character.get_stat(
                 "stamina_max",
                 timed_modifiers=self.state.timed_modifiers,
                 current_day=self.state.day,
             )
+            # Apply caps (rest, hunger, condition) to get actual maximum
+            capped_stamina_max = apply_stamina_cap(self.state, base_stamina_max)
             condition_label = get_condition_label(self.state.condition)
             self.ui.echo(
-                f"Stamina: {self.state.stamina:.1f}/{stamina_max:.1f} | "
+                f"Stamina: {self.state.stamina:.1f}/{capped_stamina_max:.1f} | "
                 f"Condition: {condition_label}\n"
             )
         
@@ -3489,13 +3491,20 @@ class Engine:
             season_prefix = "Mid "
         else:
             season_prefix = "Late "
+        # Calculate actual capped maximum stamina (same as status bar)
+        base_stamina_max = character.get_stat(
+            "stamina_max",
+            timed_modifiers=self.state.timed_modifiers,
+            current_day=self.state.day,
+        )
+        capped_stamina_max = apply_stamina_cap(self.state, base_stamina_max)
         lines = [
             f"Name: {name}",
             f"Race: {race}",
             f"Day: {self.state.day} ({season_prefix}{season_name})",
             f"Time: {time_of_day.to_display_name()}",
             f"Location: {zone_label}",
-            f"Stamina: {self.state.stamina:.0f}/{stamina_max:.0f}",
+            f"Stamina: {self.state.stamina:.0f}/{capped_stamina_max:.0f}",
             f"Hunger: {self.state.days_without_meal} day{'s' if self.state.days_without_meal != 1 else ''} without a proper meal",
             f"Condition: {condition_label}",
         ]
