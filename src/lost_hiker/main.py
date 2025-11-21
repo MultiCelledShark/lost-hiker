@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import random
+import textwrap
 from pathlib import Path
 import re
 from typing import Callable, Dict, Iterable, List, Optional, Pattern
@@ -78,6 +79,12 @@ class CursesUI(UI):
         # Initialize UI using centralized module (enforces 100×30 minimum)
         self._windows = ui_curses.init_ui(self._screen)
         
+        # Create ContentRenderer for content window
+        self._content_renderer = ui_curses.ContentRenderer(self._windows.content_win)
+        
+        # Ensure initial screen state is visible
+        self._screen.refresh()
+        
         # Highlighting support (for syntax highlighting in text)
         self._highlight_terms: tuple[str, ...] = ()
         self._highlight_regex: Optional[Pattern[str]] = None
@@ -95,11 +102,8 @@ class CursesUI(UI):
         except curses.error:
             self._highlight_attr = curses.A_BOLD
         
-        # Current scene content (for preserving text during menus)
-        self._current_scene_lines: List[str] = []
-        
         # Menu state
-        self._menu_state: Optional[ui_curses.MenuState] = None
+        self._selected_index = 0
         self._current_game_state: Optional[GameState] = None
 
     def close(self) -> None:
@@ -116,198 +120,335 @@ class CursesUI(UI):
 
     def heading(self, text: str) -> None:
         """Display a heading, clearing previous scene content."""
-        self._clear_scene()
+        # Draw frame with borders first (this clears content window if requested)
+        self._draw_frame(clear_content=True)
+        # Clear the content renderer buffer
+        self._content_renderer.clear()
+        # Write heading text
         heading_text = f"\n{text}\n{'-' * len(text)}\n"
-        self._add_to_scene(heading_text)
-        self._render_narrative()
+        self._content_renderer.write(heading_text)
+        # Ensure content window is visible
+        self._windows.content_win.refresh()
 
     def echo(self, text: str) -> None:
         """Add text to current scene output."""
-        self._add_to_scene(text if text.endswith("\n") else text + "\n")
-        self._render_narrative()
+        # Don't clear content window - just draw frame to update header/borders
+        self._draw_frame(clear_content=False)
+        # Ensure text ends with newline
+        if not text.endswith("\n"):
+            text = text + "\n"
+        self._content_renderer.write(text)
+    
+    def clear_content(self) -> None:
+        """Clear the content window and reset renderer position."""
+        self._content_renderer.clear()
 
-    def menu(self, prompt: str, options: List[str]) -> str:
+    def scrollable_menu(self, prompt: str, options: List[str], initial_index: int = 0) -> str:
         """
-        Display a scrolling menu with multiple visible options.
+        Display a scrollable menu with options rendered in the content area.
         
-        Uses the new ui_curses module for proper scrolling behavior:
-        - Up/Down: Move selection, auto-scroll window
-        - Left/Right: Page up/down by visible_rows
-        - Always shows multiple options when available
+        Used for large option lists (like character creation) that need to be
+        scrollable and use the full content window height.
+        
+        Args:
+            prompt: Menu prompt text
+            options: List of option strings
+            initial_index: Initial selected index (default 0)
+            
+        Returns:
+            Selected option string
         """
         if not options:
             return ""
         
-        # Initialize menu state
-        selected_index = 0
-        if self._menu_state:
-            selected_index = self._menu_state.selected_index
+        # Clear menu window (not used for scrollable menus)
+        self._windows.menu_win.erase()
+        self._windows.menu_win.refresh()
         
-        # Draw frame and scene content first
-        self._draw_frame()
-        self._render_narrative()
+        # Draw frame and clear content
+        self._draw_frame(clear_content=True)
+        self._content_renderer.clear()
         
-        # Draw menu (preserve existing scene content)
-        self._menu_state = ui_curses.draw_menu(
+        # Get content window dimensions
+        content_height, content_width = self._windows.content_win.getmaxyx()
+        
+        # Reserve space for prompt (2 lines) and spacing
+        prompt_lines = 3
+        available_height = max(1, content_height - prompt_lines)
+        
+        # Initialize selection state
+        selected_index = max(0, min(initial_index, len(options) - 1))
+        window_start = 0
+        
+        def redraw_menu() -> None:
+            """Redraw the menu in content_win with wrapped text."""
+            # Clear content window and renderer
+            self._content_renderer.clear()
+            
+            # Write prompt using ContentRenderer (for wrapping if needed)
+            self._content_renderer.write_line(prompt)
+            self._content_renderer.write_line("")  # Blank line
+            
+            # Get prompt height from renderer
+            prompt_lines_count = len(self._content_renderer.lines)
+            y_offset = prompt_lines_count
+            
+            try:
+                max_y, max_x = self._windows.content_win.getmaxyx()
+                
+                # Calculate wrap width (account for option prefix like "  1. ")
+                prefix_width = len(f"  {len(options)}. ")
+                wrap_width = max(1, max_x - prefix_width)
+                
+                # Build list of wrapped option lines with their indices
+                option_lines: List[tuple[int, List[str]]] = []  # (option_index, wrapped_lines)
+                current_y = y_offset
+                
+                for i in range(len(options)):
+                    option_text = f"  {i + 1}. {options[i]}"
+                    
+                    # Wrap the option text
+                    if len(option_text) <= max_x:
+                        # Fits on one line
+                        wrapped = [option_text]
+                    else:
+                        # Need to wrap - split prefix and description
+                        prefix = f"  {i + 1}. "
+                        description = options[i]
+                        # Wrap description part
+                        desc_lines = textwrap.wrap(
+                            description,
+                            width=wrap_width,
+                            break_long_words=True,
+                            break_on_hyphens=False,
+                        )
+                        if not desc_lines:
+                            desc_lines = [description[:wrap_width]]
+                        # Add prefix to first line, indent continuation lines
+                        wrapped = [prefix + desc_lines[0]]
+                        indent = " " * len(prefix)
+                        for line in desc_lines[1:]:
+                            wrapped.append(indent + line)
+                    
+                    option_lines.append((i, wrapped))
+                
+                # Calculate which options are visible based on window_start
+                visible_lines: List[tuple[int, int, str]] = []  # (option_index, y_pos, line_text)
+                current_y = y_offset
+                
+                for i in range(window_start, len(options)):
+                    opt_idx, wrapped = option_lines[i]
+                    for line in wrapped:
+                        if current_y >= max_y:
+                            break
+                        visible_lines.append((opt_idx, current_y, line))
+                        current_y += 1
+                    if current_y >= max_y:
+                        break
+                
+                # Draw all visible lines
+                for opt_idx, y_pos, line_text in visible_lines:
+                    # Truncate if still too long (safety check)
+                    if len(line_text) > max_x:
+                        line_text = line_text[:max_x]
+                    
+                    # Highlight if this line belongs to selected option
+                    if opt_idx == selected_index:
+                        try:
+                            attr = self._curses.A_REVERSE | self._curses.color_pair(1)
+                        except (self._curses.error, ValueError):
+                            attr = self._curses.A_REVERSE
+                        self._windows.content_win.addstr(y_pos, 0, line_text, attr)
+                    else:
+                        self._windows.content_win.addstr(y_pos, 0, line_text)
+                
+                # Refresh content window
+                self._windows.content_win.refresh()
+            except self._curses.error:
+                pass
+        
+        # Calculate visible_count based on average option height (will be adjusted dynamically)
+        # For now, use a conservative estimate
+        visible_count = max(1, available_height // 2)  # Assume average 2 lines per option
+        
+        # Ensure selected_index is visible
+        if selected_index >= window_start + visible_count:
+            window_start = max(0, selected_index - visible_count + 1)
+        elif selected_index < window_start:
+            window_start = selected_index
+        
+        # Initial draw
+        redraw_menu()
+        
+        # Navigation loop
+        while True:
+            key = self._windows.stdscr.getch()
+            
+            # Handle navigation
+            if key in (self._curses.KEY_UP, ord("k")):
+                if selected_index > 0:
+                    selected_index -= 1
+                    # Update window_start if selected moved above visible range
+                    if selected_index < window_start:
+                        window_start = selected_index
+                else:
+                    # Wrap to end
+                    selected_index = len(options) - 1
+                    # Scroll to show the last option
+                    window_start = max(0, len(options) - visible_count)
+                redraw_menu()
+            
+            elif key in (self._curses.KEY_DOWN, ord("j")):
+                if selected_index < len(options) - 1:
+                    selected_index += 1
+                    # Update window_start if selected moved below visible range
+                    # We need to check if the selected option is visible after redraw
+                    # For now, use a simple heuristic: if selected is beyond window_start + visible_count,
+                    # move window_start forward
+                    if selected_index >= window_start + visible_count:
+                        window_start = selected_index - visible_count + 1
+                else:
+                    # Wrap to start
+                    selected_index = 0
+                    window_start = 0
+                redraw_menu()
+            
+            elif key in (self._curses.KEY_ENTER, 10, 13):
+                break
+            
+            # Number keys (1-9): direct selection (wraps if needed)
+            elif ord("1") <= key <= ord("9"):
+                numeric_choice = key - ord("1")
+                if numeric_choice < len(options):
+                    selected_index = numeric_choice
+                    # Ensure visible
+                    if selected_index >= window_start + visible_count:
+                        window_start = selected_index - visible_count + 1
+                    elif selected_index < window_start:
+                        window_start = selected_index
+                    redraw_menu()
+        
+        # Get chosen option
+        chosen = options[selected_index]
+        self._selected_index = selected_index
+        
+        # Add selection to content window
+        self._content_renderer.write_line(f"\nSelected: {chosen}")
+        
+        return chosen
+
+    def menu(self, prompt: str, options: List[str]) -> str:
+        """
+        Display a menu with numbered choices.
+        
+        Menu is displayed in the dedicated menu_win window.
+        Content (prompt) is shown in content_win via ContentRenderer.
+        """
+        if not options:
+            return ""
+        
+        # Draw frame with borders (don't clear content - preserve existing text)
+        self._draw_frame(clear_content=False)
+        # Write prompt to content window
+        self._content_renderer.write_line(prompt)
+        
+        # Draw menu in menu window
+        selected_index = self._selected_index
+        selected_index = ui_curses.draw_menu_simple(
             prompt,
             options,
             selected_index,
             self._windows,
-            self._menu_state,
-            existing_lines=self._current_scene_lines,
         )
+        
+        # Ensure menu window is visible by refreshing it
+        self._windows.menu_win.refresh()
         
         # Menu navigation loop
         while True:
             key = self._windows.stdscr.getch()
             
-            new_index, should_confirm = ui_curses.handle_menu_navigation(
-                key, options, self._menu_state, self._windows
-            )
+            # Handle navigation
+            if key in (self._curses.KEY_UP, ord("k")):
+                if selected_index > 0:
+                    selected_index -= 1
+                else:
+                    selected_index = len(options) - 1
+                ui_curses.draw_menu_simple(prompt, options, selected_index, self._windows)
             
-            if should_confirm:
-                # User pressed Enter
+            elif key in (self._curses.KEY_DOWN, ord("j")):
+                if selected_index < len(options) - 1:
+                    selected_index += 1
+                else:
+                    selected_index = 0
+                ui_curses.draw_menu_simple(prompt, options, selected_index, self._windows)
+            
+            elif key in (self._curses.KEY_ENTER, 10, 13):
                 break
             
-            if new_index is not None:
-                # Selection changed, redraw menu
-                self._menu_state = ui_curses.draw_menu(
-                    prompt, options, new_index, self._windows, self._menu_state
-                )
+            # Number keys (1-9): direct selection
+            elif ord("1") <= key <= ord("9"):
+                numeric_choice = key - ord("1")
+                if 0 <= numeric_choice < len(options):
+                    selected_index = numeric_choice
+                    ui_curses.draw_menu_simple(prompt, options, selected_index, self._windows)
         
         # Get chosen option
-        chosen = options[self._menu_state.selected_index]
+        chosen = options[selected_index]
+        self._selected_index = selected_index
         
-        # Add selection to scene log for history
-        self._add_to_scene(f"{prompt}\n")
-        for idx, option in enumerate(options, start=1):
-            self._add_to_scene(f"  {idx}. {option}\n")
-        self._add_to_scene(f"> {chosen}\n")
+        # Add selection to content window
+        self._content_renderer.write_line(f"  {selected_index + 1}. {chosen}")
         
-        # Clear menu state
-        self._menu_state = None
-        
-        # Redraw without menu
-        self._draw_frame()
-        self._render_narrative()
+        # Hide menu window
+        self._windows.menu_win.erase()
+        self._windows.menu_win.refresh()
         
         return chosen
 
     def prompt(self, prompt: str) -> str:
         """Display a text input prompt in the input window."""
-        # Draw frame first
-        self._draw_frame()
-        self._render_narrative()
+        # Draw frame (don't clear content - preserve existing text)
+        self._draw_frame(clear_content=False)
         
         # Use centralized input function
         value = ui_curses.read_input(prompt, self._windows)
         
-        # Add prompt and response to scene log
-        self._add_to_scene(f"{prompt}\n> {value}\n")
-        
-        # Redraw to show updated scene
-        self._draw_frame()
-        self._render_narrative()
+        # Add prompt and response to content window
+        self._content_renderer.write_line(f"{prompt} > {value}")
         
         return value
 
-    def _clear_scene(self) -> None:
-        """Clear current scene content (called when starting a new scene)."""
-        self._current_scene_lines = []
+    def _draw_frame(self, clear_content: bool = False) -> None:
+        """Draw the main UI frame with header."""
+        ui_curses.draw_frame(self._windows, self._current_game_state, clear_content=clear_content)
+    
+    def set_game_state(self, game_state: Optional[GameState]) -> None:
+        """Set the current game state for status bar display."""
+        self._current_game_state = game_state
 
-    def _add_to_scene(self, text: str) -> None:
-        """Add text to current scene with word wrapping."""
-        import textwrap
-        
-        max_y, max_x = self._windows.narrative_win.getmaxyx()
-        if max_x <= 0 or max_y <= 0:
-            wrap_width = 80  # Default width if screen not initialized
+    def set_highlights(self, terms: Iterable[str]) -> None:
+        """Set highlight terms for syntax highlighting."""
+        normalized: list[str] = []
+        seen: set[str] = set()
+        for term in terms:
+            if not term:
+                continue
+            trimmed = term.strip()
+            if not trimmed:
+                continue
+            key = trimmed.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            normalized.append(trimmed)
+        self._highlight_terms = tuple(normalized)
+        if not self._highlight_terms:
+            self._highlight_regex = None
         else:
-            wrap_width = max(1, max_x - 1)
-        
-        # Split text into segments and wrap each
-        segments = text.split("\n")
-        for segment in segments:
-            if not segment:
-                self._current_scene_lines.append("")
-            else:
-                wrapped = textwrap.wrap(
-                    segment, 
-                    width=wrap_width, 
-                    break_long_words=True, 
-                    break_on_hyphens=False
-                )
-                if not wrapped:
-                    # Very long word - truncate
-                    self._current_scene_lines.append(segment[:wrap_width])
-                else:
-                    self._current_scene_lines.extend(wrapped)
-
-    def _draw_frame(self) -> None:
-        """Draw the main UI frame with status bar."""
-        ui_curses.draw_frame(self._windows, self._current_game_state)
-
-    def _render_narrative(self) -> None:
-        """Render the narrative window with scene content."""
-        curses = self._curses
-        try:
-            self._windows.narrative_win.erase()
-            max_y, max_x = self._windows.narrative_win.getmaxyx()
-            if max_x <= 0 or max_y <= 0:
-                return
-            
-            render_y = 0
-            
-            # Render scene content (wrapped lines)
-            # If there are more lines than fit, show the most recent ones
-            if self._current_scene_lines:
-                scene_lines_to_show = self._current_scene_lines
-                if len(self._current_scene_lines) > max_y:
-                    scene_lines_to_show = self._current_scene_lines[-max_y:]
-                
-                for line in scene_lines_to_show:
-                    if render_y >= max_y:
-                        break
-                    try:
-                        self._windows.narrative_win.move(render_y, 0)
-                        self._windows.narrative_win.clrtoeol()
-                        self._render_highlighted_line(line, self._windows.narrative_win)
-                        render_y += 1
-                    except curses.error:
-                        break
-            
-            self._windows.narrative_win.refresh()
-        except curses.error:
-            pass
-
-    def _render_highlighted_line(self, segment: str, win: Optional[object] = None) -> None:
-        """Render a line with syntax highlighting for matched terms."""
-        curses = self._curses
-        if not segment:
-            return
-        
-        # Use provided window or default to narrative window
-        target_win = win if win is not None else self._windows.narrative_win
-        if not target_win:
-            return
-        
-        regex = self._highlight_regex
-        highlight_attr = self._highlight_attr
-        try:
-            if not regex or highlight_attr is None:
-                target_win.addstr(segment)
-                return
-            last_index = 0
-            for match in regex.finditer(segment):
-                start, end = match.span()
-                if start > last_index:
-                    target_win.addstr(segment[last_index:start])
-                target_win.addstr(segment[start:end], highlight_attr)
-                last_index = end
-            if last_index < len(segment):
-                target_win.addstr(segment[last_index:])
-        except curses.error:
-            pass
+            # Create regex pattern for highlighting
+            pattern = "|".join(re.escape(term) for term in self._highlight_terms)
+            self._highlight_regex = re.compile(pattern, re.IGNORECASE)
 
     def set_game_state(self, game_state: Optional[GameState]) -> None:
         """Set the current game state for status bar display."""
@@ -400,7 +541,11 @@ def choose_race(ui: UI, races: Dict[str, Dict[str, object]]) -> Optional[str]:
         else:
             display.append(f"{name}")
     display.append("Custom Race - Create your own race")
-    selection = ui.menu("Choose a race:", display)
+    # Use scrollable_menu for large race lists
+    if hasattr(ui, 'scrollable_menu'):
+        selection = ui.scrollable_menu("Choose a race:", display)
+    else:
+        selection = ui.menu("Choose a race:", display)
     index = display.index(selection)
     if index < len(ordered):
         return ordered[index][0]
@@ -468,7 +613,11 @@ def choose_flavor_tags(
         pack_options.append(f"{pack_data['name']} - {pack_data['description']}")
         pack_ids.append(pack_id)
     
-    pack_selection = ui.menu("Select a tag pack (or None for manual selection):", pack_options)
+    # Use scrollable_menu for tag pack selection if available and list is large
+    if hasattr(ui, 'scrollable_menu') and len(pack_options) > 6:
+        pack_selection = ui.scrollable_menu("Select a tag pack (or None for manual selection):", pack_options)
+    else:
+        pack_selection = ui.menu("Select a tag pack (or None for manual selection):", pack_options)
     pack_idx = pack_options.index(pack_selection)
     selected_pack_id = pack_ids[pack_idx]
     
@@ -505,7 +654,11 @@ def choose_flavor_tags(
             available_display.append("Done")
         
         prompt = f"Select tag ({len(selected_tags)}/{max_tags}):"
-        selection = ui.menu(prompt, available_display)
+        # Use scrollable_menu for large tag lists
+        if hasattr(ui, 'scrollable_menu') and len(available_display) > 6:
+            selection = ui.scrollable_menu(prompt, available_display)
+        else:
+            selection = ui.menu(prompt, available_display)
         
         if selection == "Done":
             break
@@ -513,7 +666,11 @@ def choose_flavor_tags(
         if selection == "Remove a tag":
             # Show tags to remove
             remove_options = [t.replace("_", " ").title() for t in selected_tags]
-            remove_selection = ui.menu("Remove which tag?", remove_options)
+            # Use scrollable_menu for remove menu if list is large
+            if hasattr(ui, 'scrollable_menu') and len(remove_options) > 6:
+                remove_selection = ui.scrollable_menu("Remove which tag?", remove_options)
+            else:
+                remove_selection = ui.menu("Remove which tag?", remove_options)
             remove_idx = remove_options.index(remove_selection)
             removed_tag = selected_tags.pop(remove_idx)
             ui.echo(f"Removed: {removed_tag.replace('_', ' ').title()}\n")
@@ -537,7 +694,11 @@ def choose_flavor_tags(
                     available_display.append(display[i])
                     available_indices.append(i)
             
-            selection = ui.menu(f"Select tag ({len(selected_tags) + 1}/{min_tags}):", available_display)
+            # Use scrollable_menu for large tag lists
+            if hasattr(ui, 'scrollable_menu') and len(available_display) > 6:
+                selection = ui.scrollable_menu(f"Select tag ({len(selected_tags) + 1}/{min_tags}):", available_display)
+            else:
+                selection = ui.menu(f"Select tag ({len(selected_tags) + 1}/{min_tags}):", available_display)
             idx = available_display.index(selection)
             if idx < len(available_indices):
                 tag_idx = available_indices[idx]
@@ -787,6 +948,8 @@ def main() -> None:
         )
         dialogue_catalog = DialogueCatalog(all_nodes)
         menu_options = ["New Game", "Continue", "Settings", "Quit"]
+        # Initialize main menu screen
+        ui.heading("Lost Hiker")
         while True:
             choice = ui.menu("Main Menu", menu_options)
             choice_lower = choice.lower()

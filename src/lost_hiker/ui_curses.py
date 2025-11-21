@@ -20,6 +20,8 @@ import textwrap
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
+from .hunger import apply_stamina_cap
+
 # Minimum terminal size requirements
 MIN_HEIGHT = 30
 MIN_WIDTH = 100
@@ -30,10 +32,11 @@ class UIWindows:
     """Container for all curses windows in the UI layout."""
 
     stdscr: curses.window
-    status_win: curses.window
-    narrative_win: curses.window
-    side_win: Optional[curses.window]
-    input_win: curses.window
+    header_win: curses.window  # Top line: status/header (on stdscr row 0)
+    frame_win: curses.window  # Frame window wrapping entire play area below header
+    content_win: curses.window  # Main scrollable text area (inside frame)
+    menu_win: curses.window  # Fixed height for menu choices
+    input_win: curses.window  # Bottom line: input prompt (inside frame)
 
 
 @dataclass
@@ -43,6 +46,357 @@ class MenuState:
     selected_index: int = 0
     start_index: int = 0  # First visible option index
     visible_rows: int = 0  # Number of options visible in window
+    menu_start_y: int = 0  # Y position where menu starts (for partial redraws)
+    scene_lines_count: int = 0  # Number of scene lines above menu
+
+
+@dataclass
+class BorderTheme:
+    """Border theme configuration for window borders."""
+
+    h_char: str  # Horizontal border character
+    v_char: str  # Vertical border character
+    tl_char: str  # Top-left corner
+    tr_char: str  # Top-right corner
+    bl_char: str  # Bottom-left corner
+    br_char: str  # Bottom-right corner
+    color_pair_id: int  # Curses color pair ID for this border
+
+
+# Color pair IDs for border themes
+# Note: Pairs 1-3 are already used for UI elements (highlight, status, success)
+COLOR_PAIR_SPRING_SAFE = 10
+COLOR_PAIR_SUMMER_SAFE = 11
+COLOR_PAIR_AUTUMN_SAFE = 12
+COLOR_PAIR_WINTER_SAFE = 13
+COLOR_PAIR_BELLIED = 14
+COLOR_PAIR_DANGER = 15
+
+
+class ContentRenderer:
+    """
+    Renders text content to a curses window with automatic wrapping and scrolling.
+    
+    Uses a buffer-based approach: all text is stored in a lines buffer,
+    and when the buffer exceeds window height, only the most recent lines
+    are kept and displayed. This creates a scrolling log effect.
+    """
+    
+    def __init__(self, win: curses.window) -> None:
+        """
+        Initialize renderer with target window.
+        
+        Args:
+            win: Curses window to render content to
+        """
+        self.win = win
+        self.lines: List[str] = []  # Buffer storing all wrapped lines
+    
+    def _redraw(self) -> None:
+        """
+        Redraw the entire window from the lines buffer.
+        
+        Erases the window and draws all lines from the buffer,
+        starting at row 0.
+        """
+        try:
+            # Erase the window
+            self.win.erase()
+            
+            # Get window dimensions
+            visible_height, visible_width = self.win.getmaxyx()
+            
+            # Draw each line from the buffer starting at row 0
+            for y, line in enumerate(self.lines):
+                if y >= visible_height:
+                    break
+                try:
+                    # Truncate line to fit width
+                    display_line = line[:visible_width]
+                    self.win.addstr(y, 0, display_line)
+                except curses.error:
+                    break
+            
+            # Refresh the window
+            self.win.refresh()
+        except curses.error:
+            pass
+    
+    def write_block(self, text: str) -> None:
+        """
+        Write a block of text, adding it to the buffer and redrawing.
+        
+        This is the core method that handles buffer management:
+        - Splits text into paragraphs by newline
+        - Wraps each paragraph to window width using textwrap.wrap
+        - Appends wrapped lines to self.lines
+        - Gets visible_height from getmaxyx()
+        - If len(self.lines) > visible_height, keeps only last visible_height lines
+        - Calls _redraw()
+        
+        Args:
+            text: Text block to write (may contain newlines)
+        """
+        # Get window dimensions for wrapping
+        visible_height, visible_width = self.win.getmaxyx()
+        wrap_width = max(1, visible_width)
+        
+        # Split text into paragraphs by newline
+        paragraphs = text.split("\n")
+        
+        # Process each paragraph
+        for para in paragraphs:
+            if not para.strip():
+                # Empty line - add as empty string
+                self.lines.append("")
+            else:
+                # Wrap paragraph to window width
+                wrapped_lines = textwrap.wrap(
+                    para,
+                    width=wrap_width,
+                    break_long_words=True,
+                    break_on_hyphens=False,
+                )
+                
+                if not wrapped_lines:
+                    # Very long word - truncate
+                    wrapped_lines = [para[:wrap_width]]
+                
+                # Add wrapped lines to buffer
+                self.lines.extend(wrapped_lines)
+        
+        # Trim buffer to keep only the most recent lines that fit
+        if len(self.lines) > visible_height:
+            self.lines = self.lines[-visible_height:]
+        
+        # Redraw the window
+        self._redraw()
+    
+    def write(self, text: str) -> None:
+        """
+        Write text to the window with automatic wrapping.
+        
+        Delegates to write_block() for buffer-based rendering.
+        
+        Args:
+            text: Text to write (may contain newlines)
+        """
+        self.write_block(text)
+    
+    def write_line(self, text: str) -> None:
+        """
+        Write a single line of text (adds newline automatically).
+        
+        Delegates to write_block() for buffer-based rendering.
+        
+        Args:
+            text: Text to write
+        """
+        self.write_block(text + "\n")
+    
+    def clear(self) -> None:
+        """Clear all content and reset buffer."""
+        self.lines.clear()
+        try:
+            self.win.erase()
+            self.win.refresh()
+        except curses.error:
+            pass
+    
+    def reset_position(self) -> None:
+        """Reset is a no-op for buffer-based renderer (kept for compatibility)."""
+        pass
+
+
+def get_border_theme(game_state: Optional[object] = None) -> BorderTheme:
+    """
+    Determine border theme based on game state (season, bellied state, danger).
+    
+    Theme selection priority:
+    1. Bellied state (overrides season)
+    2. Danger/low stamina (overrides color only)
+    3. Season (spring, summer, fall/autumn, winter)
+    
+    Args:
+        game_state: Optional game state object
+        
+    Returns:
+        BorderTheme instance with appropriate characters and color
+    """
+    # Default safe spring theme
+    season = "spring"
+    bellied = False
+    in_danger = False
+    
+    if game_state:
+        # Get season (handle both "fall" and "autumn")
+        season_raw = getattr(game_state, "current_season", "spring")
+        season = season_raw.lower()
+        if season == "fall":
+            season = "autumn"
+        
+        # Check bellied state
+        belly_state = getattr(game_state, "belly_state", None)
+        if belly_state and isinstance(belly_state, dict):
+            bellied = belly_state.get("active", False)
+        
+        # Check danger state (low stamina or in combat)
+        stamina = getattr(game_state, "stamina", 100.0)
+        character = getattr(game_state, "character", None)
+        if character:
+            # Get base stamina_max with timed modifiers
+            base_stamina_max = character.get_stat(
+                "stamina_max",
+                timed_modifiers=getattr(game_state, "timed_modifiers", []),
+                current_day=getattr(game_state, "day", 1),
+            )
+            # Apply caps (rest, hunger, condition) to get actual maximum
+            stamina_max = apply_stamina_cap(game_state, base_stamina_max)
+        else:
+            stamina_max = 100.0  # Fallback
+        critical_threshold = stamina_max * 0.25  # 25% of max stamina
+        
+        in_danger = stamina <= critical_threshold
+        # Could also check for combat state if available:
+        # in_combat = getattr(game_state, "in_combat", False)
+        # in_danger = in_danger or in_combat
+    
+    # Bellied state overrides everything
+    if bellied:
+        return BorderTheme(
+            h_char="~",
+            v_char="~",
+            tl_char="o",
+            tr_char="o",
+            bl_char="o",
+            br_char="o",
+            color_pair_id=COLOR_PAIR_BELLIED,
+        )
+    
+    # Base seasonal themes
+    if season == "spring":
+        theme = BorderTheme(
+            h_char="-",
+            v_char="|",
+            tl_char="+",
+            tr_char="+",
+            bl_char="+",
+            br_char="+",
+            color_pair_id=COLOR_PAIR_SPRING_SAFE,
+        )
+    elif season == "summer":
+        theme = BorderTheme(
+            h_char="=",
+            v_char="|",
+            tl_char="+",
+            tr_char="+",
+            bl_char="+",
+            br_char="+",
+            color_pair_id=COLOR_PAIR_SUMMER_SAFE,
+        )
+    elif season == "autumn":
+        theme = BorderTheme(
+            h_char="~",
+            v_char=":",
+            tl_char="*",
+            tr_char="*",
+            bl_char="*",
+            br_char="*",
+            color_pair_id=COLOR_PAIR_AUTUMN_SAFE,
+        )
+    elif season == "winter":
+        theme = BorderTheme(
+            h_char="#",
+            v_char="|",
+            tl_char="#",
+            tr_char="#",
+            bl_char="#",
+            br_char="#",
+            color_pair_id=COLOR_PAIR_WINTER_SAFE,
+        )
+    else:
+        # Fallback to spring
+        theme = BorderTheme(
+            h_char="-",
+            v_char="|",
+            tl_char="+",
+            tr_char="+",
+            bl_char="+",
+            br_char="+",
+            color_pair_id=COLOR_PAIR_SPRING_SAFE,
+        )
+    
+    # Override color for danger (keep seasonal characters)
+    if in_danger:
+        theme.color_pair_id = COLOR_PAIR_DANGER
+    
+    return theme
+
+
+def draw_window_border(win: curses.window, border_theme: BorderTheme) -> None:
+    """
+    Draw a border around a window using the specified theme.
+    
+    Args:
+        win: Curses window to draw border on
+        border_theme: BorderTheme instance with characters and color
+    """
+    try:
+        max_y, max_x = win.getmaxyx()
+        if max_x <= 2 or max_y <= 2:  # Need at least 3x3 for borders
+            return
+        
+        # Apply color attribute if colors are available
+        attr = 0
+        if curses.has_colors():
+            try:
+                attr = curses.color_pair(border_theme.color_pair_id)
+            except (curses.error, ValueError):
+                attr = 0
+        
+        # Draw horizontal lines (top and bottom)
+        for x in range(1, max_x - 1):
+            try:
+                win.addch(0, x, border_theme.h_char, attr)  # Top
+            except curses.error:
+                break
+        for x in range(1, max_x - 1):
+            try:
+                win.addch(max_y - 1, x, border_theme.h_char, attr)  # Bottom
+            except curses.error:
+                break
+        
+        # Draw vertical lines (left and right)
+        for y in range(1, max_y - 1):
+            try:
+                win.addch(y, 0, border_theme.v_char, attr)  # Left
+            except curses.error:
+                break
+        for y in range(1, max_y - 1):
+            try:
+                win.addch(y, max_x - 1, border_theme.v_char, attr)  # Right
+            except curses.error:
+                break
+        
+        # Draw corners
+        try:
+            win.addch(0, 0, border_theme.tl_char, attr)  # Top-left
+        except curses.error:
+            pass
+        try:
+            win.addch(0, max_x - 1, border_theme.tr_char, attr)  # Top-right
+        except curses.error:
+            pass
+        try:
+            win.addch(max_y - 1, 0, border_theme.bl_char, attr)  # Bottom-left
+        except curses.error:
+            pass
+        try:
+            win.addch(max_y - 1, max_x - 1, border_theme.br_char, attr)  # Bottom-right
+        except curses.error:
+            pass
+    except (curses.error, ValueError, AttributeError):
+        pass
 
 
 def check_terminal_size(stdscr: curses.window) -> None:
@@ -107,22 +461,34 @@ def init_ui(stdscr: curses.window) -> UIWindows:
         curses.init_pair(1, curses.COLOR_CYAN, -1)  # Highlight color
         curses.init_pair(2, curses.COLOR_YELLOW, -1)  # Status color
         curses.init_pair(3, curses.COLOR_GREEN, -1)  # Success/info color
+        
+        # Define color pairs for border themes
+        curses.init_pair(COLOR_PAIR_SPRING_SAFE, curses.COLOR_GREEN, -1)  # Soft green
+        curses.init_pair(COLOR_PAIR_SUMMER_SAFE, curses.COLOR_YELLOW, -1)  # Bright yellow-green
+        curses.init_pair(COLOR_PAIR_AUTUMN_SAFE, curses.COLOR_YELLOW, -1)  # Orange/brown (using yellow as fallback)
+        curses.init_pair(COLOR_PAIR_WINTER_SAFE, curses.COLOR_CYAN, -1)  # Cold blue/cyan
+        curses.init_pair(COLOR_PAIR_BELLIED, curses.COLOR_MAGENTA, -1)  # Muted purple/magenta
+        curses.init_pair(COLOR_PAIR_DANGER, curses.COLOR_RED, -1)  # Warning red
     
     # Create window layout
     windows = _create_window_layout(stdscr)
+    
+    # Note: Don't clear/refresh stdscr here - let the first draw_frame() call handle it
+    # Clearing stdscr here might interfere with the windows we just created
     
     return windows
 
 
 def _create_window_layout(stdscr: curses.window) -> UIWindows:
     """
-    Create the four-window layout inspired by Botany's structure.
+    Create the window layout with frame wrapping play area.
     
     Layout:
-    - Status bar: Top 1 line (location, time, stamina, weather)
-    - Narrative window: Main content area (most of screen)
-    - Side panel: Right side for context/inventory (optional, if width allows)
-    - Input bar: Bottom 2 lines for prompts and input
+    - header_win: Top 1 line on stdscr row 0 (status/header, never scrolls)
+    - frame_win: Frame window covering entire play area below header (has border)
+    - content_win: Main scrollable text area (inside frame, at top)
+    - input_win: Bottom 1 line (input prompt, inside frame at bottom)
+    - menu_win: Fixed height for menu choices (10 lines, only visible during menus)
     
     Args:
         stdscr: The main curses window
@@ -130,81 +496,97 @@ def _create_window_layout(stdscr: curses.window) -> UIWindows:
     Returns:
         UIWindows object with all windows created
     """
-    height, width = stdscr.getmaxyx()
+    max_y, max_x = stdscr.getmaxyx()
     
-    # Status bar: top line
-    status_height = 1
-    status_win = stdscr.subwin(status_height, width, 0, 0)
+    # Header: top 1 line on stdscr row 0
+    header_height = 1
+    header_win = stdscr.subwin(header_height, max_x, 0, 0)
     
-    # Input bar: bottom 2 lines
-    input_height = 2
-    input_win = stdscr.subwin(input_height, width, height - input_height, 0)
+    # Frame: covers entire play area below header
+    frame_top = header_height
+    frame_height = max_y - header_height
+    frame_width = max_x
+    frame_win = curses.newwin(frame_height, frame_width, frame_top, 0)
     
-    # Calculate space for narrative and side panel
-    available_height = height - status_height - input_height
-    available_width = width
+    # Inside frame: calculate inner dimensions (minus borders)
+    inner_height = frame_height - 2  # minus top/bottom border
+    inner_width = frame_width - 2    # minus left/right border
     
-    # Side panel: use right 30% of width if terminal is wide enough (>= 120 chars)
-    # Otherwise, just use narrative window
-    side_win = None
-    if width >= 120:
-        side_width = max(30, int(width * 0.3))
-        narrative_width = width - side_width
-        narrative_win = stdscr.subwin(
-            available_height, narrative_width, status_height, 0
-        )
-        side_win = stdscr.subwin(
-            available_height, side_width, status_height, narrative_width
-        )
-    else:
-        narrative_width = width
-        narrative_win = stdscr.subwin(
-            available_height, narrative_width, status_height, 0
-        )
+    # Window heights (from bottom to top)
+    input_height = 1
+    menu_height = 6  # Small fixed size for menu choices
+    content_height = inner_height - input_height - menu_height
+    
+    # Position windows inside frame (relative to frame_win, accounting for border)
+    # All positions are relative to frame_win's interior (starting at row 1, col 1)
+    content_y = 1  # Row 1 inside frame (after top border)
+    menu_y = content_y + content_height
+    input_y = menu_y + menu_height
+    
+    # Create derived windows inside frame_win
+    # Note: derwin positions are relative to parent window (frame_win)
+    content_win = frame_win.derwin(content_height, inner_width, content_y, 1)
+    menu_win = frame_win.derwin(menu_height, inner_width, menu_y, 1)
+    input_win = frame_win.derwin(input_height, inner_width, input_y, 1)
     
     return UIWindows(
         stdscr=stdscr,
-        status_win=status_win,
-        narrative_win=narrative_win,
-        side_win=side_win,
+        header_win=header_win,
+        frame_win=frame_win,
+        content_win=content_win,
+        menu_win=menu_win,
         input_win=input_win,
     )
 
 
-def draw_frame(windows: UIWindows, game_state: Optional[object] = None) -> None:
+def draw_frame(windows: UIWindows, game_state: Optional[object] = None, clear_content: bool = False) -> None:
     """
-    Draw the main UI frame with status bar and layout.
+    Draw the main UI frame with header and borders.
+    
+    Draw order:
+    1. Draw header on stdscr row 0
+    2. Draw border on frame_win and refresh it
+    3. Draw/refresh content_win via ContentRenderer (caller handles this)
+    4. Draw/refresh input_win for current prompt (caller handles this)
     
     Args:
         windows: UIWindows object containing all windows
         game_state: Optional game state for status information
+        clear_content: If True, clear the content window. Default False to preserve content.
     """
-    # Clear all windows
-    windows.status_win.erase()
-    windows.narrative_win.erase()
-    if windows.side_win:
-        windows.side_win.erase()
+    # Clear header (always clear)
+    windows.header_win.erase()
+    
+    # Clear input window (always clear)
     windows.input_win.erase()
     
-    # Draw status bar
-    _draw_status_bar(windows.status_win, game_state)
+    # Only clear content if explicitly requested
+    if clear_content:
+        windows.content_win.erase()
     
-    # Draw side panel if available
-    if windows.side_win:
-        _draw_side_panel(windows.side_win, game_state)
+    # Clear menu (it's only shown during menus)
+    windows.menu_win.erase()
     
-    # Refresh all windows
-    windows.status_win.refresh()
-    windows.narrative_win.refresh()
-    if windows.side_win:
-        windows.side_win.refresh()
-    windows.input_win.refresh()
+    # Get border theme once per frame
+    border_theme = get_border_theme(game_state)
+    
+    # Draw header on stdscr row 0
+    _draw_header(windows.header_win, game_state)
+    windows.header_win.refresh()
+    
+    # Draw border on frame_win (wraps entire play area)
+    draw_window_border(windows.frame_win, border_theme)
+    
+    # Refresh frame_win (this shows the border)
+    windows.frame_win.refresh()
+    
+    # Note: content_win and input_win are refreshed by their respective renderers/callers
+    # We don't refresh them here to allow for efficient partial updates
 
 
-def _draw_status_bar(win: curses.window, game_state: Optional[object] = None) -> None:
-    """Draw the top status bar with location, time, stamina, weather."""
+def _draw_header(win: curses.window, game_state: Optional[object] = None) -> None:
+    """Draw the header with location, time, stamina, weather."""
     try:
-        win.erase()
         max_y, max_x = win.getmaxyx()
         if max_x <= 0 or max_y <= 0:
             return
@@ -223,9 +605,18 @@ def _draw_status_bar(win: curses.window, game_state: Optional[object] = None) ->
             
             # Stamina
             stamina = getattr(game_state, "stamina", 0.0)
-            stamina_max = getattr(
-                getattr(game_state, "character", None), "stamina_max", 100.0
-            )
+            character = getattr(game_state, "character", None)
+            if character:
+                # Get base stamina_max with timed modifiers
+                base_stamina_max = character.get_stat(
+                    "stamina_max",
+                    timed_modifiers=getattr(game_state, "timed_modifiers", []),
+                    current_day=getattr(game_state, "day", 1),
+                )
+                # Apply caps (rest, hunger, condition) to get actual maximum
+                stamina_max = apply_stamina_cap(game_state, base_stamina_max)
+            else:
+                stamina_max = 100.0  # Fallback
             status_parts.append(f"Stamina: {stamina:.0f}/{stamina_max:.0f}")
             
             # Time of day
@@ -242,108 +633,12 @@ def _draw_status_bar(win: curses.window, game_state: Optional[object] = None) ->
             status_text = status_text[: max_x - 1]
         
         win.addstr(0, 0, status_text, curses.color_pair(2) | curses.A_BOLD)
-    except curses.error:
-        pass
-
-
-def _draw_side_panel(win: curses.window, game_state: Optional[object] = None) -> None:
-    """Draw the side panel with context information (inventory, etc.)."""
-    try:
-        win.erase()
-        max_y, max_x = win.getmaxyx()
-        if max_x <= 0 or max_y <= 0:
-            return
-        
-        # Draw a border
-        win.box()
-        
-        # Add content if game_state available
-        if game_state:
-            y = 1
-            # Inventory summary
-            inventory = getattr(game_state, "inventory", [])
-            if inventory:
-                win.addstr(y, 1, "Inventory:", curses.A_BOLD)
-                y += 1
-                for item in inventory[: min(5, len(inventory))]:
-                    if y >= max_y - 1:
-                        break
-                    item_text = item[: max_x - 3]
-                    win.addstr(y, 2, item_text)
-                    y += 1
-                if len(inventory) > 5:
-                    win.addstr(y, 2, f"... and {len(inventory) - 5} more")
-    except curses.error:
-        pass
-
-
-def print_message(text: str, windows: UIWindows) -> None:
-    """
-    Print a message to the narrative window.
-    
-    Text is automatically wrapped to fit the window width.
-    
-    Args:
-        text: Message text to display
-        windows: UIWindows object
-    """
-    _print_to_narrative(text, windows.narrative_win)
-
-
-def print_description(text: str, windows: UIWindows) -> None:
-    """
-    Print a description to the narrative window.
-    
-    Similar to print_message but semantically for descriptions.
-    
-    Args:
-        text: Description text to display
-        windows: UIWindows object
-    """
-    _print_to_narrative(text, windows.narrative_win)
-
-
-def _print_to_narrative(text: str, win: curses.window) -> None:
-    """Internal helper to print wrapped text to narrative window."""
-    try:
-        max_y, max_x = win.getmaxyx()
-        if max_x <= 0 or max_y <= 0:
-            return
-        
-        # Get current cursor position
-        cur_y, cur_x = win.getyx()
-        
-        # Wrap text
-        wrap_width = max(1, max_x - 1)
-        lines = []
-        for paragraph in text.split("\n"):
-            if paragraph.strip():
-                wrapped = textwrap.wrap(
-                    paragraph,
-                    width=wrap_width,
-                    break_long_words=True,
-                    break_on_hyphens=False,
-                )
-                lines.extend(wrapped if wrapped else [paragraph[:wrap_width]])
-            else:
-                lines.append("")
-        
-        # Print lines, scrolling if necessary
-        for line in lines:
-            if cur_y >= max_y - 1:
-                # Scroll the window
-                win.scroll()
-                cur_y = max_y - 2
-            try:
-                win.addstr(cur_y, 0, line[: max_x - 1])
-                cur_y += 1
-            except curses.error:
-                break
-        
-        win.move(cur_y, 0)
         win.refresh()
     except curses.error:
         pass
+
+
+# Old print functions removed - use ContentRenderer instead
 
 
 def draw_menu(
@@ -353,6 +648,7 @@ def draw_menu(
     windows: UIWindows,
     menu_state: Optional[MenuState] = None,
     existing_lines: Optional[List[str]] = None,
+    partial_update: bool = False,
 ) -> MenuState:
     """
     Draw a scrolling menu with multiple visible options.
@@ -369,6 +665,7 @@ def draw_menu(
         windows: UIWindows object
         menu_state: Optional existing menu state for continuity
         existing_lines: Optional list of existing scene lines to preserve above menu
+        partial_update: If True, only redraw menu content (for navigation). If False, full redraw.
         
     Returns:
         Updated MenuState
@@ -379,30 +676,45 @@ def draw_menu(
     # Clamp selected_index
     selected_index = max(0, min(selected_index, len(options) - 1))
     
-    # Initialize or update menu state
-    if menu_state is None:
-        menu_state = MenuState(selected_index=selected_index)
-    else:
-        menu_state.selected_index = selected_index
-    
     # Calculate visible rows
-    max_y, max_x = windows.narrative_win.getmaxyx()
+    max_y, max_x = windows.content_win.getmaxyx()
     
-    # Calculate space used by existing lines
-    scene_lines_used = len(existing_lines) if existing_lines else 0
-    
-    # Reserve space for prompt (2 lines), page indicator (1 line), and padding
-    reserved_lines = 3
-    available_lines = max(1, max_y - scene_lines_used - reserved_lines)
-    
-    # Calculate how many options can fit (accounting for wrapping)
-    # Estimate: each option might wrap to 2-3 lines, so be conservative
-    estimated_lines_per_option = 2
-    menu_state.visible_rows = max(3, available_lines // estimated_lines_per_option)
-    
-    # Ensure we show at least 3 options, but as many as fit
-    menu_state.visible_rows = min(menu_state.visible_rows, len(options))
-    menu_state.visible_rows = max(3, menu_state.visible_rows)
+    # Initialize or update menu state
+    if menu_state is None or not partial_update:
+        # Full redraw: calculate layout from scratch
+        if menu_state is None:
+            menu_state = MenuState(selected_index=selected_index)
+        else:
+            menu_state.selected_index = selected_index
+        
+        # Calculate space used by existing lines
+        scene_lines_used = len(existing_lines) if existing_lines else 0
+        menu_state.scene_lines_count = scene_lines_used
+        
+        # Reserve space for prompt (2 lines), page indicator (1 line), and padding
+        reserved_lines = 3
+        available_lines = max(1, max_y - scene_lines_used - reserved_lines)
+        
+        # Calculate how many options can fit (accounting for wrapping)
+        # Estimate: each option might wrap to 2-3 lines, so be conservative
+        estimated_lines_per_option = 2
+        menu_state.visible_rows = max(3, available_lines // estimated_lines_per_option)
+        
+        # Ensure we show at least 3 options, but as many as fit
+        menu_state.visible_rows = min(menu_state.visible_rows, len(options))
+        menu_state.visible_rows = max(3, menu_state.visible_rows)
+        
+        # Calculate menu start position
+        if existing_lines is None:
+            menu_state.menu_start_y = 0
+        else:
+            # Limit scene lines to leave room for menu
+            max_scene_lines = max(1, max_y - reserved_lines - menu_state.visible_rows - 2)
+            scene_lines_to_show = existing_lines[-max_scene_lines:] if len(existing_lines) > max_scene_lines else existing_lines
+            menu_state.menu_start_y = len(scene_lines_to_show) + 1  # One blank line after scene
+    else:
+        # Partial update: only update selection and scrolling
+        menu_state.selected_index = selected_index
     
     # Calculate start_index to keep selected_index visible
     if selected_index < menu_state.start_index:
@@ -420,55 +732,88 @@ def draw_menu(
     # Calculate end_index
     end_index = min(menu_state.start_index + menu_state.visible_rows, len(options))
     
+    # No borders - content_win is inside the frame
+    content_start_x = 0
+    content_start_y = 0
+    content_end_y = max_y - 1
+    content_wrap_width = max(1, max_x)
+    
     # Draw menu
     try:
-        # Clear or preserve existing content
-        if existing_lines is None:
-            windows.narrative_win.erase()
-            y = 0
+        if not partial_update:
+            # Full redraw: draw scene content and menu
+            if existing_lines is None:
+                windows.content_win.erase()
+                y = content_start_y
+            else:
+                # Render existing scene lines (limit to leave room for menu)
+                max_scene_lines = max(1, max_y - reserved_lines - menu_state.visible_rows - 2)
+                scene_lines_to_show = existing_lines[-max_scene_lines:] if len(existing_lines) > max_scene_lines else existing_lines
+                
+                y = content_start_y
+                content_end_x = max_x - 1  # No borders - content_win is inside frame
+                for line in scene_lines_to_show:
+                    if y >= max_scene_lines:
+                        break
+                    try:
+                        windows.content_win.move(y, content_start_x)
+                        # Clear content area
+                        for clear_x in range(content_start_x, content_end_x + 1):
+                            try:
+                                windows.content_win.addch(y, clear_x, " ")
+                            except curses.error:
+                                break
+                        windows.content_win.move(y, content_start_x)
+                        windows.content_win.addstr(line[: content_wrap_width])
+                        y += 1
+                    except curses.error:
+                        break
+                
+                # Clear the menu area (from menu_start_y to end)
+                for clear_y in range(menu_state.menu_start_y, max_y):
+                    try:
+                        windows.content_win.move(clear_y, content_start_x)
+                        # Clear content area
+                        for clear_x in range(content_start_x, content_end_x + 1):
+                            try:
+                                windows.content_win.addch(clear_y, clear_x, " ")
+                            except curses.error:
+                                break
+                    except curses.error:
+                        break
+                
+                y = menu_state.menu_start_y
         else:
-            # Preserve existing scene content, but clear menu area
-            # First, render existing scene lines (limit to leave room for menu)
-            max_scene_lines = max(1, max_y - reserved_lines - menu_state.visible_rows - 2)
-            scene_lines_to_show = existing_lines[-max_scene_lines:] if len(existing_lines) > max_scene_lines else existing_lines
-            
-            y = 0
-            for line in scene_lines_to_show:
-                if y >= max_scene_lines:
-                    break
+            # Partial update: only clear and redraw menu area
+            # Clear menu area from menu_start_y to end
+            content_end_x = max_x - 1  # No borders - content_win is inside frame
+            for clear_y in range(menu_state.menu_start_y, max_y):
                 try:
-                    windows.narrative_win.move(y, 0)
-                    windows.narrative_win.clrtoeol()
-                    windows.narrative_win.addstr(line[: max_x - 1])
-                    y += 1
+                    windows.content_win.move(clear_y, content_start_x)
+                    # Clear content area
+                    for clear_x in range(content_start_x, content_end_x + 1):
+                        try:
+                            windows.content_win.addch(clear_y, clear_x, " ")
+                        except curses.error:
+                            break
                 except curses.error:
                     break
-            
-            # Clear the menu area (from y to end)
-            menu_start_y = y + 1  # One blank line after scene
-            for clear_y in range(menu_start_y, max_y):
-                try:
-                    windows.narrative_win.move(clear_y, 0)
-                    windows.narrative_win.clrtoeol()
-                except curses.error:
-                    break
-            
-            y = menu_start_y
+            y = menu_state.menu_start_y
         
         # Draw prompt
-        prompt_lines = _wrap_text(prompt, max_x - 1)
+        prompt_lines = _wrap_text(prompt, content_wrap_width)
         for line in prompt_lines:
-            if y >= max_y - 1:
+            if y >= content_end_y:
                 break
-            windows.narrative_win.addstr(y, 0, line[: max_x - 1], curses.A_BOLD)
+            windows.content_win.addstr(y, content_start_x, line[: content_wrap_width], curses.A_BOLD)
             y += 1
         
         # Draw options
         option_prefix_width = len(f"  {len(options)}. ")
-        wrap_width = max(1, max_x - option_prefix_width - 1)
+        wrap_width = max(1, content_wrap_width - option_prefix_width)
         
         for idx in range(menu_state.start_index, end_index):
-            if y >= max_y - 2:  # Leave space for page indicator
+            if y >= content_end_y:  # Leave space for page indicator and border
                 break
             
             option = options[idx]
@@ -481,7 +826,7 @@ def draw_menu(
             
             # Draw each wrapped line
             for line_idx, line in enumerate(wrapped_lines):
-                if y >= max_y - 2:
+                if y >= content_end_y:
                     break
                 
                 if line_idx == 0:
@@ -497,21 +842,26 @@ def draw_menu(
                     attr |= curses.color_pair(1)
                 
                 try:
-                    windows.narrative_win.addstr(y, 0, full_line[: max_x - 1], attr)
+                    windows.content_win.addstr(y, content_start_x, full_line[: content_wrap_width], attr)
                     y += 1
                 except curses.error:
                     break
         
         # Draw page indicator if needed
-        if len(options) > menu_state.visible_rows and y < max_y - 1:
+        if len(options) > menu_state.visible_rows and y < content_end_y:
             start_display = menu_state.start_index + 1
             end_display = end_index
             indicator = f"Options {start_display}-{end_display} of {len(options)}"
-            windows.narrative_win.addstr(
-                max_y - 1, 0, indicator[: max_x - 1], curses.A_DIM
+            windows.content_win.addstr(
+                content_end_y, content_start_x, indicator[: content_wrap_width], curses.A_DIM
             )
         
-        windows.narrative_win.refresh()
+        # Use noutrefresh for efficient partial updates
+        if partial_update:
+            windows.content_win.noutrefresh()
+            curses.doupdate()
+        else:
+            windows.content_win.refresh()
     except curses.error:
         pass
     
@@ -543,24 +893,25 @@ def read_input(prompt: str, windows: UIWindows) -> str:
         windows.input_win.erase()
         max_y, max_x = windows.input_win.getmaxyx()
         
-        # Show prompt on first line
-        if max_y >= 1:
-            windows.input_win.addstr(0, 0, prompt[: max_x - 1])
+        # Input window is 1 line, show prompt and input on same line
+        prompt_text = f"{prompt} > "
         
-        # Show "> " on second line (or first if only one line)
-        input_line = 1 if max_y >= 2 else 0
-        windows.input_win.addstr(input_line, 0, "> ")
+        # Truncate if too long
+        if len(prompt_text) > max_x - 1:
+            prompt_text = prompt_text[: max_x - 1]
         
-        # Position cursor after "> "
-        cursor_x = 2
-        windows.input_win.move(input_line, cursor_x)
+        windows.input_win.addstr(0, 0, prompt_text)
+        
+        # Position cursor after prompt
+        cursor_x = len(prompt_text)
+        windows.input_win.move(0, cursor_x)
         curses.curs_set(1)  # Show cursor for input
         windows.input_win.refresh()
         
         # Get input
         curses.echo()
         try:
-            raw = windows.input_win.getstr(input_line, cursor_x)
+            raw = windows.input_win.getstr(0, cursor_x)
         finally:
             curses.noecho()
             curses.curs_set(0)  # Hide cursor again
@@ -569,6 +920,78 @@ def read_input(prompt: str, windows: UIWindows) -> str:
         return value
     except curses.error:
         return ""
+
+
+def draw_menu_simple(
+    prompt: str,
+    options: List[str],
+    selected_index: int,
+    windows: UIWindows,
+) -> int:
+    """
+    Draw a simple menu in the dedicated menu window.
+    
+    Args:
+        prompt: Menu prompt text (displayed in content_win)
+        options: List of option strings
+        selected_index: Currently selected option index
+        windows: UIWindows object
+        
+    Returns:
+        Selected option index
+    """
+    if not options:
+        return 0
+    
+    # Clamp selected_index
+    selected_index = max(0, min(selected_index, len(options) - 1))
+    
+    # Show prompt in content window (via ContentRenderer - will be handled by caller)
+    # Here we just draw the menu options in menu_win
+    
+    try:
+        windows.menu_win.erase()
+        max_y, max_x = windows.menu_win.getmaxyx()
+        
+        # No borders - menu_win is inside the frame
+        start_x = 0
+        start_y = 0
+        end_y = max_y - 1
+        wrap_width = max(1, max_x)
+        
+        y = start_y
+        
+        # Draw options (no wrapping - keep it simple)
+        for idx, option in enumerate(options):
+            if y > end_y:
+                break
+            
+            is_selected = idx == selected_index
+            option_text = f"  {idx + 1}. {option}"
+            
+            # Truncate if too long
+            if len(option_text) > wrap_width:
+                option_text = option_text[:wrap_width]
+            
+            # Highlight selected option
+            attr = curses.A_REVERSE if is_selected else curses.A_NORMAL
+            if is_selected:
+                try:
+                    attr |= curses.color_pair(1)
+                except curses.error:
+                    pass
+            
+            try:
+                windows.menu_win.addstr(y, start_x, option_text, attr)
+                y += 1
+            except curses.error:
+                break
+        
+        windows.menu_win.refresh()
+    except curses.error:
+        pass
+    
+    return selected_index
 
 
 def handle_menu_navigation(
@@ -593,7 +1016,7 @@ def handle_menu_navigation(
     if not options:
         return None, False
     
-    max_y, max_x = windows.narrative_win.getmaxyx()
+    max_y, max_x = windows.content_win.getmaxyx()
     visible_rows = menu_state.visible_rows
     
     # Enter/Return: confirm selection

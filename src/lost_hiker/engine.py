@@ -331,14 +331,20 @@ class Engine:
         if active_zone == "glade" and can_trigger_kirin_intro(self.state):
             trigger_kirin_intro(self.state, self.ui, context="glade")
 
-    def _glade_phase(self) -> str | None:
-        self.state.stage = "glade"
-        self.state.active_zone = "glade"
-        stamina_max = self.state.character.get_stat(
-            "stamina_max",
-            timed_modifiers=self.state.timed_modifiers,
-            current_day=self.state.day,
-        )
+    def _render_glade_view(self) -> None:
+        """
+        Render the glade view with description and commands.
+        
+        Clears content and shows:
+        - Zone description
+        - Act I completion narrative (if applicable)
+        - Rare lore events (if applicable)
+        - Available commands
+        """
+        # Clear content and show glade description
+        if hasattr(self.ui, 'clear_content'):
+            self.ui.clear_content()
+        self._describe_zone("glade", depth=0)
         
         # Check for Act I completion narrative when entering Glade
         from .forest_act1 import should_show_completion_narrative
@@ -369,8 +375,20 @@ class Engine:
         if can_use_kirin_travel(self.state):
             glade_commands += ", travel with kirin"
         self.ui.echo(
-            f"The Glade is calm. Paths stretch outward. Commands: {glade_commands}.\n"
+            f"\nThe Glade is calm. Paths stretch outward. Commands: {glade_commands}.\n"
         )
+
+    def _glade_phase(self) -> str | None:
+        self.state.stage = "glade"
+        self.state.active_zone = "glade"
+        stamina_max = self.state.character.get_stat(
+            "stamina_max",
+            timed_modifiers=self.state.timed_modifiers,
+            current_day=self.state.day,
+        )
+        
+        # Render glade view (clears content and shows description)
+        self._render_glade_view()
         while True:
             self._set_scene_highlights(zone_id="glade", depth=0, extras=None)
             command = self._prompt_command("Glade command")
@@ -2671,6 +2689,10 @@ class Engine:
     
     def _handle_dialogue(self, npc: "NPC") -> None:
         """Handle dialogue with an NPC."""
+        # Clear content at start of dialogue
+        if hasattr(self.ui, 'clear_content'):
+            self.ui.clear_content()
+        
         from .npcs import NPC
         from .forest_act1 import should_show_completion_narrative
         
@@ -2733,9 +2755,16 @@ class Engine:
             mark_completion_acknowledged(self.state)
         
         self.ui.echo(f"\nYou finish your conversation with {npc.name}.\n")
+        
+        # If we're in the glade, return to glade view
+        if self.state.active_zone == "glade":
+            self._render_glade_view()
 
     def _handle_approach_echo(self) -> None:
         """Handle approaching Echo and opening the interaction menu."""
+        # Clear content at start of interaction
+        if hasattr(self.ui, 'clear_content'):
+            self.ui.clear_content()
         self.ui.echo("You approach Echo. She watches you with patient, lidless eyes, her coils shifting slightly as you draw near. The radio emits a soft, welcoming pulse.\n")
         
         # Show interaction menu
@@ -2744,7 +2773,8 @@ class Engine:
             choice = self.ui.menu("What would you like to do?", options)
             
             if choice == "Back":
-                self.ui.echo("You step back from Echo.\n")
+                # Return to glade view
+                self._render_glade_view()
                 break
             elif choice == "Speak to Echo":
                 self._handle_echo_dialogue()
@@ -2765,6 +2795,10 @@ class Engine:
 
     def _handle_echo_dialogue(self) -> None:
         """Handle dialogue with Echo using the dialogue system."""
+        # Clear content at start of dialogue
+        if hasattr(self.ui, 'clear_content'):
+            self.ui.clear_content()
+        
         # Check if Act I is complete and show completion dialogue if not yet acknowledged
         from .forest_act1 import should_show_completion_narrative
         starting_node_id = None
@@ -2829,6 +2863,10 @@ class Engine:
             mark_completion_acknowledged(self.state)
         
         self.ui.echo("\nYou finish your conversation with Echo.\n")
+        
+        # If we're in the glade, return to glade view
+        if self.state.active_zone == "glade":
+            self._render_glade_view()
 
     def _handle_pet_echo(self) -> None:
         """Handle petting Echo interaction."""
@@ -2882,6 +2920,12 @@ class Engine:
         zone_label = zone_id.replace("_", " ").title()
         actions_taken = self.state.zone_steps.get(zone_id, 0)
         
+        # Clear content and show zone description when entering
+        if hasattr(self.ui, 'clear_content'):
+            self.ui.clear_content()
+        depth = self.state.zone_depths.get(zone_id, 0)
+        self._describe_zone(zone_id, depth=depth)
+        
         # Check if we're entering with a landmark already active
         current_landmark = self._get_current_landmark()
         if current_landmark:
@@ -2890,16 +2934,16 @@ class Engine:
         else:
             self._set_scene_highlights(
                 zone_id=zone_id,
-                depth=self.state.zone_depths.get(zone_id, 0),
+                depth=depth,
                 extras=(),
             )
             if zone_id == "forest":
                 self.ui.echo(
-                    "The forest calls. Commands: move, look, camp, return, status, bag, help.\n"
+                    "\nThe forest calls. Commands: move, look, camp, return, status, bag, help.\n"
                 )
             else:
                 self.ui.echo(
-                    f"The {zone_label} awaits. Commands: look, move, camp, return, status, bag, help.\n"
+                    f"\nThe {zone_label} awaits. Commands: look, move, camp, return, status, bag, help.\n"
                 )
         
         while True:
