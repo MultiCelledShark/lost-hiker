@@ -22,6 +22,7 @@ from .state import GameState, GameStateRepository
 from .seasons import load_season_config
 from .landmarks import load_landmark_catalog
 from .cooking import load_cooking_catalog, load_food_items
+from . import ui_curses
 
 
 class ConsoleUI(UI):
@@ -61,41 +62,26 @@ class ConsoleUI(UI):
 
 
 class CursesUI(UI):
-    """Curses-driven interface with separate output and input windows."""
+    """
+    Curses-driven interface using the centralized ui_curses module.
+    
+    This class wraps the ui_curses module to provide the UI interface expected
+    by the game engine, while delegating all curses-specific work to ui_curses.
+    """
 
     def __init__(self) -> None:
         import curses
 
         self._curses = curses
         self._screen = curses.initscr()
-        curses.noecho()
-        curses.cbreak()
-        self._screen.keypad(True)
-        self._screen.scrollok(False)
-        self._screen.idlok(False)
+        
+        # Initialize UI using centralized module (enforces 100×30 minimum)
+        self._windows = ui_curses.init_ui(self._screen)
+        
+        # Highlighting support (for syntax highlighting in text)
         self._highlight_terms: tuple[str, ...] = ()
         self._highlight_regex: Optional[Pattern[str]] = None
         self._highlight_attr: Optional[int] = curses.A_BOLD
-        
-        # Window setup: separate output and input windows
-        self._input_height = 2  # Fixed height for input window (1-2 lines)
-        self._output_win: Optional[object] = None
-        self._input_win: Optional[object] = None
-        self._setup_windows()
-        
-        # Initial screen refresh to ensure windows are visible
-        self._screen.refresh()
-        
-        # Current scene content (cleared and redrawn for each new scene)
-        self._current_scene_lines: List[str] = []
-        
-        # Menu state
-        self._current_prompt: Optional[str] = None
-        self._current_options: Optional[List[str]] = None
-        self._invalid_message: Optional[str] = None
-        self._menu_selected: int = 0
-        self._menu_page: int = 0  # Current page for paginated menus
-        self._menu_page_size: int = 0  # Number of options visible per page
         
         try:
             if curses.has_colors():
@@ -108,74 +94,19 @@ class CursesUI(UI):
                 self._highlight_attr = curses.color_pair(1) | curses.A_BOLD
         except curses.error:
             self._highlight_attr = curses.A_BOLD
-        try:
-            curses.curs_set(0)
-        except curses.error:
-            pass
-
-    def _setup_windows(self) -> None:
-        """Create separate output and input windows."""
-        curses = self._curses
-        max_y, max_x = self._screen.getmaxyx()
         
-        # Input window: fixed at bottom (2 lines)
-        input_height = min(self._input_height, max_y - 1)
-        if input_height < 1:
-            input_height = 1
+        # Current scene content (for preserving text during menus)
+        self._current_scene_lines: List[str] = []
         
-        # Output window: takes up remaining space
-        output_height = max(1, max_y - input_height)
-        
-        try:
-            # Create output window (main content area)
-            self._output_win = curses.newwin(output_height, max_x, 0, 0)
-            self._output_win.scrollok(False)
-            self._output_win.idlok(False)
-            
-            # Create input window (fixed at bottom)
-            input_y = max_y - input_height
-            self._input_win = curses.newwin(input_height, max_x, input_y, 0)
-            self._input_win.scrollok(False)
-            self._input_win.idlok(False)
-        except curses.error:
-            # Fallback: use main screen if window creation fails
-            self._output_win = self._screen
-            self._input_win = self._screen
-
-    def _refresh_windows(self) -> None:
-        """Refresh windows after terminal resize."""
-        curses = self._curses
-        max_y, max_x = self._screen.getmaxyx()
-        
-        input_height = min(self._input_height, max_y - 1)
-        if input_height < 1:
-            input_height = 1
-        output_height = max(1, max_y - input_height)
-        
-        try:
-            # Delete old windows if they exist
-            if self._output_win and self._output_win != self._screen:
-                del self._output_win
-            if self._input_win and self._input_win != self._screen:
-                del self._input_win
-            
-            # Create new windows
-            self._output_win = curses.newwin(output_height, max_x, 0, 0)
-            self._output_win.scrollok(False)
-            self._output_win.idlok(False)
-            
-            input_y = max_y - input_height
-            self._input_win = curses.newwin(input_height, max_x, input_y, 0)
-            self._input_win.scrollok(False)
-            self._input_win.idlok(False)
-        except curses.error:
-            self._output_win = self._screen
-            self._input_win = self._screen
+        # Menu state
+        self._menu_state: Optional[ui_curses.MenuState] = None
+        self._current_game_state: Optional[GameState] = None
 
     def close(self) -> None:
+        """Clean up curses and restore terminal."""
         curses = self._curses
         curses.nocbreak()
-        self._screen.keypad(False)
+        self._windows.stdscr.keypad(False)
         curses.echo()
         try:
             curses.curs_set(1)
@@ -186,169 +117,98 @@ class CursesUI(UI):
     def heading(self, text: str) -> None:
         """Display a heading, clearing previous scene content."""
         self._clear_scene()
-        self._add_to_scene(f"\n{text}\n{'-' * len(text)}\n")
-        self._render_output()
+        heading_text = f"\n{text}\n{'-' * len(text)}\n"
+        self._add_to_scene(heading_text)
+        self._render_narrative()
 
     def echo(self, text: str) -> None:
         """Add text to current scene output."""
         self._add_to_scene(text if text.endswith("\n") else text + "\n")
-        self._render_output()
+        self._render_narrative()
 
     def menu(self, prompt: str, options: List[str]) -> str:
-        """Display a paginated menu with persistent prompt and options."""
-        curses = self._curses
-        self._current_prompt = prompt
-        self._current_options = options
-        self._invalid_message = None
-        self._menu_selected = 0
-        self._menu_page = 0
+        """
+        Display a scrolling menu with multiple visible options.
         
-        # Calculate how many options fit per page
-        self._calculate_menu_page_size()
+        Uses the new ui_curses module for proper scrolling behavior:
+        - Up/Down: Move selection, auto-scroll window
+        - Left/Right: Page up/down by visible_rows
+        - Always shows multiple options when available
+        """
+        if not options:
+            return ""
         
-        # Ensure selected option is on current page
-        self._menu_page = self._menu_selected // self._menu_page_size
+        # Initialize menu state
+        selected_index = 0
+        if self._menu_state:
+            selected_index = self._menu_state.selected_index
         
-        # Per refactor: clear and redraw for new standalone menu
-        # But preserve scene content if it exists (for dialogue - text should stay visible with menu)
-        # Only clear if scene is empty (standalone menu like main menu)
-        if not self._current_scene_lines:
-            self._clear_scene()
-        # Clear input window (menus don't use it)
-        self._current_prompt = None  # Temporarily clear for input window
-        self._render_input()
-        self._current_prompt = prompt  # Restore for menu display
-        self._render_output()
-        # Ensure screen is refreshed so menu is visible immediately
-        self._screen.refresh()
+        # Draw frame and scene content first
+        self._draw_frame()
+        self._render_narrative()
         
+        # Draw menu (preserve existing scene content)
+        self._menu_state = ui_curses.draw_menu(
+            prompt,
+            options,
+            selected_index,
+            self._windows,
+            self._menu_state,
+            existing_lines=self._current_scene_lines,
+        )
+        
+        # Menu navigation loop
         while True:
-            key = self._screen.getch()
+            key = self._windows.stdscr.getch()
             
-            if key in (curses.KEY_ENTER, 10, 13):
+            new_index, should_confirm = ui_curses.handle_menu_navigation(
+                key, options, self._menu_state, self._windows
+            )
+            
+            if should_confirm:
+                # User pressed Enter
                 break
-            if key in (curses.KEY_UP, ord("k")):
-                if self._menu_selected > 0:
-                    self._menu_selected -= 1
-                    # Move to previous page if needed
-                    if self._menu_selected < self._menu_page * self._menu_page_size:
-                        self._menu_page = max(0, self._menu_page - 1)
-                else:
-                    # Wrap to last option
-                    self._menu_selected = len(options) - 1
-                    self._menu_page = (len(options) - 1) // self._menu_page_size
-                self._render_output()
-                continue
-            if key in (curses.KEY_DOWN, ord("j")):
-                if self._menu_selected < len(options) - 1:
-                    self._menu_selected += 1
-                    # Move to next page if needed
-                    if self._menu_selected >= (self._menu_page + 1) * self._menu_page_size:
-                        self._menu_page = min(
-                            (len(options) - 1) // self._menu_page_size,
-                            self._menu_page + 1
-                        )
-                else:
-                    # Wrap to first option
-                    self._menu_selected = 0
-                    self._menu_page = 0
-                self._render_output()
-                continue
-            if key == curses.KEY_PPAGE:  # Page up
-                if self._menu_page > 0:
-                    self._menu_page -= 1
-                    # Keep selection within page
-                    self._menu_selected = min(
-                        self._menu_selected,
-                        (self._menu_page + 1) * self._menu_page_size - 1
-                    )
-                self._render_output()
-                continue
-            if key == curses.KEY_NPAGE:  # Page down
-                max_page = (len(options) - 1) // self._menu_page_size
-                if self._menu_page < max_page:
-                    self._menu_page += 1
-                    # Keep selection within page
-                    self._menu_selected = max(
-                        self._menu_selected,
-                        self._menu_page * self._menu_page_size
-                    )
-                self._render_output()
-                continue
-            if ord("1") <= key <= ord(str(min(len(options), 9))):
-                numeric_choice = key - ord("1")
-                if 0 <= numeric_choice < len(options):
-                    self._menu_selected = numeric_choice
-                    self._menu_page = numeric_choice // self._menu_page_size
-                    break
             
-            # Invalid key - show message and re-render
-            self._invalid_message = "Invalid choice. Use arrow keys, page up/down, or number keys."
-            self._render_output()
-            continue
+            if new_index is not None:
+                # Selection changed, redraw menu
+                self._menu_state = ui_curses.draw_menu(
+                    prompt, options, new_index, self._windows, self._menu_state
+                )
         
-        chosen = options[self._menu_selected]
+        # Get chosen option
+        chosen = options[self._menu_state.selected_index]
+        
         # Add selection to scene log for history
         self._add_to_scene(f"{prompt}\n")
         for idx, option in enumerate(options, start=1):
             self._add_to_scene(f"  {idx}. {option}\n")
         self._add_to_scene(f"> {chosen}\n")
-        self._current_prompt = None
-        self._current_options = None
-        self._invalid_message = None
-        self._menu_selected = 0
-        self._menu_page = 0
-        self._render_output()
-        self._render_input()  # Clear input window
+        
+        # Clear menu state
+        self._menu_state = None
+        
+        # Redraw without menu
+        self._draw_frame()
+        self._render_narrative()
+        
         return chosen
 
     def prompt(self, prompt: str) -> str:
         """Display a text input prompt in the input window."""
-        curses = self._curses
-        self._current_prompt = prompt
-        self._current_options = None
-        self._invalid_message = None
-        self._render_input()
+        # Draw frame first
+        self._draw_frame()
+        self._render_narrative()
         
-        # Show prompt and get input in input window
-        try:
-            self._input_win.erase()
-            max_y, max_x = self._input_win.getmaxyx()
-            
-            # Show prompt on first line
-            if max_y >= 1:
-                self._input_win.move(0, 0)
-                self._input_win.clrtoeol()
-                self._input_win.addstr(prompt[:max_x-1])
-            
-            # Show "> " on second line (or first if only one line)
-            input_line = 1 if max_y >= 2 else 0
-            self._input_win.move(input_line, 0)
-            self._input_win.clrtoeol()
-            self._input_win.addstr("> ")
-            
-            # Position cursor after "> "
-            cursor_x = 2
-            self._input_win.move(input_line, cursor_x)
-            curses.curs_set(1)  # Show cursor for input
-            self._input_win.refresh()
-        except curses.error:
-            pass
+        # Use centralized input function
+        value = ui_curses.read_input(prompt, self._windows)
         
-        curses.echo()
-        try:
-            # Get input in input window
-            raw = self._input_win.getstr(input_line, cursor_x)
-        finally:
-            curses.noecho()
-            curses.curs_set(0)  # Hide cursor again
-        
-        value = raw.decode("utf-8", errors="ignore").strip()
         # Add prompt and response to scene log
         self._add_to_scene(f"{prompt}\n> {value}\n")
-        self._current_prompt = None
-        self._render_output()
-        self._render_input()
+        
+        # Redraw to show updated scene
+        self._draw_frame()
+        self._render_narrative()
+        
         return value
 
     def _clear_scene(self) -> None:
@@ -359,10 +219,7 @@ class CursesUI(UI):
         """Add text to current scene with word wrapping."""
         import textwrap
         
-        if not self._output_win:
-            return
-        
-        max_y, max_x = self._output_win.getmaxyx()
+        max_y, max_x = self._windows.narrative_win.getmaxyx()
         if max_x <= 0 or max_y <= 0:
             wrap_width = 80  # Default width if screen not initialized
         else:
@@ -386,175 +243,42 @@ class CursesUI(UI):
                 else:
                     self._current_scene_lines.extend(wrapped)
 
-    def _calculate_menu_page_size(self) -> None:
-        """Calculate how many menu options fit per page."""
-        if not self._output_win or not self._current_options:
-            self._menu_page_size = 10  # Default
-            return
-        
-        max_y, max_x = self._output_win.getmaxyx()
-        if max_y <= 0 or max_x <= 0:
-            self._menu_page_size = 10
-            return
-        
-        # Account for scene content that might already be displayed
-        scene_lines = len(self._current_scene_lines)
-        
-        # Reserve space for:
-        # - Prompt (1 line)
-        # - Page indicator (1 line, if paginated)
-        # - Invalid message (1 line, if shown)
-        reserved = 3
-        
-        # Available lines for menu options
-        available_lines = max(1, max_y - scene_lines - reserved)
-        
-        # Each option typically takes 1 line (may wrap, but we handle that)
-        self._menu_page_size = max(1, available_lines)
+    def _draw_frame(self) -> None:
+        """Draw the main UI frame with status bar."""
+        ui_curses.draw_frame(self._windows, self._current_game_state)
 
-    def _render_output(self) -> None:
-        """Render the output window with scene content and menu."""
+    def _render_narrative(self) -> None:
+        """Render the narrative window with scene content."""
         curses = self._curses
-        if not self._output_win:
-            return
-        
-        max_y, max_x = self._output_win.getmaxyx()
-        if max_x <= 0 or max_y <= 0:
-            return
-        
-        # Clear output window
-        self._output_win.erase()
-        
-        render_y = 0
-        
-        # Determine how many lines we can show for scene content
-        # Reserve space for menu if active
-        max_scene_lines = max_y
-        if self._current_options:
-            # Reserve space for prompt, menu options, page indicator, and invalid message
-            max_scene_lines = max(1, max_y - 5)  # Conservative estimate
-        
-        # Render scene content (wrapped lines)
-        # If there are more lines than fit, show the most recent ones
-        if self._current_scene_lines:
-            scene_lines_to_show = self._current_scene_lines
-            if len(self._current_scene_lines) > max_scene_lines:
-                scene_lines_to_show = self._current_scene_lines[-max_scene_lines:]
+        try:
+            self._windows.narrative_win.erase()
+            max_y, max_x = self._windows.narrative_win.getmaxyx()
+            if max_x <= 0 or max_y <= 0:
+                return
             
-            for line in scene_lines_to_show:
-                if render_y >= max_scene_lines:
-                    break
-                try:
-                    self._output_win.move(render_y, 0)
-                    self._output_win.clrtoeol()
-                    self._render_highlighted_line(line, self._output_win)
-                    render_y += 1
-                except curses.error:
-                    pass
-        
-        # Render menu if active
-        if self._current_options and render_y < max_y:
-            # Show prompt if present (menus show prompt in output window)
-            if self._current_prompt and render_y < max_y:
-                try:
-                    self._output_win.move(render_y, 0)
-                    self._output_win.clrtoeol()
-                    self._output_win.addstr(self._current_prompt[:max_x-1])
-                    render_y += 1
-                except curses.error:
-                    pass
+            render_y = 0
             
-            # Calculate pagination
-            start_idx = self._menu_page * self._menu_page_size
-            end_idx = min(
-                start_idx + self._menu_page_size,
-                len(self._current_options)
-            )
-            
-            # Render visible options for current page
-            import textwrap
-            for idx in range(start_idx, end_idx):
-                if render_y >= max_y - 1:  # Leave space for page indicator
-                    break
-                option = self._current_options[idx]
-                try:
-                    # Wrap long options
-                    prefix = f"  {idx + 1}. "
-                    wrap_width = max(1, max_x - len(prefix))
-                    wrapped_lines = textwrap.wrap(
-                        option, 
-                        width=wrap_width, 
-                        break_long_words=True, 
-                        break_on_hyphens=False
-                    )
-                    if not wrapped_lines:
-                        wrapped_lines = [option[:wrap_width]]
-                    
-                    # Render each wrapped line
-                    for line_idx, line in enumerate(wrapped_lines):
-                        if render_y >= max_y - 1:
-                            break
-                        self._output_win.move(render_y, 0)
-                        self._output_win.clrtoeol()
-                        if line_idx == 0:
-                            label = f"{prefix}{line}"
-                        else:
-                            label = f"      {line}"  # Indent continuation
-                        # Highlight selected option
-                        attr = curses.A_REVERSE if idx == self._menu_selected else curses.A_NORMAL
-                        self._output_win.addstr(label[:max_x-1], attr)
+            # Render scene content (wrapped lines)
+            # If there are more lines than fit, show the most recent ones
+            if self._current_scene_lines:
+                scene_lines_to_show = self._current_scene_lines
+                if len(self._current_scene_lines) > max_y:
+                    scene_lines_to_show = self._current_scene_lines[-max_y:]
+                
+                for line in scene_lines_to_show:
+                    if render_y >= max_y:
+                        break
+                    try:
+                        self._windows.narrative_win.move(render_y, 0)
+                        self._windows.narrative_win.clrtoeol()
+                        self._render_highlighted_line(line, self._windows.narrative_win)
                         render_y += 1
-                except curses.error:
-                    pass
+                    except curses.error:
+                        break
             
-            # Show page indicator if paginated
-            if len(self._current_options) > self._menu_page_size and render_y < max_y:
-                try:
-                    page_info = f"Page {self._menu_page + 1}/{(len(self._current_options) - 1) // self._menu_page_size + 1}"
-                    self._output_win.move(render_y, 0)
-                    self._output_win.clrtoeol()
-                    self._output_win.addstr(page_info[:max_x-1], curses.A_DIM)
-                    render_y += 1
-                except curses.error:
-                    pass
-            
-            # Show invalid message if present
-            if self._invalid_message and render_y < max_y:
-                try:
-                    self._output_win.move(render_y, 0)
-                    self._output_win.clrtoeol()
-                    self._output_win.addstr(
-                        self._invalid_message[:max_x-1],
-                        curses.A_BOLD
-                    )
-                except curses.error:
-                    pass
-        
-        self._output_win.refresh()
-
-    def _render_input(self) -> None:
-        """Render the input window with current prompt."""
-        curses = self._curses
-        if not self._input_win:
-            return
-        
-        max_y, max_x = self._input_win.getmaxyx()
-        if max_x <= 0 or max_y <= 0:
-            return
-        
-        self._input_win.erase()
-        
-        if self._current_prompt:
-            try:
-                # Show prompt on first line
-                if max_y >= 1:
-                    self._input_win.move(0, 0)
-                    self._input_win.clrtoeol()
-                    self._input_win.addstr(self._current_prompt[:max_x-1])
-            except curses.error:
-                pass
-        
-        self._input_win.refresh()
+            self._windows.narrative_win.refresh()
+        except curses.error:
+            pass
 
     def _render_highlighted_line(self, segment: str, win: Optional[object] = None) -> None:
         """Render a line with syntax highlighting for matched terms."""
@@ -562,8 +286,8 @@ class CursesUI(UI):
         if not segment:
             return
         
-        # Use provided window or default to output window
-        target_win = win if win is not None else self._output_win
+        # Use provided window or default to narrative window
+        target_win = win if win is not None else self._windows.narrative_win
         if not target_win:
             return
         
@@ -584,6 +308,10 @@ class CursesUI(UI):
                 target_win.addstr(segment[last_index:])
         except curses.error:
             pass
+
+    def set_game_state(self, game_state: Optional[GameState]) -> None:
+        """Set the current game state for status bar display."""
+        self._current_game_state = game_state
 
     def set_highlights(self, terms: Iterable[str]) -> None:
         normalized: list[str] = []
@@ -1118,6 +846,9 @@ def main() -> None:
                 npc_catalog=npc_catalog,
                 dialogue_catalog=dialogue_catalog,
             )
+            # Set game state in UI for status bar display
+            if isinstance(ui, CursesUI):
+                ui.set_game_state(state)
             engine.run()
     finally:
         if closer:
