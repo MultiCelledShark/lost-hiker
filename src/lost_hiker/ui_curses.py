@@ -18,7 +18,7 @@ from __future__ import annotations
 import curses
 import textwrap
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional, Sequence, Tuple, Union
 
 from .hunger import apply_stamina_cap
 
@@ -44,14 +44,216 @@ class UIWindows:
 
 
 @dataclass
-class MenuState:
-    """State for scrolling menu navigation."""
+class MenuOption:
+    """
+    Structured menu choice used by the reusable MenuView.
 
-    selected_index: int = 0
-    start_index: int = 0  # First visible option index
-    visible_rows: int = 0  # Number of options visible in window
-    menu_start_y: int = 0  # Y position where menu starts (for partial redraws)
-    scene_lines_count: int = 0  # Number of scene lines above menu
+    Attributes:
+        text: Human-readable label shown to the player.
+        value: Optional payload for callers who need to associate metadata with
+            a given option (e.g., command identifiers or callback names).
+    """
+
+    text: str
+    value: object | None = None
+
+
+MenuHandleResult = Union[int, None, str]
+MENU_CANCEL = "cancel"
+
+
+class MenuView:
+    """
+    Scrollable, paged menu renderer for the dedicated side/menu window.
+
+    Responsibilities:
+    - Keep selection + scroll state so repeated renders stay in sync.
+    - Render a consistent hint line (`[↑/↓] Move …`) in the reserved bottom row.
+    - Provide single entry points for navigation handling via `handle_key`.
+
+    Each screen should:
+        view = MenuView(options, title="Choose something")
+        view.render(menu_win)
+        while True:
+            event = view.handle_key(stdscr.getch())
+            if event is None:
+                view.render(menu_win)
+                continue
+            if event == MENU_CANCEL:
+                # caller interprets cancel/back however it likes
+            else:
+                chosen_index = event
+                break
+    """
+
+    _HINT_TEXT = "[↑/↓] Move  [←/→] Page  [Enter] Select  [q] Back"
+
+    def __init__(
+        self,
+        options: Sequence[MenuOption | str],
+        *,
+        title: str = "",
+        selected_index: int = 0,
+    ) -> None:
+        self.options: List[MenuOption] = [
+            option if isinstance(option, MenuOption) else MenuOption(text=str(option))
+            for option in options
+        ]
+        self.title = title
+        self.selected_index = 0
+        self.scroll_offset = 0
+        self._visible_rows = 0
+
+        if self.options:
+            self.selected_index = max(0, min(selected_index, len(self.options) - 1))
+
+    def render(self, win: curses.window) -> None:
+        """Draw menu contents inside the provided curses window."""
+        try:
+            height, width = win.getmaxyx()
+        except curses.error:
+            return
+
+        if height <= 0 or width <= 0:
+            return
+
+        win.erase()
+
+        hint_reserved = 1  # Final row for key hints
+        title_reserved = 1 if self.title else 0
+        self._visible_rows = max(1, height - hint_reserved - title_reserved)
+        self._sync_scroll_window()
+
+        current_y = 0
+        if self.title:
+            title_text = self.title[: max(1, width - 1)]
+            try:
+                win.addstr(current_y, 0, title_text, curses.A_BOLD)
+            except curses.error:
+                pass
+            current_y += 1
+
+        highlight_attr = curses.A_REVERSE
+        try:
+            highlight_attr |= curses.color_pair(1)
+        except curses.error:
+            pass
+
+        if not self.options:
+            placeholder = "No options available."
+            try:
+                win.addstr(current_y, 0, placeholder[: max(1, width - 1)])
+            except curses.error:
+                pass
+        else:
+            row_height = min(self._visible_rows, max(0, height - hint_reserved - current_y))
+            end_index = min(self.scroll_offset + self._visible_rows, len(self.options))
+            for row, option_index in enumerate(range(self.scroll_offset, end_index)):
+                if row >= row_height:
+                    break
+                prefix = "> " if option_index == self.selected_index else "  "
+                text = f"{prefix}{self.options[option_index].text}"
+                text = text[: max(1, width - 1)]
+                try:
+                    if option_index == self.selected_index:
+                        win.addstr(current_y + row, 0, text, highlight_attr)
+                    else:
+                        win.addstr(current_y + row, 0, text)
+                except curses.error:
+                    continue
+
+        hint_y = max(0, height - 1)
+        hint_text = self._build_hint_line(width)
+        try:
+            win.addstr(hint_y, 0, hint_text)
+        except curses.error:
+            pass
+
+        try:
+            win.refresh()
+        except curses.error:
+            pass
+
+    def handle_key(self, ch: int) -> MenuHandleResult:
+        """
+        Apply navigation input and report whether a selection/cancel occurred.
+
+        Returns:
+            - None if no selection has been made yet.
+            - Selected index as int when Enter/Space confirms an option.
+            - MENU_CANCEL sentinel when Esc or q backs out of the menu.
+        """
+        if not self.options:
+            return MENU_CANCEL
+
+        if ch in (curses.KEY_UP, ord("k")):
+            self._move_selection(-1)
+            return None
+
+        if ch in (curses.KEY_DOWN, ord("j")):
+            self._move_selection(1)
+            return None
+
+        if ch in (curses.KEY_LEFT, curses.KEY_PPAGE, ord("h")):
+            self._page(-1)
+            return None
+
+        if ch in (curses.KEY_RIGHT, curses.KEY_NPAGE, ord("l")):
+            self._page(1)
+            return None
+
+        if ch in (curses.KEY_ENTER, 10, 13, ord(" ")):
+            return self.selected_index
+
+        if ch in (27, ord("q")):
+            return MENU_CANCEL
+
+        if ord("1") <= ch <= ord("9"):
+            numeric_choice = ch - ord("1")
+            if numeric_choice < len(self.options):
+                self.selected_index = numeric_choice
+                self._sync_scroll_window()
+            return None
+
+        return None
+
+    def _move_selection(self, delta: int) -> None:
+        if not self.options:
+            return
+        count = len(self.options)
+        self.selected_index = (self.selected_index + delta) % count
+        self._sync_scroll_window()
+
+    def _page(self, direction: int) -> None:
+        if not self.options:
+            return
+        step = max(1, self._visible_rows)
+        self.selected_index = max(
+            0, min(len(self.options) - 1, self.selected_index + (direction * step))
+        )
+        self._sync_scroll_window()
+
+    def _sync_scroll_window(self) -> None:
+        if not self.options:
+            self.scroll_offset = 0
+            return
+        visible = max(1, self._visible_rows)
+        max_offset = max(0, len(self.options) - visible)
+        self.scroll_offset = max(0, min(self.scroll_offset, max_offset))
+        if self.selected_index < self.scroll_offset:
+            self.scroll_offset = self.selected_index
+        elif self.selected_index >= self.scroll_offset + visible:
+            self.scroll_offset = self.selected_index - visible + 1
+
+    def _build_hint_line(self, width: int) -> str:
+        page_info = ""
+        if self.options:
+            page_info = f"  ({self.selected_index + 1}/{len(self.options)})"
+        text = f"{self._HINT_TEXT}{page_info}"
+        max_width = max(1, width - 1)
+        if len(text) > max_width:
+            text = text[:max_width]
+        return text.ljust(max_width)
 
 
 @dataclass
@@ -655,243 +857,6 @@ def _draw_header(win: curses.window, game_state: Optional[object] = None) -> Non
 # Old print functions removed - use ContentRenderer instead
 
 
-def draw_menu(
-    prompt: str,
-    options: List[str],
-    selected_index: int,
-    windows: UIWindows,
-    menu_state: Optional[MenuState] = None,
-    existing_lines: Optional[List[str]] = None,
-    partial_update: bool = False,
-) -> MenuState:
-    """
-    Draw a scrolling menu with multiple visible options.
-    
-    Implements scrolling behavior:
-    - Up/Down: Move selection within full list, auto-scroll window
-    - Left/Right: Page up/down by visible_rows
-    - Always shows multiple options when available
-    
-    Args:
-        prompt: Menu prompt text
-        options: List of option strings
-        selected_index: Currently selected option index
-        windows: UIWindows object
-        menu_state: Optional existing menu state for continuity
-        existing_lines: Optional list of existing scene lines to preserve above menu
-        partial_update: If True, only redraw menu content (for navigation). If False, full redraw.
-        
-    Returns:
-        Updated MenuState
-    """
-    if not options:
-        return MenuState()
-    
-    # Clamp selected_index
-    selected_index = max(0, min(selected_index, len(options) - 1))
-    
-    # Calculate visible rows
-    max_y, max_x = windows.content_win.getmaxyx()
-    
-    # Initialize or update menu state
-    if menu_state is None or not partial_update:
-        # Full redraw: calculate layout from scratch
-        if menu_state is None:
-            menu_state = MenuState(selected_index=selected_index)
-        else:
-            menu_state.selected_index = selected_index
-        
-        # Calculate space used by existing lines
-        scene_lines_used = len(existing_lines) if existing_lines else 0
-        menu_state.scene_lines_count = scene_lines_used
-        
-        # Reserve space for prompt (2 lines), page indicator (1 line), and padding
-        reserved_lines = 3
-        available_lines = max(1, max_y - scene_lines_used - reserved_lines)
-        
-        # Calculate how many options can fit (accounting for wrapping)
-        # Estimate: each option might wrap to 2-3 lines, so be conservative
-        estimated_lines_per_option = 2
-        menu_state.visible_rows = max(3, available_lines // estimated_lines_per_option)
-        
-        # Ensure we show at least 3 options, but as many as fit
-        menu_state.visible_rows = min(menu_state.visible_rows, len(options))
-        menu_state.visible_rows = max(3, menu_state.visible_rows)
-        
-        # Calculate menu start position
-        if existing_lines is None:
-            menu_state.menu_start_y = 0
-        else:
-            # Limit scene lines to leave room for menu
-            max_scene_lines = max(1, max_y - reserved_lines - menu_state.visible_rows - 2)
-            scene_lines_to_show = existing_lines[-max_scene_lines:] if len(existing_lines) > max_scene_lines else existing_lines
-            menu_state.menu_start_y = len(scene_lines_to_show) + 1  # One blank line after scene
-    else:
-        # Partial update: only update selection and scrolling
-        menu_state.selected_index = selected_index
-    
-    # Calculate start_index to keep selected_index visible
-    if selected_index < menu_state.start_index:
-        # Scroll up to show selected option
-        menu_state.start_index = selected_index
-    elif selected_index >= menu_state.start_index + menu_state.visible_rows:
-        # Scroll down to show selected option
-        menu_state.start_index = selected_index - menu_state.visible_rows + 1
-    
-    # Clamp start_index
-    menu_state.start_index = max(
-        0, min(menu_state.start_index, len(options) - menu_state.visible_rows)
-    )
-    
-    # Calculate end_index
-    end_index = min(menu_state.start_index + menu_state.visible_rows, len(options))
-    
-    # No borders - content_win is inside the frame
-    content_start_x = 0
-    content_start_y = 0
-    content_end_y = max_y - 1
-    content_wrap_width = max(1, max_x)
-    
-    # Draw menu
-    try:
-        if not partial_update:
-            # Full redraw: draw scene content and menu
-            if existing_lines is None:
-                windows.content_win.erase()
-                y = content_start_y
-            else:
-                # Render existing scene lines (limit to leave room for menu)
-                max_scene_lines = max(1, max_y - reserved_lines - menu_state.visible_rows - 2)
-                scene_lines_to_show = existing_lines[-max_scene_lines:] if len(existing_lines) > max_scene_lines else existing_lines
-                
-                y = content_start_y
-                content_end_x = max_x - 1  # No borders - content_win is inside frame
-                for line in scene_lines_to_show:
-                    if y >= max_scene_lines:
-                        break
-                    try:
-                        windows.content_win.move(y, content_start_x)
-                        # Clear content area
-                        for clear_x in range(content_start_x, content_end_x + 1):
-                            try:
-                                windows.content_win.addch(y, clear_x, " ")
-                            except curses.error:
-                                break
-                        windows.content_win.move(y, content_start_x)
-                        windows.content_win.addstr(line[: content_wrap_width])
-                        y += 1
-                    except curses.error:
-                        break
-                
-                # Clear the menu area (from menu_start_y to end)
-                for clear_y in range(menu_state.menu_start_y, max_y):
-                    try:
-                        windows.content_win.move(clear_y, content_start_x)
-                        # Clear content area
-                        for clear_x in range(content_start_x, content_end_x + 1):
-                            try:
-                                windows.content_win.addch(clear_y, clear_x, " ")
-                            except curses.error:
-                                break
-                    except curses.error:
-                        break
-                
-                y = menu_state.menu_start_y
-        else:
-            # Partial update: only clear and redraw menu area
-            # Clear menu area from menu_start_y to end
-            content_end_x = max_x - 1  # No borders - content_win is inside frame
-            for clear_y in range(menu_state.menu_start_y, max_y):
-                try:
-                    windows.content_win.move(clear_y, content_start_x)
-                    # Clear content area
-                    for clear_x in range(content_start_x, content_end_x + 1):
-                        try:
-                            windows.content_win.addch(clear_y, clear_x, " ")
-                        except curses.error:
-                            break
-                except curses.error:
-                    break
-            y = menu_state.menu_start_y
-        
-        # Draw prompt
-        prompt_lines = _wrap_text(prompt, content_wrap_width)
-        for line in prompt_lines:
-            if y >= content_end_y:
-                break
-            windows.content_win.addstr(y, content_start_x, line[: content_wrap_width], curses.A_BOLD)
-            y += 1
-        
-        # Draw options
-        option_prefix_width = len(f"  {len(options)}. ")
-        wrap_width = max(1, content_wrap_width - option_prefix_width)
-        
-        for idx in range(menu_state.start_index, end_index):
-            if y >= content_end_y:  # Leave space for page indicator and border
-                break
-            
-            option = options[idx]
-            is_selected = idx == selected_index
-            
-            # Wrap option text
-            wrapped_lines = _wrap_text(option, wrap_width)
-            if not wrapped_lines:
-                wrapped_lines = [option[:wrap_width]]
-            
-            # Draw each wrapped line
-            for line_idx, line in enumerate(wrapped_lines):
-                if y >= content_end_y:
-                    break
-                
-                if line_idx == 0:
-                    prefix = f"  {idx + 1}. "
-                else:
-                    prefix = "      "  # Indent continuation lines
-                
-                full_line = f"{prefix}{line}"
-                
-                # Highlight selected option
-                attr = curses.A_REVERSE if is_selected else curses.A_NORMAL
-                if is_selected:
-                    attr |= curses.color_pair(1)
-                
-                try:
-                    windows.content_win.addstr(y, content_start_x, full_line[: content_wrap_width], attr)
-                    y += 1
-                except curses.error:
-                    break
-        
-        # Draw page indicator if needed
-        if len(options) > menu_state.visible_rows and y < content_end_y:
-            start_display = menu_state.start_index + 1
-            end_display = end_index
-            indicator = f"Options {start_display}-{end_display} of {len(options)}"
-            windows.content_win.addstr(
-                content_end_y, content_start_x, indicator[: content_wrap_width], curses.A_DIM
-            )
-        
-        # Use noutrefresh for efficient partial updates
-        if partial_update:
-            windows.content_win.noutrefresh()
-            curses.doupdate()
-        else:
-            windows.content_win.refresh()
-    except curses.error:
-        pass
-    
-    return menu_state
-
-
-def _wrap_text(text: str, width: int) -> List[str]:
-    """Wrap text to specified width, returning list of lines."""
-    if width <= 0:
-        return [text]
-    wrapped = textwrap.wrap(
-        text, width=width, break_long_words=True, break_on_hyphens=False
-    )
-    return wrapped if wrapped else [text[:width]]
-
-
 def read_input(prompt: str, windows: UIWindows) -> str:
     """
     Read user input with a prompt displayed in the input window.
@@ -934,170 +899,3 @@ def read_input(prompt: str, windows: UIWindows) -> str:
         return value
     except curses.error:
         return ""
-
-
-def draw_menu_simple(
-    prompt: str,
-    options: List[str],
-    selected_index: int,
-    windows: UIWindows,
-) -> int:
-    """
-    Draw a simple menu in the dedicated menu window.
-    
-    Args:
-        prompt: Menu prompt text (displayed in content_win)
-        options: List of option strings
-        selected_index: Currently selected option index
-        windows: UIWindows object
-        
-    Returns:
-        Selected option index
-    """
-    if not options:
-        return 0
-    
-    # Clamp selected_index
-    selected_index = max(0, min(selected_index, len(options) - 1))
-    
-    # Show prompt in content window (via ContentRenderer - will be handled by caller)
-    # Here we just draw the menu options in menu_win
-    
-    try:
-        windows.menu_win.erase()
-        max_y, max_x = windows.menu_win.getmaxyx()
-        
-        # No borders - menu_win is inside the frame
-        start_x = 0
-        start_y = 0
-        end_y = max_y - 1
-        wrap_width = max(1, max_x)
-        
-        y = start_y
-        
-        # Draw options (no wrapping - keep it simple)
-        for idx, option in enumerate(options):
-            if y > end_y:
-                break
-            
-            is_selected = idx == selected_index
-            option_text = f"  {idx + 1}. {option}"
-            
-            # Truncate if too long
-            if len(option_text) > wrap_width:
-                option_text = option_text[:wrap_width]
-            
-            # Highlight selected option
-            attr = curses.A_REVERSE if is_selected else curses.A_NORMAL
-            if is_selected:
-                try:
-                    attr |= curses.color_pair(1)
-                except curses.error:
-                    pass
-            
-            try:
-                windows.menu_win.addstr(y, start_x, option_text, attr)
-                y += 1
-            except curses.error:
-                break
-        
-        windows.menu_win.refresh()
-    except curses.error:
-        pass
-    
-    return selected_index
-
-
-def handle_menu_navigation(
-    key: int,
-    options: List[str],
-    menu_state: MenuState,
-    windows: UIWindows,
-) -> Tuple[Optional[int], bool]:
-    """
-    Handle menu navigation keys and return updated selection and whether to confirm.
-    
-    Args:
-        key: Curses key code
-        options: List of menu options
-        menu_state: Current menu state
-        windows: UIWindows object
-        
-    Returns:
-        Tuple of (new_selected_index or None, should_confirm)
-        If should_confirm is True, the menu selection should be confirmed
-    """
-    if not options:
-        return None, False
-    
-    max_y, max_x = windows.content_win.getmaxyx()
-    visible_rows = menu_state.visible_rows
-    
-    # Enter/Return: confirm selection
-    if key in (curses.KEY_ENTER, 10, 13):
-        return menu_state.selected_index, True
-    
-    # Up arrow: move selection up
-    if key in (curses.KEY_UP, ord("k")):
-        if menu_state.selected_index > 0:
-            menu_state.selected_index -= 1
-        else:
-            # Wrap to last option
-            menu_state.selected_index = len(options) - 1
-        return menu_state.selected_index, False
-    
-    # Down arrow: move selection down
-    if key in (curses.KEY_DOWN, ord("j")):
-        if menu_state.selected_index < len(options) - 1:
-            menu_state.selected_index += 1
-        else:
-            # Wrap to first option
-            menu_state.selected_index = 0
-        return menu_state.selected_index, False
-    
-    # Left arrow: page up
-    if key == curses.KEY_LEFT:
-        new_start = max(0, menu_state.start_index - visible_rows)
-        menu_state.start_index = new_start
-        
-        # Adjust selected_index to stay within visible range
-        if menu_state.selected_index < menu_state.start_index:
-            menu_state.selected_index = menu_state.start_index
-        elif menu_state.selected_index >= menu_state.start_index + visible_rows:
-            menu_state.selected_index = menu_state.start_index + visible_rows - 1
-        
-        # Clamp selected_index
-        menu_state.selected_index = max(
-            0, min(menu_state.selected_index, len(options) - 1)
-        )
-        return menu_state.selected_index, False
-    
-    # Right arrow: page down
-    if key == curses.KEY_RIGHT:
-        new_start = min(
-            len(options) - visible_rows, menu_state.start_index + visible_rows
-        )
-        menu_state.start_index = max(0, new_start)
-        
-        # Adjust selected_index to stay within visible range
-        if menu_state.selected_index < menu_state.start_index:
-            menu_state.selected_index = menu_state.start_index
-        elif menu_state.selected_index >= menu_state.start_index + visible_rows:
-            menu_state.selected_index = menu_state.start_index + visible_rows - 1
-        
-        # Clamp selected_index
-        menu_state.selected_index = max(
-            0, min(menu_state.selected_index, len(options) - 1)
-        )
-        return menu_state.selected_index, False
-    
-    # Number keys (1-9): direct selection
-    if ord("1") <= key <= ord("9"):
-        numeric_choice = key - ord("1")
-        if 0 <= numeric_choice < len(options):
-            menu_state.selected_index = numeric_choice
-            return menu_state.selected_index, False
-    
-    # Unknown key
-    return None, False
-

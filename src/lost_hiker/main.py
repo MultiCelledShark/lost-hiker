@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import os
 import random
-import textwrap
 from pathlib import Path
 import re
 from typing import Callable, Dict, Iterable, List, Optional, Pattern
@@ -145,266 +144,201 @@ class CursesUI(UI):
 
     def scrollable_menu(self, prompt: str, options: List[str], initial_index: int = 0) -> str:
         """
-        Display a scrollable menu with options rendered in the content area.
-        
-        Used for large option lists (like character creation) that need to be
-        scrollable and use the full content window height.
+        Console fallback for scrollable_menu; behaves the same as menu().
         
         Args:
             prompt: Menu prompt text
             options: List of option strings
-            initial_index: Initial selected index (default 0)
-            
-        Returns:
-            Selected option string
+            initial_index: Unused for console UI (kept for API parity)
         """
+        return self.menu(prompt, options)
+
+    def menu(self, prompt: str, options: List[str]) -> str:
+        """Display a numbered menu in the console."""
         if not options:
             return ""
+        print(prompt)
+        for idx, option in enumerate(options, start=1):
+            print(f"  {idx}. {option}")
+        while True:
+            choice = input("> ").strip().lower()
+            if choice.isdigit():
+                index = int(choice) - 1
+                if 0 <= index < len(options):
+                    return options[index]
+            for option in options:
+                if choice == option.lower():
+                    return option
+            print("Please choose by number or name.")
+
+    def prompt(self, prompt: str) -> str:
+        return input(f"{prompt}\n> ").strip()
+
+    def set_highlights(self, terms: Iterable[str]) -> None:
+        self._highlight_terms = tuple(terms)
+
+
+class CursesUI(UI):
+    """
+    Curses-driven interface using the centralized ui_curses module.
+    
+    This class wraps the ui_curses module to provide the UI interface expected
+    by the game engine, while delegating all curses-specific work to ui_curses.
+    """
+
+    def __init__(self) -> None:
+        import curses
+
+        self._curses = curses
+        self._screen = curses.initscr()
         
-        # Clear menu window (not used for scrollable menus)
-        self._windows.menu_win.erase()
-        self._windows.menu_win.refresh()
+        # Initialize UI using centralized module (enforces 100×30 minimum)
+        self._windows = ui_curses.init_ui(self._screen)
         
-        # Draw frame and clear content
+        # Create ContentRenderer for content window
+        self._content_renderer = ui_curses.ContentRenderer(self._windows.content_win)
+        
+        # Ensure initial screen state is visible
+        self._screen.refresh()
+        
+        # Highlighting support (for syntax highlighting in text)
+        self._highlight_terms: tuple[str, ...] = ()
+        self._highlight_regex: Optional[Pattern[str]] = None
+        self._highlight_attr: Optional[int] = curses.A_BOLD
+        
+        try:
+            if curses.has_colors():
+                curses.start_color()
+                try:
+                    curses.use_default_colors()
+                except curses.error:
+                    pass
+                curses.init_pair(1, curses.COLOR_CYAN, -1)
+                self._highlight_attr = curses.color_pair(1) | curses.A_BOLD
+        except curses.error:
+            self._highlight_attr = curses.A_BOLD
+        
+        # Menu state
+        self._selected_index = 0
+        self._current_game_state: Optional[GameState] = None
+
+    def close(self) -> None:
+        """Clean up curses and restore terminal."""
+        curses = self._curses
+        curses.nocbreak()
+        self._windows.stdscr.keypad(False)
+        curses.echo()
+        try:
+            curses.curs_set(1)
+        except curses.error:
+            pass
+        curses.endwin()
+
+    def heading(self, text: str) -> None:
+        """Display a heading, clearing previous scene content."""
+        # Draw frame with borders first (this clears content window if requested)
+        self._draw_frame(clear_content=True)
+        # Clear the content renderer buffer
+        self._content_renderer.clear()
+        # Write heading text
+        heading_text = f"\n{text}\n{'-' * len(text)}\n"
+        self._content_renderer.write(heading_text)
+        # Ensure content window is visible
+        self._windows.content_win.refresh()
+
+    def echo(self, text: str) -> None:
+        """Add text to current scene output."""
+        # Don't clear content window - just draw frame to update header/borders
+        self._draw_frame(clear_content=False)
+        # Ensure text ends with newline
+        if not text.endswith("\n"):
+            text = text + "\n"
+        self._content_renderer.write(text)
+    
+    def clear_content(self) -> None:
+        """Clear the content window and reset renderer position."""
+        self._content_renderer.clear()
+
+    def scrollable_menu(self, prompt: str, options: List[str], initial_index: int = 0) -> str:
+        """Display a scrollable menu using MenuView in the side panel."""
+        if not options:
+            return ""
         self._draw_frame(clear_content=True)
         self._content_renderer.clear()
-        
-        # Get content window dimensions
-        content_height, content_width = self._windows.content_win.getmaxyx()
-        
-        # Reserve space for prompt (2 lines) and spacing
-        prompt_lines = 3
-        available_height = max(1, content_height - prompt_lines)
-        
-        # Initialize selection state
-        selected_index = max(0, min(initial_index, len(options) - 1))
-        window_start = 0
-        
-        def redraw_menu() -> None:
-            """Redraw the menu in content_win with wrapped text."""
-            # Clear content window and renderer
-            self._content_renderer.clear()
-            
-            # Write prompt using ContentRenderer (for wrapping if needed)
-            self._content_renderer.write_line(prompt)
-            self._content_renderer.write_line("")  # Blank line
-            
-            # Get prompt height from renderer
-            prompt_lines_count = len(self._content_renderer.lines)
-            y_offset = prompt_lines_count
-            
-            try:
-                max_y, max_x = self._windows.content_win.getmaxyx()
-                
-                # Calculate wrap width (account for option prefix like "  1. ")
-                prefix_width = len(f"  {len(options)}. ")
-                wrap_width = max(1, max_x - prefix_width)
-                
-                # Build list of wrapped option lines with their indices
-                option_lines: List[tuple[int, List[str]]] = []  # (option_index, wrapped_lines)
-                current_y = y_offset
-                
-                for i in range(len(options)):
-                    option_text = f"  {i + 1}. {options[i]}"
-                    
-                    # Wrap the option text
-                    if len(option_text) <= max_x:
-                        # Fits on one line
-                        wrapped = [option_text]
-                    else:
-                        # Need to wrap - split prefix and description
-                        prefix = f"  {i + 1}. "
-                        description = options[i]
-                        # Wrap description part
-                        desc_lines = textwrap.wrap(
-                            description,
-                            width=wrap_width,
-                            break_long_words=True,
-                            break_on_hyphens=False,
-                        )
-                        if not desc_lines:
-                            desc_lines = [description[:wrap_width]]
-                        # Add prefix to first line, indent continuation lines
-                        wrapped = [prefix + desc_lines[0]]
-                        indent = " " * len(prefix)
-                        for line in desc_lines[1:]:
-                            wrapped.append(indent + line)
-                    
-                    option_lines.append((i, wrapped))
-                
-                # Calculate which options are visible based on window_start
-                visible_lines: List[tuple[int, int, str]] = []  # (option_index, y_pos, line_text)
-                current_y = y_offset
-                
-                for i in range(window_start, len(options)):
-                    opt_idx, wrapped = option_lines[i]
-                    for line in wrapped:
-                        if current_y >= max_y:
-                            break
-                        visible_lines.append((opt_idx, current_y, line))
-                        current_y += 1
-                    if current_y >= max_y:
-                        break
-                
-                # Draw all visible lines
-                for opt_idx, y_pos, line_text in visible_lines:
-                    # Truncate if still too long (safety check)
-                    if len(line_text) > max_x:
-                        line_text = line_text[:max_x]
-                    
-                    # Highlight if this line belongs to selected option
-                    if opt_idx == selected_index:
-                        try:
-                            attr = self._curses.A_REVERSE | self._curses.color_pair(1)
-                        except (self._curses.error, ValueError):
-                            attr = self._curses.A_REVERSE
-                        self._windows.content_win.addstr(y_pos, 0, line_text, attr)
-                    else:
-                        self._windows.content_win.addstr(y_pos, 0, line_text)
-                
-                # Refresh content window
-                self._windows.content_win.refresh()
-            except self._curses.error:
-                pass
-        
-        # Calculate visible_count based on average option height (will be adjusted dynamically)
-        # For now, use a conservative estimate
-        visible_count = max(1, available_height // 2)  # Assume average 2 lines per option
-        
-        # Ensure selected_index is visible
-        if selected_index >= window_start + visible_count:
-            window_start = max(0, selected_index - visible_count + 1)
-        elif selected_index < window_start:
-            window_start = selected_index
-        
-        # Initial draw
-        redraw_menu()
-        
-        # Navigation loop
-        while True:
-            key = self._windows.stdscr.getch()
-            
-            # Handle navigation
-            if key in (self._curses.KEY_UP, ord("k")):
-                if selected_index > 0:
-                    selected_index -= 1
-                    # Update window_start if selected moved above visible range
-                    if selected_index < window_start:
-                        window_start = selected_index
-                else:
-                    # Wrap to end
-                    selected_index = len(options) - 1
-                    # Scroll to show the last option
-                    window_start = max(0, len(options) - visible_count)
-                redraw_menu()
-            
-            elif key in (self._curses.KEY_DOWN, ord("j")):
-                if selected_index < len(options) - 1:
-                    selected_index += 1
-                    # Update window_start if selected moved below visible range
-                    # We need to check if the selected option is visible after redraw
-                    # For now, use a simple heuristic: if selected is beyond window_start + visible_count,
-                    # move window_start forward
-                    if selected_index >= window_start + visible_count:
-                        window_start = selected_index - visible_count + 1
-                else:
-                    # Wrap to start
-                    selected_index = 0
-                    window_start = 0
-                redraw_menu()
-            
-            elif key in (self._curses.KEY_ENTER, 10, 13):
-                break
-            
-            # Number keys (1-9): direct selection (wraps if needed)
-            elif ord("1") <= key <= ord("9"):
-                numeric_choice = key - ord("1")
-                if numeric_choice < len(options):
-                    selected_index = numeric_choice
-                    # Ensure visible
-                    if selected_index >= window_start + visible_count:
-                        window_start = selected_index - visible_count + 1
-                    elif selected_index < window_start:
-                        window_start = selected_index
-                    redraw_menu()
-        
-        # Get chosen option
+        self._content_renderer.write_line(prompt)
+        selected_index = self._run_menu_view(
+            prompt,
+            options,
+            initial_index=max(0, min(initial_index, len(options) - 1)),
+        )
         chosen = options[selected_index]
         self._selected_index = selected_index
-        
-        # Add selection to content window
         self._content_renderer.write_line(f"\nSelected: {chosen}")
-        
+        self._windows.menu_win.erase()
+        self._windows.menu_win.refresh()
         return chosen
 
     def menu(self, prompt: str, options: List[str]) -> str:
-        """
-        Display a menu with numbered choices.
-        
-        Menu is displayed in the dedicated menu_win window.
-        Content (prompt) is shown in content_win via ContentRenderer.
-        """
+        """Display a standard menu using the shared MenuView."""
         if not options:
             return ""
-        
-        # Draw frame with borders (don't clear content - preserve existing text)
         self._draw_frame(clear_content=False)
-        # Write prompt to content window
         self._content_renderer.write_line(prompt)
-        
-        # Draw menu in menu window
-        selected_index = self._selected_index
-        selected_index = ui_curses.draw_menu_simple(
+        selected_index = self._run_menu_view(
             prompt,
             options,
-            selected_index,
-            self._windows,
+            initial_index=max(0, min(self._selected_index, len(options) - 1)),
         )
-        
-        # Ensure menu window is visible by refreshing it
-        self._windows.menu_win.refresh()
-        
-        # Menu navigation loop
-        while True:
-            key = self._windows.stdscr.getch()
-            
-            # Handle navigation
-            if key in (self._curses.KEY_UP, ord("k")):
-                if selected_index > 0:
-                    selected_index -= 1
-                else:
-                    selected_index = len(options) - 1
-                ui_curses.draw_menu_simple(prompt, options, selected_index, self._windows)
-            
-            elif key in (self._curses.KEY_DOWN, ord("j")):
-                if selected_index < len(options) - 1:
-                    selected_index += 1
-                else:
-                    selected_index = 0
-                ui_curses.draw_menu_simple(prompt, options, selected_index, self._windows)
-            
-            elif key in (self._curses.KEY_ENTER, 10, 13):
-                break
-            
-            # Number keys (1-9): direct selection
-            elif ord("1") <= key <= ord("9"):
-                numeric_choice = key - ord("1")
-                if 0 <= numeric_choice < len(options):
-                    selected_index = numeric_choice
-                    ui_curses.draw_menu_simple(prompt, options, selected_index, self._windows)
-        
-        # Get chosen option
         chosen = options[selected_index]
         self._selected_index = selected_index
-        
-        # Add selection to content window
         self._content_renderer.write_line(f"  {selected_index + 1}. {chosen}")
-        
-        # Hide menu window
         self._windows.menu_win.erase()
         self._windows.menu_win.refresh()
-        
         return chosen
+
+    def _run_menu_view(
+        self,
+        prompt: str,
+        options: List[str],
+        *,
+        initial_index: int = 0,
+    ) -> int:
+        """
+        Drive a MenuView interaction loop and return the confirmed index.
+        
+        Keeps cursor movement, paging, and cancel handling consistent across
+        every menu screen.
+        """
+        view = ui_curses.MenuView(options, title=prompt, selected_index=initial_index)
+        view.render(self._windows.menu_win)
+        while True:
+            key = self._windows.stdscr.getch()
+            result = view.handle_key(key)
+            if result is None:
+                view.render(self._windows.menu_win)
+                continue
+            if result == ui_curses.MENU_CANCEL:
+                return self._infer_cancel_index(options, fallback=view.selected_index)
+            if isinstance(result, int):
+                return result
+
+    def _infer_cancel_index(self, options: List[str], *, fallback: int = 0) -> int:
+        """
+        Decide which option should be triggered by Esc/q cancellation.
+        
+        Prefers explicit "back/cancel/quit/exit/leave/return/save" options
+        (searched from the bottom up) and otherwise falls back to the current
+        selection.
+        """
+        if not options:
+            return 0
+        keywords = ("back", "cancel", "quit", "exit", "leave", "return", "save")
+        for idx in range(len(options) - 1, -1, -1):
+            normalized = options[idx].strip().lower()
+            for keyword in keywords:
+                if normalized == keyword or normalized.startswith(f"{keyword} "):
+                    return idx
+        return max(0, min(fallback, len(options) - 1))
 
     def prompt(self, prompt: str) -> str:
         """Display a text input prompt in the input window."""
