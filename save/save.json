@@ -1,25 +1,28 @@
 {
   "schema_version": 5,
-  "day": 1,
+  "day": 4,
   "current_season": "spring",
-  "day_in_season": 1,
+  "day_in_season": 4,
   "season_index": 0,
   "season_day": 0,
-  "stage": "glade",
-  "active_zone": "glade",
+  "stage": "camp",
+  "active_zone": "forest",
   "character": {
-    "name": "Rhew",
-    "race_id": "custom_dragontaur",
-    "body_type": "taur",
-    "size": "large",
-    "archetype": "leyline_touched",
+    "name": "Mila",
+    "race_id": "cow_kin",
+    "body_type": "humanoid",
+    "size": "medium",
+    "archetype": "beastfolk",
     "flavor_tags": [
-      "scaled",
-      "manylimbed",
-      "frostbreath",
-      "stormtouched"
+      "furred",
+      "forestborn"
     ],
-    "tags": [],
+    "tags": [
+      "biped",
+      "hooved",
+      "furred",
+      "herbivorous"
+    ],
     "base_stats": {
       "stamina_max": 4.0,
       "stamina_wake_restore": 1.0,
@@ -28,27 +31,73 @@
       "camp_meal_cost": 1.0,
       "inventory_slots": 20.0
     },
-    "race_modifiers": [],
+    "race_modifiers": [
+      {
+        "add": {
+          "stamina_max": 4,
+          "inventory_slots": 10
+        }
+      }
+    ],
     "permanent_modifiers": []
   },
-  "stamina": 3.2,
+  "stamina": 0.49999999999999944,
   "inventory": [
     "water_bottle",
+    "edible_mushroom",
+    "moss_eater_beetle",
+    "broken_trap",
     "trail_nuts",
-    "dried_berries",
-    "dried_berries",
-    "forest_berries"
+    "trail_nuts",
+    "edible_mushroom",
+    "edible_mushroom",
+    "edible_mushroom",
+    "creek_darter",
+    "gold_pan",
+    "moss_eater_beetle",
+    "dried berries",
+    "birch tinder",
+    "edible_mushroom",
+    "edible_mushroom",
+    "burrow_puff_spores"
   ],
-  "days_without_meal": 1,
+  "days_without_meal": 0,
   "ate_snack_today": false,
   "water_drinks_today": 0,
-  "rest_type": null,
-  "rapport": {},
-  "timed_modifiers": [],
-  "recent_events": [],
-  "zone_steps": {},
+  "rest_type": "camp",
+  "rapport": {
+    "echo": 3,
+    "red_wolf": -1
+  },
+  "timed_modifiers": [
+    {
+      "source": "hidden_herbalist_cache",
+      "modifiers": [
+        {
+          "add": {
+            "stamina_max": 1.0
+          }
+        },
+        {
+          "add": {
+            "stamina_wake_restore": 0.5
+          }
+        }
+      ],
+      "expires_on_day": 6
+    }
+  ],
+  "recent_events": [
+    "mushroom_patch",
+    "hidden_herbalist_cache",
+    "burrow_puff_spores_find"
+  ],
+  "zone_steps": {
+    "forest": 17
+  },
   "zone_depths": {
-    "charred_tree_interior": 0
+    "charred_tree_interior": 0,
+    "forest": 16
   },
   "vore_enabled": true,
   "player_as_pred_enabled": true,
@@ -56,11 +105,19 @@
   "pending_radio_upgrade": false,
   "pending_radio_return_day": null,
   "pending_brews": [],
-  "pending_stamina_floor": 0.0,
-  "discovered_landmarks": [],
+  "pending_stamina_floor": 6,
+  "discovered_landmarks": [
+    "creek_bend"
+  ],
   "current_landmark": null,
-  "landmark_flags": {},
-  "landmark_stability": {},
+  "landmark_flags": {
+    "creek_bend": {
+      "gold_pan_taken": true
+    }
+  },
+  "landmark_stability": {
+    "creek_bend": 1
+  },
   "runestone_states": {},
   "steps_since_forage": 0,
   "forest_act1": {
@@ -81,16 +138,20 @@
   "kirin_travel_mode_unlocked": [],
   "kirin_last_travel_day": null,
   "wayfinding_ready": false,
-  "npc_flags": {},
-  "npc_state": {},
+  "npc_flags": {
+    "echo": {}
+  },
+  "npc_state": {
+    "echo_race_greeting_shown": true
+  },
   "echo_present_at_glade": true,
   "echo_radio_connection_hint_shown": false,
-  "echo_last_pet_day": null,
+  "echo_last_pet_day": 1,
   "echo_vore_tension": 0.0,
   "echo_last_vore_tension_day": null,
   "belly_state": null,
   "condition": 0,
-  "time_of_day": "Day",
+  "time_of_day": "Dawn",
   "is_sheltered": false,
   "flags": {},
   "lost_bag_predator_id": null,

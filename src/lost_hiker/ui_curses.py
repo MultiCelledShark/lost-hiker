@@ -26,6 +26,10 @@ from .hunger import apply_stamina_cap
 MIN_HEIGHT = 30
 MIN_WIDTH = 100
 
+# The frame border is now 2 cells thick (previously 1); derived windows begin
+# BORDER_THICKNESS cells inside frame_win so every UI pane stays aligned.
+BORDER_THICKNESS = 2
+
 
 @dataclass
 class UIWindows:
@@ -343,7 +347,7 @@ def draw_window_border(win: curses.window, border_theme: BorderTheme) -> None:
     """
     try:
         max_y, max_x = win.getmaxyx()
-        if max_x <= 2 or max_y <= 2:  # Need at least 3x3 for borders
+        if max_x < BORDER_THICKNESS * 2 or max_y < BORDER_THICKNESS * 2:
             return
         
         # Apply color attribute if colors are available
@@ -354,29 +358,39 @@ def draw_window_border(win: curses.window, border_theme: BorderTheme) -> None:
             except (curses.error, ValueError):
                 attr = 0
         
-        # Draw horizontal lines (top and bottom)
-        for x in range(1, max_x - 1):
-            try:
-                win.addch(0, x, border_theme.h_char, attr)  # Top
-            except curses.error:
+        # Border occupies BORDER_THICKNESS rows/cols; content windows start at that offset.
+
+        # Draw horizontal bands (top and bottom) BORDER_THICKNESS rows thick
+        for offset in range(BORDER_THICKNESS):
+            y_top = offset
+            y_bottom = max_y - 1 - offset
+            if y_top >= max_y or y_bottom < 0:
                 break
-        for x in range(1, max_x - 1):
-            try:
-                win.addch(max_y - 1, x, border_theme.h_char, attr)  # Bottom
-            except curses.error:
-                break
+            for x in range(0, max_x):
+                try:
+                    win.addch(y_top, x, border_theme.h_char, attr)
+                    if y_bottom != y_top:
+                        win.addch(y_bottom, x, border_theme.h_char, attr)
+                except curses.error:
+                    break
         
-        # Draw vertical lines (left and right)
-        for y in range(1, max_y - 1):
-            try:
-                win.addch(y, 0, border_theme.v_char, attr)  # Left
-            except curses.error:
-                break
-        for y in range(1, max_y - 1):
-            try:
-                win.addch(y, max_x - 1, border_theme.v_char, attr)  # Right
-            except curses.error:
-                break
+        # Draw vertical bands (left and right) BORDER_THICKNESS columns thick,
+        # skipping the horizontal bands to reduce redraw churn.
+        vertical_start = BORDER_THICKNESS
+        vertical_end = max_y - BORDER_THICKNESS
+        if vertical_start < vertical_end:
+            for offset in range(BORDER_THICKNESS):
+                x_left = offset
+                x_right = max_x - 1 - offset
+                if x_left >= max_x or x_right < 0:
+                    break
+                for y in range(vertical_start, vertical_end):
+                    try:
+                        win.addch(y, x_left, border_theme.v_char, attr)
+                        if x_right != x_left:
+                            win.addch(y, x_right, border_theme.v_char, attr)
+                    except curses.error:
+                        break
         
         # Draw corners
         try:
@@ -509,8 +523,8 @@ def _create_window_layout(stdscr: curses.window) -> UIWindows:
     frame_win = curses.newwin(frame_height, frame_width, frame_top, 0)
     
     # Inside frame: calculate inner dimensions (minus borders)
-    inner_height = frame_height - 2  # minus top/bottom border
-    inner_width = frame_width - 2    # minus left/right border
+    inner_height = frame_height - (2 * BORDER_THICKNESS)
+    inner_width = frame_width - (2 * BORDER_THICKNESS)
     
     # Window heights (from bottom to top)
     input_height = 1
@@ -518,16 +532,16 @@ def _create_window_layout(stdscr: curses.window) -> UIWindows:
     content_height = inner_height - input_height - menu_height
     
     # Position windows inside frame (relative to frame_win, accounting for border)
-    # All positions are relative to frame_win's interior (starting at row 1, col 1)
-    content_y = 1  # Row 1 inside frame (after top border)
+    # All positions are relative to frame_win's interior starting BORDER_THICKNESS cells in
+    content_y = BORDER_THICKNESS  # First row inside frame after top border band
     menu_y = content_y + content_height
     input_y = menu_y + menu_height
     
     # Create derived windows inside frame_win
     # Note: derwin positions are relative to parent window (frame_win)
-    content_win = frame_win.derwin(content_height, inner_width, content_y, 1)
-    menu_win = frame_win.derwin(menu_height, inner_width, menu_y, 1)
-    input_win = frame_win.derwin(input_height, inner_width, input_y, 1)
+    content_win = frame_win.derwin(content_height, inner_width, content_y, BORDER_THICKNESS)
+    menu_win = frame_win.derwin(menu_height, inner_width, menu_y, BORDER_THICKNESS)
+    input_win = frame_win.derwin(input_height, inner_width, input_y, BORDER_THICKNESS)
     
     return UIWindows(
         stdscr=stdscr,
