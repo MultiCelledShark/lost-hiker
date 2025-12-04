@@ -22,3 +22,5 @@ Thumbs.db
 *.xz
 *.bak
 assets/cache/
+save
+save.json

@@ -5,24 +5,21 @@
   "day_in_season": 1,
   "season_index": 0,
   "season_day": 0,
-  "stage": "intro",
-  "active_zone": "charred_tree_interior",
+  "stage": "glade",
+  "active_zone": "glade",
   "character": {
-    "name": "Mila",
-    "race_id": "cow_kin",
-    "body_type": "humanoid",
+    "name": "Rhew",
+    "race_id": "custom_dragontaur",
+    "body_type": "taur",
     "size": "large",
-    "archetype": "beastfolk",
+    "archetype": "leyline_touched",
     "flavor_tags": [
-      "furred",
-      "forestborn"
+      "scaled",
+      "manylimbed",
+      "frostbreath",
+      "stormtouched"
     ],
-    "tags": [
-      "biped",
-      "hooved",
-      "furred",
-      "herbivorous"
-    ],
+    "tags": [],
     "base_stats": {
       "stamina_max": 4.0,
       "stamina_wake_restore": 1.0,
@@ -31,24 +28,18 @@
       "camp_meal_cost": 1.0,
       "inventory_slots": 20.0
     },
-    "race_modifiers": [
-      {
-        "add": {
-          "stamina_max": 4,
-          "inventory_slots": 10
-        }
-      }
-    ],
+    "race_modifiers": [],
     "permanent_modifiers": []
   },
-  "stamina": 8.0,
+  "stamina": 3.2,
   "inventory": [
     "water_bottle",
-    "forest_berries",
+    "trail_nuts",
+    "dried_berries",
     "dried_berries",
     "forest_berries"
   ],
-  "days_without_meal": 0,
+  "days_without_meal": 1,
   "ate_snack_today": false,
   "water_drinks_today": 0,
   "rest_type": null,
@@ -60,7 +51,7 @@
     "charred_tree_interior": 0
   },
   "vore_enabled": true,
-  "player_as_pred_enabled": false,
+  "player_as_pred_enabled": true,
   "radio_version": 1,
   "pending_radio_upgrade": false,
   "pending_radio_return_day": null,

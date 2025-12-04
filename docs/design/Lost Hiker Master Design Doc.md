@@ -409,9 +409,3 @@ Puzzles blend environmental interaction, reaction choices, and mini-games, often
 - Camp resets exhaustion; race mods (e.g., lizardkin +1 cold penalty in winter).
 
 **No permadeath**: Failures reset to Glade/tree; penalties include stolen packs (recover via ping/track).
-
-## TODO (for implementation)
-- [ ] Define final endings (good/bad/neutral).
-- [ ] Flesh out digestion phases (safe, tingling, melting, etc.).
-- [ ] Confirm Pool Beast exact stats/mechanics.
-- [ ] Decide exact slot counts for future storage upgrades.
