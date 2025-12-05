@@ -73,7 +73,28 @@ def should_npc_appear(
         if astrin_status == "missing":
             # Can be found at Sunken Spring or Verdant Hollow
             if landmark_id in ("sunken_spring", "verdant_hollow"):
-                return random.random() < 0.4
+                from .forest_act1 import is_forest_act1_complete
+                # Early NPC guarantee/bias system for Act I
+                forest_act1_complete = is_forest_act1_complete(state)
+                astrin_met = state.flags.get("astrin_met", False)
+                
+                # In Act I, before Astrin is met, increase chance significantly
+                if not forest_act1_complete and not astrin_met:
+                    # Early Act I: very likely to meet Astrin (60% base, increases over attempts)
+                    # Track attempts to guarantee encounter
+                    astrin_attempts = state.flags.get("astrin_encounter_attempts", 0)
+                    state.flags["astrin_encounter_attempts"] = astrin_attempts + 1
+                    
+                    # After 3-4 attempts without meeting, guarantee the encounter
+                    if astrin_attempts >= 4:
+                        return True  # Guaranteed encounter
+                    
+                    # Otherwise, high chance that increases with attempts
+                    base_chance = 0.5 + (astrin_attempts * 0.15)  # Starts at 50%, increases
+                    return random.random() < min(1.0, base_chance)
+                else:
+                    # Normal chance if Act I complete or already met
+                    return random.random() < 0.4
             return False
         elif astrin_status == "found":
             # After being found but before reaching Glade, she's in transit

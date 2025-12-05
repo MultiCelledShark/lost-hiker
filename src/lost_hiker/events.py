@@ -163,21 +163,21 @@ class EventPool:
 
     DEFAULT_CATEGORY_WEIGHTS: Dict[str, Dict[str, float]] = {
         "edge": {
-            "forage": 1.5,  # Increased: shallow forest should be safer with more forage
+            "forage": 0.8,  # Reduced: less frequent auto-gather, player can use forage command
             "flavor": 1.3,
             "encounter": 0.5,  # Reduced: fewer predators in shallow
             "hazard": 0.5,  # Reduced: fewer hazards in shallow
             "boon": 1.2,
         },
         "mid": {
-            "forage": 1.0,  # Balanced: mid forest is the main survival tension zone
+            "forage": 0.7,  # Reduced: less frequent auto-gather, player can use forage command
             "flavor": 1.0,
             "encounter": 1.15,  # Slightly increased: more encounters in mid
             "hazard": 1.1,
             "boon": 1.0,
         },
         "deep": {
-            "forage": 0.65,  # Reduced: deep forest is leaner
+            "forage": 0.5,  # Reduced: deep forest is leaner, and less auto-gather
             "flavor": 0.75,
             "encounter": 1.4,  # Increased: more dangerous encounters
             "hazard": 1.3,  # Increased: more hazards

@@ -75,28 +75,55 @@
     "name": "Creek Darter",
     "type": "snack",
     "short_description": "A small, fast fish",
-    "long_description": "A small, silvery fish caught from shallow creeks and side-pools. Quick and delicate, it provides a modest meal when cooked. The scales are delicate and might be useful for crafting.",
+    "long_description": "A small, silvery fish caught from shallow creeks and side-pools. It's raw and should be cooked before eating. The scales are delicate and might be useful for crafting.",
     "food_value": 1,
     "safe_raw": false,
-    "tags": ["fish", "aquatic", "crafting_scale"]
+    "tags": ["fish", "aquatic", "crafting_scale", "raw"]
   },
-  "stoneback_trout": {
-    "name": "Stoneback Trout",
+  "creek_darter_cooked": {
+    "name": "Cooked Creek Darter",
     "type": "meal",
-    "short_description": "A larger river fish",
-    "long_description": "A substantial fish with mottled gray scales that blend with river stones. Found in deeper pools, it provides a hearty meal when cooked. A prime catch for any fisherman.",
+    "short_description": "A small, cooked fish",
+    "long_description": "A small, silvery fish properly cooked over the campfire. The flesh is delicate and flaky, providing a satisfying meal. The scales are preserved and might still be useful for crafting.",
     "food_value": 2,
+    "safe_raw": true,
+    "tags": ["fish", "aquatic", "crafting_scale", "cooked"]
+  },
+  "stoneback_trout_raw": {
+    "name": "Raw Stoneback Trout",
+    "type": "snack",
+    "short_description": "A raw larger river fish",
+    "long_description": "A substantial fish with mottled gray scales that blend with river stones. It's raw and should be cooked before eating. The scales are tough and the flesh is cold—definitely not ready to eat as-is.",
+    "food_value": 1,
     "safe_raw": false,
-    "tags": ["fish", "aquatic"]
+    "tags": ["fish", "aquatic", "raw"]
+  },
+  "stoneback_trout_cooked": {
+    "name": "Cooked Stoneback Trout",
+    "type": "meal",
+    "short_description": "A cooked larger river fish",
+    "long_description": "A substantial fish with mottled gray scales, now properly cooked over the campfire. The flesh is flaky and warm, providing a hearty meal. A prime catch for any fisherman.",
+    "food_value": 2,
+    "safe_raw": true,
+    "tags": ["fish", "aquatic", "cooked"]
   },
   "silt_crab": {
     "name": "Silt Crab",
     "type": "snack",
     "short_description": "A small crab from muddy banks",
-    "long_description": "A small crab found in muddy creek banks. Its meat is modest but filling, and the chitin shell can be used for crafting. Best cooked to avoid any risk.",
+    "long_description": "A small crab found in muddy creek banks. It's raw and should be cooked before eating. The chitin shell can be used for crafting after cooking.",
     "food_value": 1,
     "safe_raw": false,
-    "tags": ["crustacean", "aquatic", "crafting_chitin"]
+    "tags": ["crustacean", "aquatic", "crafting_chitin", "raw"]
+  },
+  "silt_crab_cooked": {
+    "name": "Cooked Silt Crab",
+    "type": "meal",
+    "short_description": "A small, cooked crab",
+    "long_description": "A small crab properly cooked over the campfire. The meat is tender and filling, providing a satisfying meal. The chitin shell is preserved and can still be used for crafting.",
+    "food_value": 2,
+    "safe_raw": true,
+    "tags": ["crustacean", "aquatic", "crafting_chitin", "cooked"]
   },
   "barkgrub": {
     "name": "Barkgrub",
@@ -205,6 +232,20 @@
     "food_value": 0,
     "safe_raw": true,
     "tags": ["resin", "runestone_mix", "crafting", "light_source", "magical"]
+  },
+  "rune_carved_walking_staff": {
+    "name": "Rune-carved Walking Staff",
+    "type": "weapon",
+    "short_description": "A staff carved with storm, root, and path runes",
+    "long_description": "A solid walking staff carved from ancient wood, its surface etched with three runes: storm, root, and path. The runes still feel warm to the touch, as if the magic that activated them lingers. It's a modest weapon, better than being unarmed, and the runes seem to resonate with the forest's deeper currents.",
+    "tags": ["weapon", "staff", "runic"]
+  },
+  "glitch_marked_charm": {
+    "name": "Glitch-marked Charm",
+    "type": "trinket",
+    "short_description": "A small charm marked with glitch patterns",
+    "long_description": "A small, unassuming charm that seems to flicker at the edges of your vision. The patterns on it look like digital artifacts—glitches that shouldn't exist in this world. It's a memento from breaking the fourth wall, a reminder that sometimes reality is more flexible than it seems.",
+    "tags": ["trinket", "memento"]
   }
 }
 

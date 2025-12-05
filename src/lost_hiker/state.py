@@ -77,6 +77,10 @@ class GameState:
     echo_present_at_glade: bool = True  # Echo is present at Glade unless story logic removes her
     echo_radio_connection_hint_shown: bool = False  # Flag for HT radio connection hint
     echo_last_pet_day: Optional[int] = None  # Last day Echo was petted (for diminishing returns)
+    # Echo interaction variant tracking (for flavor text rotation)
+    echo_last_pet_variant: int = 0  # Last variant index used for petting
+    echo_last_boop_variant: int = 0  # Last variant index used for booping
+    echo_last_hug_variant: int = 0  # Last variant index used for hugging
     # Echo vore state (Phase 1: Safe Belly Shelter)
     echo_vore_tension: float = 0.0  # Tension level for vore escalation (increases with hugs/boops, decays over days)
     echo_last_vore_tension_day: Optional[int] = None  # Last day tension was increased (for decay tracking)
@@ -95,6 +99,8 @@ class GameState:
     lost_bag_den_location_id: Optional[str] = None  # ID of landmark/den where bag was taken
     # Rare lore event tracking (counts how many times each event has triggered)
     rare_event_triggers: Dict[str, int] = field(default_factory=dict)
+    # Hollow linger tracking (for Echo rescue trigger)
+    hollow_turns: int = 0
 
     def get_season_name(self) -> str:
         """Get the current season name."""
@@ -220,6 +226,9 @@ class GameState:
             echo_present_at_glade=bool(data.get("echo_present_at_glade", True)),
             echo_radio_connection_hint_shown=bool(data.get("echo_radio_connection_hint_shown", False)),
             echo_last_pet_day=data.get("echo_last_pet_day"),
+            echo_last_pet_variant=int(data.get("echo_last_pet_variant", 0)),
+            echo_last_boop_variant=int(data.get("echo_last_boop_variant", 0)),
+            echo_last_hug_variant=int(data.get("echo_last_hug_variant", 0)),
             echo_vore_tension=float(data.get("echo_vore_tension", 0.0)),
             echo_last_vore_tension_day=data.get("echo_last_vore_tension_day"),
             belly_state=dict(data.get("belly_state", {})) if data.get("belly_state") else None,
@@ -228,6 +237,7 @@ class GameState:
             is_sheltered=bool(data.get("is_sheltered", False)),
             flags=dict(data.get("flags", {})),
             rare_event_triggers=dict(data.get("rare_event_triggers", {})),
+            hollow_turns=int(data.get("hollow_turns", 0)),
         )
 
 
@@ -262,13 +272,13 @@ class GameStateRepository:
         state.stage = "intro"
         state.active_zone = "charred_tree_interior"
         state.zone_depths["charred_tree_interior"] = 0
+        state.time_of_day = "Dawn"  # Start at Dawn
+        state.hollow_turns = 0  # Initialize hollow turns counter
         # Add starting items
         state.inventory.append("water_bottle")
-        # Add starting food (2-4 snacks to give player a buffer)
-        # Tuned: slightly more generous starting food for new players
+        # Add starting food: 5 days worth (5 snacks) plus water bottle only
         import random
-        starting_food = random.randint(2, 4)  # Increased from 2-3 to 2-4
-        for _ in range(starting_food):
+        for _ in range(5):
             state.inventory.append(random.choice(["forest_berries", "trail_nuts", "dried_berries"]))
         return state
 
@@ -426,6 +436,10 @@ class GameStateRepository:
         data.setdefault("echo_present_at_glade", True)
         data.setdefault("echo_radio_connection_hint_shown", False)
         data.setdefault("echo_last_pet_day", None)
+        # Echo interaction variant tracking defaults
+        data.setdefault("echo_last_pet_variant", 0)
+        data.setdefault("echo_last_boop_variant", 0)
+        data.setdefault("echo_last_hug_variant", 0)
         # Echo vore state defaults (Phase 1: Safe Belly Shelter)
         data.setdefault("echo_vore_tension", 0.0)
         data.setdefault("echo_last_vore_tension_day", None)

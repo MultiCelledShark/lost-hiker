@@ -41,6 +41,13 @@
       "description": "A half-dryad herbalist with leaves tangled in her hair and a satchel overflowing with plant samples. She looks frazzled but determined, her eyes bright with curiosity despite her obvious exhaustion.",
       "landmark_ids": ["sunken_spring", "verdant_hollow", "glade"],
       "tags": ["forest_npc", "non_town", "non_combatant", "herbalist", "glade_resident"]
+    },
+    {
+      "id": "rhew_na",
+      "name": "Rhew Na",
+      "description": "A slightly heavyset silver-scaled dragonkin with a taur body type, their large frame filling much of the cabin. Their scales shimmer with a faint icy sheen, and when they speak, wisps of cold air accompany their words. They're working at a laptop, but their presence suggests ancient power beneath the modern setting.",
+      "landmark_ids": ["mountain_cabin_dev"],
+      "tags": ["forest_npc", "non_town", "non_combatant", "dragonkin", "scaled", "taur", "large", "ice_breath"]
     }
   ]
 }

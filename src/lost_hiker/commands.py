@@ -57,6 +57,7 @@ class CommandParser:
             "grab": "take",
             "get": "take",
             "gather": "gather",
+            "forage": "forage",
             "repair": "repair",
             "fix": "repair",
             "mend": "repair",
@@ -79,6 +80,10 @@ class CommandParser:
             "speak to echo": "speak to echo",
             "rub": "rub",
             "request release": "request release",
+            "runes": "runes",
+            "inspect runes": "runes",
+            "touch runes": "runes",
+            "explore": "explore",
         }
         if aliases:
             base_aliases.update({key.lower(): value for key, value in aliases.items()})

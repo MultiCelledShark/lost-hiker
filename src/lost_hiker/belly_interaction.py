@@ -227,12 +227,20 @@ def enter_belly_state(
     
     # Show initial description
     if ui:
-        if mode == "echo":
-            base_text = (
-                "\nYou find yourself in a warm, dark space. "
-                "Echo's presence surrounds you—gentle, protective, safe. "
-                "The rhythmic pulse of her breathing is steady and calming.\n"
-            )
+        if mode == "echo" or mode == "hollow_rescue":
+            if mode == "hollow_rescue":
+                base_text = (
+                    "\nYou find yourself in a warm, dark space. "
+                    "Echo's presence surrounds you—gentle, protective, safe. "
+                    "The rhythmic pulse of her breathing is steady and calming. "
+                    "She's carrying you away from the charred hollow, bringing you somewhere safer.\n"
+                )
+            else:
+                base_text = (
+                    "\nYou find yourself in a warm, dark space. "
+                    "Echo's presence surrounds you—gentle, protective, safe. "
+                    "The rhythmic pulse of her breathing is steady and calming.\n"
+                )
             # Add optional race-aware flavor (keep old system for Echo's radio comments)
             race_flavor = _get_echo_belly_race_flavor(state.character.race_id)
             if race_flavor and random.random() < 0.5:  # 50% chance to show race flavor

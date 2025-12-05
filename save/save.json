@@ -1,18 +1,18 @@
 {
   "schema_version": 5,
-  "day": 3,
+  "day": 1,
   "current_season": "spring",
-  "day_in_season": 3,
+  "day_in_season": 1,
   "season_index": 0,
   "season_day": 0,
-  "stage": "explore:forest",
-  "active_zone": "forest",
+  "stage": "glade",
+  "active_zone": "glade",
   "character": {
     "name": "Mila",
     "race_id": "cow_kin",
     "body_type": "humanoid",
     "size": "medium",
-    "archetype": "forest_creature",
+    "archetype": "beastfolk",
     "flavor_tags": [
       "furred",
       "forestborn"
@@ -41,55 +41,26 @@
     ],
     "permanent_modifiers": []
   },
-  "stamina": 7.0,
+  "stamina": 6.4,
   "inventory": [
     "water_bottle",
+    "trail_nuts",
+    "trail_nuts",
+    "forest_berries",
     "dried_berries",
-    "trail_nuts",
-    "mint",
-    "edible_mushroom",
     "forest_berries",
-    "forest_berries",
-    "forest_berries",
-    "trail_nuts",
-    "trail_nuts",
-    "trail_nuts",
-    "trail_nuts",
-    "trail_nuts",
-    "trail_nuts",
-    "trail_nuts",
-    "mint",
-    "edible_mushroom",
-    "edible_mushroom",
-    "edible_mushroom",
-    "edible_mushroom",
-    "stoneback_trout",
-    "moss_eater_beetle",
-    "trail_nuts",
-    "trail_nuts",
-    "trail_nuts",
-    "trail_nuts",
-    "trail_nuts"
+    "rune_carved_walking_staff"
   ],
-  "days_without_meal": 0,
+  "days_without_meal": 1,
   "ate_snack_today": false,
   "water_drinks_today": 0,
   "rest_type": null,
-  "rapport": {
-    "red_wolf": -2
-  },
+  "rapport": {},
   "timed_modifiers": [],
-  "recent_events": [
-    "nut_tree_find",
-    "stream_crossing",
-    "forest_noise"
-  ],
-  "zone_steps": {
-    "forest": 12
-  },
+  "recent_events": [],
+  "zone_steps": {},
   "zone_depths": {
-    "charred_tree_interior": 0,
-    "forest": 12
+    "charred_tree_interior": 0
   },
   "vore_enabled": true,
   "player_as_pred_enabled": false,
@@ -103,7 +74,7 @@
   "landmark_flags": {},
   "landmark_stability": {},
   "runestone_states": {},
-  "steps_since_forage": 2,
+  "steps_since_forage": 0,
   "forest_act1": {
     "runestones_total": 3,
     "runestones_repaired": 0,
@@ -127,14 +98,24 @@
   "echo_present_at_glade": true,
   "echo_radio_connection_hint_shown": false,
   "echo_last_pet_day": null,
+  "echo_last_pet_variant": 0,
+  "echo_last_boop_variant": 0,
+  "echo_last_hug_variant": 0,
   "echo_vore_tension": 0.0,
   "echo_last_vore_tension_day": null,
   "belly_state": null,
   "condition": 0,
-  "time_of_day": "Dawn",
+  "time_of_day": "Dusk",
   "is_sheltered": false,
-  "flags": {},
+  "flags": {
+    "intro_seen": true,
+    "ashen_rune_sequence": [],
+    "ashen_runes_solved": true,
+    "hollow_echo_rescue_done": true,
+    "echo_first_meeting_done": true
+  },
   "lost_bag_predator_id": null,
   "lost_bag_den_location_id": null,
-  "rare_event_triggers": {}
+  "rare_event_triggers": {},
+  "hollow_turns": 6
 }

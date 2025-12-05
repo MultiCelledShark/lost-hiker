@@ -27,6 +27,33 @@
     "output": "wayfinding_tea",
     "description": "You carefully brew the dream fern and mooncap mushroom together, their essences merging into a warm, fragrant tea. As you stir, the paths you've walked seem to overlap in your mind—the Forest remembers, and so do you.",
     "requires_camp": true
+  },
+  "cooked_stoneback_trout": {
+    "name": "Cooked Stoneback Trout",
+    "requires": {
+      "stoneback_trout_raw": 1
+    },
+    "output": "stoneback_trout_cooked",
+    "description": "You cook the raw trout over the campfire until the flesh is flaky and warm. The smell is inviting, and it's ready for a proper meal.",
+    "requires_camp": true
+  },
+  "cooked_creek_darter": {
+    "name": "Cooked Creek Darter",
+    "requires": {
+      "creek_darter": 1
+    },
+    "output": "creek_darter_cooked",
+    "description": "You cook the small fish over the campfire until the flesh is delicate and flaky. A simple but satisfying meal.",
+    "requires_camp": true
+  },
+  "cooked_silt_crab": {
+    "name": "Cooked Silt Crab",
+    "requires": {
+      "silt_crab": 1
+    },
+    "output": "silt_crab_cooked",
+    "description": "You cook the crab over the campfire until the meat is tender and the shell is warm. The smell is inviting, and it's ready for a proper meal.",
+    "requires_camp": true
   }
 }
 

@@ -89,8 +89,8 @@
   "charred_tree_interior": {
     "look": {
       "default": [
-        "Blackened heartwood bows overhead, ember veins tracing the hollow that swallowed you whole.",
-        "Ash-moted light filters through rune-burned fractures, painting the interior in copper ghosts."
+        "Blackened heartwood bows overhead, ember veins tracing the hollow that swallowed you whole. A fallen branch partially blocks the opening, but you can see daylight beyond.",
+        "Ash-moted light filters through rune-burned fractures, painting the interior in copper ghosts. Faint runes and sigils are burned into the charred bark—marks that weren't here before. The only exit is a cramped opening partially blocked by a fallen branch."
       ]
     },
     "examinables": {
@@ -120,10 +120,51 @@
       },
       "splintered_opening": {
         "name": "splintered opening",
-        "aliases": ["opening", "exit", "gap", "doorway"],
+        "aliases": ["opening", "exit", "gap", "doorway", "branch", "fallen branch"],
         "descriptions": [
-          "Through the splintered opening you glimpse soft daylight and the mossy Glade beyond.",
-          "A jagged gap in the trunk breathes fresh air, beckoning you toward the Glade."
+          "A fallen tree branch partially blocks the opening, but you can squeeze past it into the Glade beyond.",
+          "The opening is cramped, a fallen branch wedged across it. You'll need to crawl past to reach the Glade."
+        ]
+      },
+      "fallen_branch": {
+        "name": "fallen branch",
+        "aliases": ["branch", "fallen branch", "log"],
+        "descriptions": [
+          "A thick branch has fallen across the opening, partially blocking your way out. It's not a gate or door—just an obstruction you can squeeze past.",
+          "The fallen branch is charred like the rest of the tree, but it's loose. You can crawl under or around it to exit."
+        ]
+      }
+    }
+  },
+  "mountain_cabin_dev": {
+    "look": {
+      "default": [
+        "A modest mountainside cabin. Bookshelves line the walls, and a small window looks out over a misty valley. Someone is sitting at a laptop on a wooden desk."
+      ]
+    },
+    "examinables": {
+      "laptop": {
+        "name": "laptop",
+        "aliases": ["laptop", "computer", "screen"],
+        "descriptions": [
+          "The laptop screen shows code—Lost Hiker source files. A half-finished cup of coffee sits next to the keyboard.",
+          "Lines of Python code scroll across the screen. You recognize some of the function names from your own journey."
+        ]
+      },
+      "bookshelves": {
+        "name": "bookshelves",
+        "aliases": ["bookshelves", "books", "shelves"],
+        "descriptions": [
+          "Books on game design and coding line the shelves. Some titles you recognize, others are unfamiliar.",
+          "The books range from technical manuals to design theory. A well-worn copy of 'The Art of Game Design' sits prominently."
+        ]
+      },
+      "window": {
+        "name": "window",
+        "aliases": ["window", "view"],
+        "descriptions": [
+          "The window looks out over a misty valley. The view seems to shift slightly, as if reality itself is uncertain here.",
+          "Beyond the glass, mountains fade into mist. You're not entirely sure this place exists in the same world you came from."
         ]
       }
     }

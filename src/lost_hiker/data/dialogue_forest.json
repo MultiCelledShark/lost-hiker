@@ -419,6 +419,200 @@
           }
         }
       ]
+    },
+    {
+      "id": "rhew_na_start",
+      "npc_id": "rhew_na",
+      "text": "Rhew Na turns around, their silver-scaled form shifting as they look at you with surprise. Wisps of cold air escape their nostrils. 'You shouldn't be here. How'd you manage that?' Their voice carries a rumbling quality, like distant ice shifting.",
+      "options": [
+        {
+          "text": "I found a secret rune sequence.",
+          "next_node_id": "rhew_na_intro",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Who are you?",
+          "next_node_id": "rhew_na_intro",
+          "rapport_delta": 0
+        },
+        {
+          "text": "What is this place?",
+          "next_node_id": "rhew_na_intro",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "rhew_na_intro",
+      "npc_id": "rhew_na",
+      "text": "'I'm Rhew Na. I'm working on the game—Lost Hiker. You found the secret rune sequence, huh? Nice work.' They gesture to the laptop. 'Breaking the fourth wall isn't easy. Here, take this—a little memento.' They hand you a small charm marked with what looks like a glitch pattern.",
+      "options": [
+        {
+          "text": "Thank you.",
+          "next_node_id": "rhew_na_chat",
+          "rapport_delta": 1,
+          "set_flags": {
+            "rhew_na_met": true,
+            "rhew_na_charm_given": true
+          }
+        },
+        {
+          "text": "What are you working on?",
+          "next_node_id": "rhew_na_work",
+          "rapport_delta": 0,
+          "set_flags": {
+            "rhew_na_met": true,
+            "rhew_na_charm_given": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "rhew_na_chat",
+      "npc_id": "rhew_na",
+      "text": "Rhew Na settles back in their chair, the cabin's warmth contrasting with the faint chill that seems to emanate from them. 'So, what brings you here? Besides breaking reality, I mean.'",
+      "options": [
+        {
+          "text": "Just exploring.",
+          "next_node_id": "END",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Can I ask you something?",
+          "next_node_id": "rhew_na_ask",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "rhew_na_work",
+      "npc_id": "rhew_na",
+      "text": "'Game development. Balancing encounters, tweaking dialogue, fixing bugs.' They tap the laptop screen. 'It's a living. Not as exciting as your adventure, but someone's got to make sure the forest doesn't crash.' A small smile plays across their scaled features.",
+      "options": [
+        {
+          "text": "That sounds interesting.",
+          "next_node_id": "rhew_na_chat",
+          "rapport_delta": 1
+        },
+        {
+          "text": "Can I ask you something?",
+          "next_node_id": "rhew_na_ask",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "rhew_na_ask",
+      "npc_id": "rhew_na",
+      "text": "Rhew Na raises an eyebrow, their icy breath visible in the air. 'Sure, what's on your mind?'",
+      "options": [
+        {
+          "text": "Never mind.",
+          "next_node_id": "rhew_na_chat",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Could you... eat me?",
+          "next_node_id": "rhew_na_vore_request",
+          "rapport_delta": 0,
+          "conditions": {
+            "require_vore_enabled": true
+          }
+        },
+        {
+          "text": "Could you... eat me?",
+          "next_node_id": "rhew_na_vore_disabled",
+          "rapport_delta": 0,
+          "conditions": {
+            "require_vore_disabled": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "rhew_na_vore_disabled",
+      "npc_id": "rhew_na",
+      "text": "Rhew Na looks confused, then understanding dawns. 'Ah, you're asking about... that. Sorry, but that feature isn't enabled in your game. Maybe check your settings?' They seem slightly amused but also a bit awkward.",
+      "options": [
+        {
+          "text": "I understand.",
+          "next_node_id": "rhew_na_chat",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "rhew_na_vore_request",
+      "npc_id": "rhew_na",
+      "text": "Rhew Na's eyes widen slightly, and they lean back. 'That's... an unusual request. I'm not sure that's appropriate. I'm just working here.' Their tone is hesitant but not hostile.",
+      "options": [
+        {
+          "text": "Please?",
+          "next_node_id": "rhew_na_vore_persist",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Never mind, forget I asked.",
+          "next_node_id": "rhew_na_chat",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "rhew_na_vore_persist",
+      "npc_id": "rhew_na",
+      "text": "Rhew Na shifts uncomfortably, their scales making a soft rustling sound. 'I really don't think... I mean, we just met. And I'm working.' They glance at the laptop, then back at you. 'This is getting awkward.'",
+      "options": [
+        {
+          "text": "I really want this.",
+          "next_node_id": "rhew_na_vore_persist_2",
+          "rapport_delta": 0
+        },
+        {
+          "text": "You're right, I'm sorry.",
+          "next_node_id": "rhew_na_chat",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "rhew_na_vore_persist_2",
+      "npc_id": "rhew_na",
+      "text": "Rhew Na sighs, a cloud of cold air escaping. 'Look, I appreciate persistence, but this is...' They trail off, looking conflicted. 'Fine. If you're really that insistent, I suppose I could... but you're going to have to keep asking. I'm not easily convinced.'",
+      "options": [
+        {
+          "text": "Please?",
+          "next_node_id": "rhew_na_vore_check",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Never mind.",
+          "next_node_id": "rhew_na_chat",
+          "rapport_delta": 0
+        }
+      ]
+    },
+    {
+      "id": "rhew_na_vore_check",
+      "npc_id": "rhew_na",
+      "text": "Rhew Na looks at you for a long moment, their icy breath creating small clouds. 'You're really persistent, aren't you?' They shake their head, but there's a hint of amusement. 'Alright. Fine. But you're going to have to ask me a few more times. I don't just... do this for anyone.'",
+      "options": [
+        {
+          "text": "Please?",
+          "next_node_id": "rhew_na_vore_check",
+          "rapport_delta": 0
+        },
+        {
+          "text": "I'll keep asking.",
+          "next_node_id": "rhew_na_vore_check",
+          "rapport_delta": 0
+        },
+        {
+          "text": "Never mind.",
+          "next_node_id": "rhew_na_chat",
+          "rapport_delta": 0
+        }
+      ]
     }
   ]
 }

@@ -178,6 +178,13 @@ class Engine:
             result = self._intro_sequence()
             if result == "quit":
                 return
+            # If rescue triggered, belly state is active - handle it immediately
+            from .belly_interaction import is_belly_active
+            if is_belly_active(self.state):
+                self._belly_phase()
+                # After belly phase, transition to normal day loop
+                self.state.stage = "wake"
+                break
         keep_playing = True
         while keep_playing:
             result = self._run_day()
@@ -205,6 +212,9 @@ class Engine:
         for landmark_id in self.state.landmark_flags:
             if "food_gathered_today" in self.state.landmark_flags[landmark_id]:
                 self.state.landmark_flags[landmark_id]["food_gathered_today"] = False
+            # Reset forage count for the new day
+            if "forage_count_today" in self.state.landmark_flags[landmark_id]:
+                self.state.landmark_flags[landmark_id]["forage_count_today"] = 0
         self._day_start_inventory = list(self.state.inventory)
         self._day_start_rapport = dict(self.state.rapport)
         self._wake_phase()
@@ -421,7 +431,7 @@ class Engine:
         mode = belly["mode"]
         
         # Set zone based on mode
-        if mode == "echo":
+        if mode == "echo" or mode == "hollow_rescue":
             self.state.active_zone = "echo_belly"
         else:
             # For predators, keep current zone but mark as in belly
@@ -438,7 +448,13 @@ class Engine:
         creature_data = self.creatures.get(creature_id, {})
         creature_name = creature_data.get("name", creature_id.replace("_", " ").title())
         
-        if mode == "echo":
+        if mode == "hollow_rescue":
+            self._set_scene_highlights(zone_id="echo_belly", depth=0, extras=())
+            self.ui.echo(
+                "You're inside Echo's belly—warm, dark, and safe. "
+                "Commands: look around, feel, struggle, give up, status, bag, help.\n"
+            )
+        elif mode == "echo":
             self._set_scene_highlights(zone_id="echo_belly", depth=0, extras=())
             self.ui.echo(
                 "You're inside Echo's belly—warm, dark, and safe. "
@@ -450,12 +466,16 @@ class Engine:
                 "Commands: soothe, struggle, relax, call, status, bag, help.\n"
             )
         
+        # Track actions for hollow_rescue mode
+        hollow_rescue_actions = 0
+        HOLLOW_RESCUE_MAX_ACTIONS = 4
+        
         while True:
             # Check if still in belly
             if not is_belly_active(self.state):
                 return
             
-            if mode == "echo":
+            if mode == "echo" or mode == "hollow_rescue":
                 self._set_scene_highlights(zone_id="echo_belly", depth=0, extras=None)
             
             command = self._prompt_command("Belly command")
@@ -472,13 +492,60 @@ class Engine:
                 self._show_field_bag()
                 continue
             elif verb == "help":
-                self._print_belly_help(mode, creature_name)
+                if mode == "hollow_rescue":
+                    self.ui.echo(
+                        "Commands: look around, feel, struggle, give up, status, bag, help.\n"
+                    )
+                else:
+                    self._print_belly_help(mode, creature_name)
                 continue
             elif verb == "check sky":
                 self.ui.echo("You can't see the sky from in here.\n")
                 continue
             
-            # Handle belly-specific actions
+            # Handle hollow_rescue mode with limited actions
+            if mode == "hollow_rescue":
+                if verb == "look" or verb == "look around":
+                    self.ui.echo(
+                        "You're surrounded by warmth and darkness. Echo's presence is gentle and protective. "
+                        "You can feel her moving, carrying you through the forest.\n"
+                    )
+                    hollow_rescue_actions += 1
+                    # Advance time slightly
+                    from .time_of_day import advance_time_of_day
+                    advance_time_of_day(self.state, steps=1)
+                elif verb == "feel":
+                    self.ui.echo(
+                        "The walls around you pulse with Echo's breathing. It's warm, safe, and surprisingly comfortable. "
+                        "You can feel her coils shifting as she moves.\n"
+                    )
+                    hollow_rescue_actions += 1
+                    from .time_of_day import advance_time_of_day
+                    advance_time_of_day(self.state, steps=1)
+                elif verb == "struggle":
+                    self.ui.echo(
+                        "[RADIO] A soft, amused pulse. Echo's warmth tightens slightly—not threatening, "
+                        "but clearly indicating you should stay still. She's not letting you go yet.\n"
+                    )
+                    hollow_rescue_actions += 1
+                    from .time_of_day import advance_time_of_day
+                    advance_time_of_day(self.state, steps=1)
+                elif verb == "give up" or verb == "give":
+                    # Player gives up, Echo releases them
+                    self._release_from_hollow_rescue()
+                    return
+                else:
+                    self.ui.echo("In this situation, you can only: look around, feel, struggle, or give up.\n")
+                    continue
+                
+                # Check if we've reached max actions
+                if hollow_rescue_actions >= HOLLOW_RESCUE_MAX_ACTIONS:
+                    self._release_from_hollow_rescue()
+                    return
+                
+                continue
+            
+            # Handle normal belly-specific actions for other modes
             action = verb  # soothe, struggle, relax, call
             if action not in ("soothe", "struggle", "relax", "call"):
                 self.ui.echo("Unknown action. Try: soothe, struggle, relax, or call.\n")
@@ -504,9 +571,28 @@ class Engine:
         self.state.active_zone = zone_id
         self.state.zone_depths.setdefault(zone_id, 0)
         self._set_scene_highlights(zone_id=zone_id, depth=0, extras=())
-        self.ui.heading("Ashen Hollow")
+        
+        # Show first-time storm memory intro if not seen
+        if not self.state.flags.get("intro_seen", False):
+            self.ui.heading("Ashen Hollow")
+            self.ui.echo(
+                "\nThe last thing you remember is taking shelter inside a hollow tree during a sudden storm. "
+                "The wind howled, rain lashed at the opening, and you huddled deeper into the darkness, "
+                "hoping the old trunk would hold.\n\n"
+                "Then—a flash of light that felt wrong. Not the sharp crack of normal lightning, but something "
+                "deeper, more resonant. It seemed to come from everywhere at once, and in that moment, everything "
+                "went dark.\n\n"
+                "You wake now in the same hollow, but it's different. The interior is charred and burned, "
+                "soot coating every surface. Faint runes and sigils are burned into the wood—marks that "
+                "weren't there before. The air smells of ash and something else, something that makes your "
+                "skin prickle.\n\n"
+            )
+            self.state.flags["intro_seen"] = True
+        else:
+            self.ui.heading("Ashen Hollow")
+        
         self.ui.echo(
-            "You come to inside the hollowed heart of a charred portal tree. Commands: look, look at <thing>, leave, bag, status, help.\n"
+            "You're inside the hollowed heart of a charred portal tree. Commands: look, look at <thing>, leave, bag, status, help.\n"
         )
         while self.state.stage == "intro":
             self._set_scene_highlights(zone_id=zone_id, depth=0, extras=None)
@@ -514,6 +600,16 @@ class Engine:
             if command is None:
                 self._report_invalid_command(zone_id)
                 continue
+            
+            # Increment hollow_turns and advance time for most commands
+            # Exclude meta commands that don't represent "lingering" actions
+            if command.verb not in {"help", "status", "bag", "save", "quit", "exit"}:
+                self.state.hollow_turns += 1
+                # Advance time occasionally (every 2 actions)
+                if self.state.hollow_turns % 2 == 0:
+                    from .time_of_day import advance_time_of_day
+                    advance_time_of_day(self.state, steps=1)
+            
             action = self._dispatch_intro_command(command)
             if action == "leave":
                 self._transition_from_hollow()
@@ -521,6 +617,11 @@ class Engine:
             if action == "quit":
                 return "quit"
             if action == "stay":
+                # Check for Echo rescue after each action (only if conditions are met)
+                if self._check_echo_rescue_trigger():
+                    # Rescue was triggered - belly state is now active
+                    # Exit intro loop so engine can handle belly phase
+                    return
                 continue
 
     def _dispatch_intro_command(self, command: Command) -> str:
@@ -556,6 +657,7 @@ class Engine:
                 lines = [
                     "look — survey the hollow",
                     "look at <thing> — inspect portal scars or your gear",
+                    "runes — interact with the runes burned into the bark",
                     "leave — step into the Glade",
                     "status — review notebook",
                     "bag — check supplies",
@@ -593,17 +695,471 @@ class Engine:
         if verb == "wait":
             self.ui.echo("Ash settles as you catch your breath.\n")
             return "stay"
+        if verb == "runes":
+            return self._handle_rune_puzzle()
         self._report_invalid_command("charred_tree_interior")
         return "stay"
 
+    def _check_echo_rescue_trigger(self) -> bool:
+        """
+        Check if Echo rescue should trigger.
+        
+        Returns:
+            True if rescue was triggered, False otherwise
+        """
+        # Only trigger once
+        if self.state.flags.get("hollow_echo_rescue_done", False):
+            return False
+        
+        # Check conditions: hollow_turns >= 6 and time >= Day (Midday)
+        from .time_of_day import get_time_of_day, is_time_at_least, TimeOfDay
+        
+        if self.state.hollow_turns >= 6:
+            current_time = get_time_of_day(self.state)
+            if is_time_at_least(self.state, TimeOfDay.DAY):
+                self._trigger_echo_rescue()
+                return True
+        
+        return False
+    
+    def _trigger_echo_rescue(self) -> None:
+        """Trigger Echo's rescue of the player from the Hollow."""
+        from .vore import is_vore_enabled
+        from .time_of_day import set_time_of_day, TimeOfDay
+        
+        # Mark rescue as done immediately to prevent re-triggering
+        self.state.flags["hollow_echo_rescue_done"] = True
+        
+        # Clear any existing scene highlights before showing rescue scene
+        self._set_scene_highlights(zone_id="charred_tree_interior", depth=0, extras=None)
+        
+        self.ui.echo(
+            "\nA shadow falls across the opening. Something large moves outside, "
+            "and then a massive head pushes into the hollow—Echo's head, her "
+            "lidless eyes peering in with concern. Her tongue flicks, tasting the air.\n\n"
+        )
+        
+        if is_vore_enabled(self.state):
+            # Vore ON: Echo swallows the player
+            self.ui.echo(
+                "Echo's jaws open gently—not a threat, but an invitation. "
+                "Before you can react, she draws you in, her coils wrapping around you "
+                "as she pulls you from the charred hollow. You're enveloped in darkness, "
+                "warmth, and a steady, rhythmic pressure as she carries you away.\n\n"
+            )
+            
+            # Enter belly with hollow_rescue mode
+            from .belly_interaction import enter_belly_state
+            enter_belly_state(
+                self.state,
+                creature_id="echo",
+                mode="hollow_rescue",
+                ui=self.ui,
+            )
+            
+            # Store entry method for compatibility
+            if self.state.belly_state:
+                self.state.belly_state["entry_method"] = "hollow_rescue"
+                self.state.belly_state["entry_day"] = self.state.day
+            
+            # Move to belly zone
+            self.state.active_zone = "echo_belly"
+            self.state.current_landmark = None
+            
+            # Time will advance during belly actions, and will be set to Dusk (Afternoon) on release
+            # The belly phase will handle the limited actions and release
+        else:
+            # Vore OFF: Echo tugs them out
+            self.ui.echo(
+                "Echo's head withdraws, then her coils reach in, gently but firmly "
+                "tugging on your pack and shoulder. She's coaxing you out, her movements "
+                "insistent but not rough. You let her guide you, crawling past the fallen "
+                "branch and out into the open air.\n\n"
+                "Once you're clear, Echo leads you through the forest, her massive form "
+                "moving with surprising grace. She brings you to a clearing—the Glade—and "
+                "settles onto a sunlit stone, watching you with patient eyes.\n\n"
+            )
+            
+            # Move directly to Glade
+            self.state.stage = "wake"
+            self.state.active_zone = "glade"
+            self.state.current_landmark = None
+            # Set time to Dusk (represents "Afternoon" - the time slot after Day/Midday)
+            set_time_of_day(self.state, TimeOfDay.DUSK)
+            self._set_scene_highlights(zone_id="glade", depth=0, extras=())
+            
+            # Show first-time meeting if needed
+            self._check_first_time_echo_meeting()
+    
     def _transition_from_hollow(self) -> None:
         self.ui.echo(
-            "You shoulder your pack and step through the splintered opening into the Glade. "
-            "Echo watches from a sunlit stone, radio antennae flickering as they take in your arrival.\n"
+            "You shoulder your pack and squeeze past the fallen branch blocking the opening, "
+            "crawling out into the Glade. The fresh air feels good after the charred interior.\n"
         )
         self.state.stage = "wake"
         self.state.active_zone = "glade"
         self._set_scene_highlights(zone_id="glade", depth=0, extras=())
+        
+        # Show first-time meeting if needed
+        self._check_first_time_echo_meeting()
+    
+    def _handle_rune_puzzle(self) -> str:
+        """
+        Handle the optional rune puzzle in the Ashen Hollow.
+        
+        Returns:
+            "stay" to continue in the hollow
+        """
+        # Check if already solved
+        if self.state.flags.get("ashen_runes_solved", False):
+            self.ui.echo(
+                "The runes have already been activated. The patterns you traced still glow faintly, "
+                "but they no longer respond to your touch.\n"
+            )
+            return "stay"
+        
+        # Check if dev secret already used
+        dev_secret_used = self.state.flags.get("ashen_runes_dev_secret_used", False)
+        
+        # Initialize puzzle state if needed
+        if "ashen_rune_sequence" not in self.state.flags:
+            self.state.flags["ashen_rune_sequence"] = []
+        
+        current_sequence = self.state.flags.get("ashen_rune_sequence", [])
+        
+        # Define rune options
+        runes = {
+            "1": ("storm", "Storm rune"),
+            "2": ("root", "Root rune"),
+            "3": ("path", "Path rune"),
+        }
+        
+        # Correct pattern: Storm, Root, Path
+        correct_pattern = ["storm", "root", "path"]
+        # Secret pattern: Path, Storm, Root (for dev cabin)
+        secret_pattern = ["path", "storm", "root"]
+        
+        # Show current state
+        if not current_sequence:
+            self.ui.echo(
+                "You examine the faint runes burned into the charred bark. Three symbols stand out:\n"
+                "  1) Storm rune — jagged lines like lightning\n"
+                "  2) Root rune — coiled lines like roots\n"
+                "  3) Path rune — straight lines like a trail\n\n"
+                "They seem to respond to touch. Perhaps a sequence matters?\n"
+            )
+        else:
+            sequence_display = ", ".join([rune.capitalize() for rune in current_sequence])
+            self.ui.echo(
+                f"You've traced: {sequence_display}\n"
+                "The runes await your next choice.\n"
+            )
+        
+        # If sequence is complete, check for solution
+        if len(current_sequence) >= 3:
+            if current_sequence == correct_pattern:
+                # Correct solution - grant staff
+                self.state.flags["ashen_runes_solved"] = True
+                self.ui.echo(
+                    "\nThe runes flare with sudden light! Storm, Root, Path—the sequence resonates "
+                    "with the hollow's magic. A hidden root compartment in the wall slides open, "
+                    "revealing a staff carved with the same runes.\n\n"
+                    "You take the rune-carved walking staff. It feels solid and balanced, "
+                    "the runes still warm to the touch.\n"
+                )
+                # Add staff to inventory
+                self.state.inventory.append("rune_carved_walking_staff")
+                # Clear sequence
+                self.state.flags["ashen_rune_sequence"] = []
+                return "stay"
+            elif current_sequence == secret_pattern and not dev_secret_used:
+                # Secret solution - teleport to dev cabin
+                self.state.flags["ashen_runes_dev_secret_used"] = True
+                self.ui.echo(
+                    "\nThe runes pulse with an unexpected rhythm—Path, Storm, Root. The sequence "
+                    "feels wrong, but the magic responds anyway. The hollow's walls shimmer, "
+                    "and for a moment, reality seems to fold...\n\n"
+                )
+                # Teleport to dev cabin
+                self._teleport_to_dev_cabin()
+                return "stay"
+            else:
+                # Wrong sequence
+                self.ui.echo(
+                    "\nThe runes flicker briefly but nothing happens. The sequence doesn't resonate. "
+                    "Perhaps you should try again?\n"
+                )
+                # Reset sequence
+                self.state.flags["ashen_rune_sequence"] = []
+                return "stay"
+        
+        # Show menu for next rune selection
+        options = [rune[1] for rune in runes.values()]
+        options.append("Back (clear sequence)")
+        
+        choice = self.ui.menu("Select a rune:", options)
+        
+        if choice.lower().startswith("back"):
+            self.state.flags["ashen_rune_sequence"] = []
+            self.ui.echo("You step back from the runes. The sequence is cleared.\n")
+            return "stay"
+        
+        # Find selected rune
+        selected_rune = None
+        for key, (rune_id, rune_name) in runes.items():
+            if choice == rune_name:
+                selected_rune = rune_id
+                break
+        
+        if selected_rune:
+            current_sequence.append(selected_rune)
+            self.state.flags["ashen_rune_sequence"] = current_sequence
+            self.ui.echo(f"You trace the {rune_name.lower()}.\n")
+        else:
+            self.ui.echo("Invalid choice.\n")
+        
+        return "stay"
+    
+    def _teleport_to_dev_cabin(self) -> None:
+        """Teleport player to the dev mountainside cabin."""
+        # Store return location
+        self.state.flags["dev_cabin_return_zone"] = self.state.active_zone
+        self.state.flags["dev_cabin_return_stage"] = self.state.stage
+        
+        # Teleport to dev cabin
+        self.state.active_zone = "mountain_cabin_dev"
+        self.state.stage = "dev_cabin"
+        
+        # Show cabin description
+        self.ui.heading("Mountain Cabin")
+        self.ui.echo(
+            "\nYou find yourself standing in a modest mountainside cabin. The walls are lined "
+            "with bookshelves, and a small window looks out over a misty valley. A slightly heavyset "
+            "silver-scaled dragonkin with a taur body type is sitting at a laptop on a wooden desk, "
+            "their back to you. Their large frame fills much of the cabin, and wisps of cold air "
+            "drift from their direction.\n\n"
+            "They turn around, looking surprised.\n\n"
+        )
+        
+        # Interaction loop using dialogue system
+        while True:
+            options = ["Talk to Rhew Na", "Look around", "Leave"]
+            choice = self.ui.menu("What do you do?", options)
+            
+            if choice == "Talk to Rhew Na":
+                # Use dialogue system
+                from .dialogue import start_dialogue, get_current_dialogue_text, get_current_dialogue_options, step_dialogue
+                session = start_dialogue(self.state, "rhew_na", self.dialogue_catalog, starting_node_id="rhew_na_start")
+                
+                if not session:
+                    self.ui.echo("Rhew Na seems busy with their work.\n")
+                    continue
+                
+                # Run dialogue loop
+                while True:
+                    npc_text = get_current_dialogue_text(session, self.state)
+                    if not npc_text:
+                        break
+                    
+                    self.ui.echo(f"\n{npc_text}\n")
+                    
+                    # Check for vore request node and handle persistence
+                    if session.current_node_id == "rhew_na_vore_check":
+                        # Increment vore request attempts (before showing options)
+                        if "rhew_na_vore_attempts" not in self.state.flags:
+                            self.state.flags["rhew_na_vore_attempts"] = 0
+                        self.state.flags["rhew_na_vore_attempts"] += 1
+                        attempts = self.state.flags["rhew_na_vore_attempts"]
+                        
+                        # Check if threshold is met (7-14 attempts)
+                        import random
+                        if attempts >= 7:
+                            # Random chance between 7-14 attempts
+                            # At attempt 7: 12.5% chance, at attempt 14: 100% chance
+                            success_chance = (attempts - 6) / 8.0 if attempts < 14 else 1.0
+                            if attempts >= 14 or random.random() < success_chance:
+                                # Success! Trigger vore
+                                self.ui.echo(
+                                    "\nRhew Na sighs, their icy breath creating a larger cloud. 'Alright, alright. "
+                                    "You're persistent, I'll give you that. Fine. But this is... unusual, even for me.'\n\n"
+                                    "They shift their large taur form, making room. 'Come here. But remember, "
+                                    "this is a one-time thing. I'm not making a habit of this.'\n\n"
+                                )
+                                # Trigger vore interaction
+                                self._trigger_rhew_na_vore()
+                                break
+                        else:
+                            # Show persistence message based on attempts
+                            if attempts == 1:
+                                persistence_msg = "Rhew Na looks uncomfortable. 'I really don't think this is appropriate.'"
+                            elif attempts == 2:
+                                persistence_msg = "Rhew Na shifts in their chair. 'Look, I said no. This is getting awkward.'"
+                            elif attempts == 3:
+                                persistence_msg = "Rhew Na's scales rustle. 'You're really not giving up, are you?'"
+                            elif attempts == 4:
+                                persistence_msg = "Rhew Na sighs. 'I admire persistence, but this is... unusual.'"
+                            elif attempts == 5:
+                                persistence_msg = "Rhew Na looks conflicted. 'You're really determined about this.'"
+                            elif attempts == 6:
+                                persistence_msg = "Rhew Na's expression softens slightly. 'You know what? Fine. But you're going to have to keep asking.'"
+                            else:
+                                persistence_msg = f"Rhew Na watches you, their icy breath visible. 'You've asked {attempts} times now...'"
+                            
+                            if attempts < 7:
+                                self.ui.echo(f"\n{persistence_msg}\n")
+                    
+                    options = get_current_dialogue_options(session, self.state)
+                    if not options:
+                        break
+                    
+                    choice = self.ui.menu("What do you say?", options)
+                    choice_index = options.index(choice)
+                    
+                    is_ended, next_text = step_dialogue(session, self.state, choice_index)
+                    if is_ended:
+                        break
+                    if next_text:
+                        continue
+                
+                self.ui.echo("\nYou finish your conversation with Rhew Na.\n")
+                
+            elif choice == "Look around":
+                self.ui.echo(
+                    "\nThe cabin is cozy but sparse. Books on game design and coding line the shelves. "
+                    "The laptop screen shows code—Lost Hiker source files. A half-finished cup of "
+                    "coffee sits next to the keyboard. The air has a faint chill to it, likely from "
+                    "Rhew Na's presence.\n"
+                )
+            elif choice == "Leave":
+                self.ui.echo(
+                    "\nRhew Na nods. 'Alright, back you go. Thanks for playing.'\n\n"
+                    "Reality shifts again, and you find yourself back in the Ashen Hollow.\n"
+                )
+                # Return to previous location
+                return_zone = self.state.flags.get("dev_cabin_return_zone", "charred_tree_interior")
+                return_stage = self.state.flags.get("dev_cabin_return_stage", "intro")
+                self.state.active_zone = return_zone
+                self.state.stage = return_stage
+                # Clear sequence
+                self.state.flags["ashen_rune_sequence"] = []
+                break
+    
+    def _trigger_rhew_na_vore(self) -> None:
+        """Trigger vore interaction with Rhew Na."""
+        from .vore import is_vore_enabled
+        from .belly_interaction import enter_belly_state
+        
+        if not is_vore_enabled(self.state):
+            self.ui.echo("Vore is not enabled in your game settings.\n")
+            return
+        
+        self.ui.echo(
+            "Rhew Na's jaws open, revealing a maw that seems larger than it should be. "
+            "Their icy breath washes over you as they gently draw you in. The world outside "
+            "fades as you're enveloped in warmth and darkness, the chill of their scales "
+            "giving way to the heat of their belly.\n\n"
+        )
+        
+        # Enter belly state
+        enter_belly_state(
+            self.state,
+            creature_id="rhew_na",
+            mode="friend",  # Friendly vore
+            ui=self.ui,
+        )
+        
+        # Store entry method
+        if self.state.belly_state:
+            self.state.belly_state["entry_method"] = "dev_cabin_request"
+    
+    def _release_from_hollow_rescue(self) -> None:
+        """Release player from hollow_rescue belly mode and move to Glade."""
+        from .belly_interaction import exit_belly_state
+        from .time_of_day import set_time_of_day, TimeOfDay
+        
+        self.ui.echo(
+            "\nEcho's movements slow, and you feel her shifting. The warmth around you "
+            "tightens briefly, then relaxes. With a gentle motion, she deposits you on soft "
+            "moss—you're in the Glade, safe and sound. Echo settles onto a sunlit stone nearby, "
+            "watching you with patient eyes.\n\n"
+        )
+        
+        # Exit belly state
+        exit_belly_state(self.state)
+        
+        # Move to Glade
+        self.state.stage = "wake"
+        self.state.active_zone = "glade"
+        self.state.current_landmark = None
+        
+        # Set time to Dusk (represents "Afternoon" - the time slot after Day/Midday)
+        set_time_of_day(self.state, TimeOfDay.DUSK)
+        
+        self._set_scene_highlights(zone_id="glade", depth=0, extras=())
+        
+        # Show first-time meeting if needed
+        self._check_first_time_echo_meeting()
+    
+    def _check_first_time_echo_meeting(self) -> None:
+        """Check and show first-time meeting with Echo in the Glade."""
+        if self.state.flags.get("echo_first_meeting_done", False):
+            return
+        
+        self.state.flags["echo_first_meeting_done"] = True
+        
+        self.ui.echo(
+            "\nA massive serpent coils near a sunlit stone, her scales shimmering with "
+            "faint radio static. She notices you and raises her head, antenna-like tendrils "
+            "twitching. Through the static on your HT radio, a voice breaks through—broken, "
+            "simple, but clear:\n\n"
+            "[RADIO] ...new here... I am Echo... you safe... stay... I help...\n\n"
+            "The words are fragmented, but the meaning is clear. This is Echo, and she's "
+            "introducing herself. She seems to want to help, though communication is clearly "
+            "difficult through the radio static.\n\n"
+        )
+
+    def _handle_glade_explore(self) -> str:
+        """Handle explore command in the Glade - show menu of exploration options."""
+        options = ["Explore the Forest", "Inspect the portal tree"]
+        
+        # Check if player can wander Glade (flavor-only events)
+        # For now, always include wander option
+        options.append("Wander around the Glade")
+        
+        choice = self.ui.menu("Where would you like to explore?", options)
+        
+        if choice == "Explore the Forest":
+            self.ui.echo(
+                "You shoulder your pack and head toward the forest trail.\n"
+            )
+            return "enter_forest"
+        elif choice == "Inspect the portal tree":
+            # Return to Ashen Hollow (charred_tree_interior)
+            self._enter_ashen_hollow()
+            return "stay"
+        elif choice == "Wander around the Glade":
+            # Flavor-only wandering with potential random events
+            import random
+            wander_texts = [
+                "You wander around the Glade, taking in the peaceful surroundings. The portal tree's runes still flicker faintly in the corner of your vision.",
+                "You walk a slow circuit around the Glade. Echo watches with patient eyes, her radio static a quiet hum in the background.",
+                "You explore the edges of the Glade, finding little of note. The forest's edge seems to shift slightly as you watch.",
+            ]
+            self.ui.echo(random.choice(wander_texts) + "\n")
+            return "stay"
+        
+        return "stay"
+    
+    def _enter_ashen_hollow(self) -> None:
+        """Enter the Ashen Hollow (charred_tree_interior) from the Glade."""
+        self.ui.echo(
+            "You approach the charred portal tree and squeeze past the fallen branch, "
+            "entering the hollow interior once more. The rune-scarred walls feel familiar.\n"
+        )
+        self.state.stage = "intro"
+        self.state.active_zone = "charred_tree_interior"
+        self.state.zone_depths.setdefault("charred_tree_interior", 0)
+        self._set_scene_highlights(zone_id="charred_tree_interior", depth=0, extras=())
 
     def _dispatch_glade_command(self, *, command: Command, stamina_max: float) -> str:
         verb = command.verb
@@ -627,6 +1183,8 @@ class Engine:
                 "You consider wandering that way, but the Glade offers no path yet.\n"
             )
             return "stay"
+        if verb == "explore":
+            return self._handle_glade_explore()
         if verb == "look":
             target = self._normalize_target(args)
             if target:
@@ -882,6 +1440,10 @@ class Engine:
                     return "stay"
                 self.ui.echo("Gather what?\n")
                 return "stay"
+            if verb == "forage":
+                # Forage command - deliberate foraging action at landmarks
+                self._handle_forage(zone_id=zone_id, stamina_max=stamina_max)
+                return "stay"
             if verb in {"repair", "fix", "mend"}:
                 target = self._normalize_target(args)
                 # Check if we're at a runestone landmark
@@ -902,9 +1464,8 @@ class Engine:
                 )
                 return "stay"
             if verb == "move":
-                # In landmark, "move" means leave
-                self._exit_landmark()
-                return "stay"
+                # In landmark, "move" shows menu of adjacent landmarks
+                return self._handle_landmark_move_menu(current_landmark, zone_id=zone_id, stamina_max=stamina_max)
             if verb == "camp":
                 self._camp_phase(zone_id=zone_id, stamina_max=stamina_max)
                 return "leave"
@@ -2225,6 +2786,9 @@ class Engine:
             f"You've discovered the {landmark.name}. "
             "Commands: look, examine <thing>, leave, status, bag, help.\n"
         )
+        # Add foraging hint for Forest landmarks where foraging is valid
+        if zone_id == "forest" and landmark.features.get("has_food", False):
+            self.ui.echo("You spot some useful plants. You could `forage` here for more, if you have the time.\n")
         # Set up examinables for this landmark
         extras: list[str] = []
         if landmark.features.get("has_runestone"):
@@ -2258,6 +2822,98 @@ class Engine:
         # Clear sheltered flag when leaving landmark (back to normal outdoor conditions)
         self.state.is_sheltered = False
         self.ui.echo("You step away from the landmark and continue exploring.\n")
+
+    def _handle_landmark_move_menu(self, current_landmark: Landmark, *, zone_id: str, stamina_max: float) -> str:
+        """Handle move command at a landmark - show menu of adjacent landmarks."""
+        current_depth = self.state.zone_depths.get(zone_id, 0)
+        
+        # Get discovered landmarks that are "adjacent" (within ±3 depth units for now, or all discovered)
+        adjacent_landmarks = []
+        discovered = set(self.state.discovered_landmarks)
+        
+        for landmark_id in discovered:
+            if landmark_id == current_landmark.landmark_id:
+                continue  # Skip current landmark
+            
+            landmark = self.landmarks.get(landmark_id)
+            if not landmark:
+                continue
+            
+            # Check if landmark is within reasonable distance (adjacent depth range)
+            # Use depth_min as the reference point for comparison
+            depth_diff = abs(landmark.depth_min - current_depth)
+            
+            # Include landmarks within ±3 depth units, or at similar depth ranges
+            if depth_diff <= 3 or (landmark.depth_min <= current_depth <= landmark.depth_max):
+                adjacent_landmarks.append(landmark)
+        
+        if not adjacent_landmarks:
+            # No adjacent landmarks found - just exit landmark and explore normally
+            self._exit_landmark()
+            return "stay"
+        
+        # Build menu options with directional/flavor descriptions
+        options = []
+        landmark_list = []
+        
+        for landmark in adjacent_landmarks:
+            # Determine direction/flavor based on depth difference
+            depth_diff = landmark.depth_min - current_depth
+            
+            if depth_diff < -1:
+                direction = "northwest"
+                flavor = "A faint trail"
+            elif depth_diff < 0:
+                direction = "north"
+                flavor = "A lighter path"
+            elif depth_diff == 0:
+                direction = "nearby"
+                flavor = "A side trail"
+            elif depth_diff <= 1:
+                direction = "south"
+                flavor = "A deeper path"
+            else:
+                direction = "southeast"
+                flavor = "A darker trail"
+            
+            # Build description
+            option_text = f"{flavor} ({landmark.name})"
+            options.append(option_text)
+            landmark_list.append(landmark)
+        
+        # Add option to exit landmark and explore normally
+        options.append("Continue exploring the forest")
+        
+        choice = self.ui.menu("Where would you like to go?", options)
+        
+        # Find selected landmark
+        if choice in options[:-1]:  # Not the "continue exploring" option
+            idx = options.index(choice)
+            selected_landmark = landmark_list[idx]
+            
+            # Travel to selected landmark
+            from .time_of_day import advance_time_of_day
+            
+            # Set depth to landmark's typical depth
+            target_depth = (selected_landmark.depth_min + selected_landmark.depth_max) // 2
+            self.state.zone_depths[zone_id] = target_depth
+            
+            # Enter the landmark
+            self._enter_landmark(selected_landmark, zone_id=zone_id)
+            
+            # Apply stamina cost (travel between landmarks costs stamina)
+            base_cost = 0.8
+            modifier = get_stamina_cost_modifier(self.state, target_depth)
+            self.state.stamina = max(0.0, self.state.stamina - base_cost * modifier)
+            
+            # Advance time
+            advance_time_of_day(self.state, steps=1)
+            
+            return "stay"
+        else:
+            # Continue exploring normally
+            self._exit_landmark()
+            return "stay"
 
     def _get_current_landmark(self) -> Landmark | None:
         """Get the landmark the player is currently at, if any."""
@@ -2515,7 +3171,7 @@ class Engine:
                             food_item = random.choice(["watercress", "creek_tuber"])
                     elif food_type == "creek_aquatic":
                         # Specifically aquatic creatures at creek/river landmarks
-                        choices = ["creek_darter", "stoneback_trout", "silt_crab"]
+                        choices = ["creek_darter", "stoneback_trout_raw", "silt_crab"]
                         weights = [0.5, 0.2, 0.3]  # Darter more common, trout rarer
                         food_item = random.choices(choices, weights=weights, k=1)[0]
                     elif food_type == "edible_fungus":
@@ -2608,6 +3264,183 @@ class Engine:
         
         return False
 
+    def _handle_forage(self, *, zone_id: str, stamina_max: float) -> None:
+        """
+        Handle deliberate foraging action at Forest landmarks.
+        
+        Foraging consumes time and stamina, has per-location per-day limits,
+        and yields better resources than passive auto-gather.
+        """
+        from .time_of_day import advance_time_of_day
+        
+        # Only allow foraging at Forest landmarks
+        if zone_id != "forest":
+            self.ui.echo("You can only forage in the Forest.\n")
+            return
+        
+        current_landmark = self._get_current_landmark()
+        if not current_landmark:
+            # Allow foraging at basic Forest locations (non-landmark)
+            # Limit: once per location per day
+            depth = self.state.zone_depths.get(zone_id, 0)
+            location_key = f"forest_depth_{depth}"
+            
+            # Check daily limit for basic locations (once per day)
+            flags = self.state.landmark_flags.get(location_key, {})
+            if flags.get("forage_count_today", 0) >= 1:
+                self.ui.echo("You've already foraged this area thoroughly today. There's not much left to find.\n")
+                return
+            
+            # Perform foraging at basic location
+            self._perform_basic_forage(location_key=location_key, depth=depth, stamina_max=stamina_max)
+            return
+        
+        # At a landmark: check per-day limit (3 times per landmark per day)
+        landmark_id = current_landmark.landmark_id
+        flags = self.state.landmark_flags.get(landmark_id, {})
+        forage_count = flags.get("forage_count_today", 0)
+        
+        if forage_count >= 3:
+            self.ui.echo("You've already picked this area over today; there's not much left to find.\n")
+            return
+        
+        # Check inventory space
+        inventory_slots = self.state.character.get_stat(
+            "inventory_slots",
+            timed_modifiers=self.state.timed_modifiers,
+            current_day=self.state.day,
+        )
+        if len(self.state.inventory) >= int(inventory_slots):
+            self.ui.echo("Your bag is full. You'll need to make space first.\n")
+            return
+        
+        # Advance time (foraging is a major action)
+        advance_time_of_day(self.state, steps=1)
+        
+        # Apply stamina cost (modest cost, not punishing)
+        stamina_cost = max(0.5, stamina_max * 0.08)  # 8% of max stamina, minimum 0.5
+        self.state.stamina = max(0.0, self.state.stamina - stamina_cost)
+        
+        # Determine resources based on landmark type
+        depth = self.state.zone_depths.get(zone_id, 0)
+        resources = self._roll_forage_resources(current_landmark, depth)
+        
+        # Add resources to inventory
+        for item in resources:
+            if len(self.state.inventory) < int(inventory_slots):
+                self.state.inventory.append(item)
+            else:
+                break
+        
+        # Increment forage count
+        if landmark_id not in self.state.landmark_flags:
+            self.state.landmark_flags[landmark_id] = {}
+        self.state.landmark_flags[landmark_id]["forage_count_today"] = forage_count + 1
+        
+        # Provide feedback
+        if len(resources) > 1:
+            resource_names = [r.replace("_", " ").title() for r in resources]
+            self.ui.echo(
+                f"You spend time carefully searching the area. You find: {', '.join(resource_names)}.\n"
+            )
+        elif resources:
+            resource_name = resources[0].replace("_", " ").title()
+            self.ui.echo(
+                f"You spend time carefully searching the area. You find: {resource_name}.\n"
+            )
+        else:
+            self.ui.echo("You search carefully, but find nothing of use here.\n")
+
+    def _perform_basic_forage(self, *, location_key: str, depth: int, stamina_max: float) -> None:
+        """Perform foraging at a basic Forest location (non-landmark)."""
+        from .time_of_day import advance_time_of_day
+        
+        # Advance time
+        advance_time_of_day(self.state, steps=1)
+        
+        # Apply stamina cost
+        stamina_cost = max(0.5, stamina_max * 0.08)
+        self.state.stamina = max(0.0, self.state.stamina - stamina_cost)
+        
+        # Roll for basic forest resources (more limited than landmarks)
+        import random
+        basic_resources = ["forest_berries", "trail_nuts", "edible_mushroom"]
+        # Basic locations give 1-2 items
+        count = random.randint(1, 2)
+        resources = random.choices(basic_resources, k=count)
+        
+        # Add to inventory
+        inventory_slots = self.state.character.get_stat(
+            "inventory_slots",
+            timed_modifiers=self.state.timed_modifiers,
+            current_day=self.state.day,
+        )
+        for item in resources:
+            if len(self.state.inventory) < int(inventory_slots):
+                self.state.inventory.append(item)
+            else:
+                break
+        
+        # Mark as foraged
+        if location_key not in self.state.landmark_flags:
+            self.state.landmark_flags[location_key] = {}
+        self.state.landmark_flags[location_key]["forage_count_today"] = 1
+        
+        # Feedback
+        if resources:
+            resource_names = [r.replace("_", " ").title() for r in resources]
+            self.ui.echo(
+                f"You spend time foraging. You find: {', '.join(resource_names)}.\n"
+            )
+        else:
+            self.ui.echo("You search carefully, but find nothing of use here.\n")
+
+    def _roll_forage_resources(self, landmark: Landmark, depth: int) -> list[str]:
+        """
+        Roll for foraging resources at a landmark.
+        
+        Returns a list of item IDs. Foraging yields better/more resources than
+        passive auto-gather.
+        """
+        import random
+        resources: list[str] = []
+        
+        # Check landmark food type
+        food_type = landmark.features.get("food_type", "")
+        
+        # Base: 1-3 items (better than auto-gather which is usually 1)
+        item_count = random.randint(1, 3)
+        
+        # Determine resource pool based on landmark type
+        if food_type == "creek_forage":
+            pool = ["watercress", "creek_tuber", "creek_darter", "silt_crab"]
+        elif food_type == "creek_aquatic":
+            pool = ["creek_darter", "stoneback_trout_raw", "silt_crab"]
+        elif food_type == "edible_fungus":
+            pool = ["edible_fungus", "edible_mushroom"]
+        elif food_type == "night_mushrooms":
+            pool = ["night_mushroom"]
+        elif food_type == "cave_forage":
+            pool = ["burrow_puff_spores", "barkgrub", "glow_tail_larva"]
+        elif food_type == "mystical_herbs":
+            if self.state.act1_repaired_runestones >= 1:
+                pool = [
+                    "wisp_petal_blossom", "dreammilk_moss", "veilgrass_tuft",
+                    "glow_sap_resin_nodule", "starlace_fungus"
+                ]
+            else:
+                pool = ["edible_mushroom"]
+        else:
+            # Default Forest resources
+            pool = ["forest_berries", "trail_nuts", "edible_mushroom"]
+        
+        # Roll resources from pool
+        for _ in range(item_count):
+            item = random.choice(pool)
+            resources.append(item)
+        
+        return resources
+
     def _handle_runestone_repair(self, landmark: Landmark) -> None:
         """Handle the runestone repair workflow."""
         landmark_id = landmark.landmark_id
@@ -2676,6 +3509,7 @@ class Engine:
             "leave / move — return to forest exploration",
             "take <item> — pick up items",
             "gather <resource> — gather materials",
+            "forage — deliberately search for resources (costs time and stamina)",
             "repair runestone — repair a fractured runestone",
             "status — review notebook",
             "bag — check supplies",
@@ -2727,6 +3561,10 @@ class Engine:
         if not session:
             self.ui.echo(f"{npc.name} doesn't seem interested in talking right now.\n")
             return
+        
+        # Mark Astrin as met when dialogue starts (for early NPC guarantee system)
+        if npc.npc_id == "astrin":
+            self.state.flags["astrin_met"] = True
         
         # Run dialogue loop
         while True:
@@ -3273,7 +4111,29 @@ class Engine:
                     extras=tuple(extras),
                 )
                 if not event:
-                    self.ui.echo("The woods are quiet.\n")
+                    # Reduce "nothing happens" in early Forest Act I
+                    from .forest_act1 import is_forest_act1_complete
+                    forest_act1_complete = is_forest_act1_complete(self.state)
+                    depth = self.state.zone_depths.get(zone_id, 0)
+                    
+                    # In early Act I (shallow forest), show fewer quiet moments
+                    if not forest_act1_complete and depth <= 9:
+                        # Show quiet message less often (30% chance)
+                        import random
+                        if random.random() < 0.3:
+                            self.ui.echo("The woods are quiet.\n")
+                        # Otherwise, show a minor flavor encounter instead
+                        else:
+                            flavor_options = [
+                                "A small bird flits through the branches overhead, its song brief but pleasant.",
+                                "You spot a patch of mushrooms growing in a fallen log's shadow.",
+                                "Dappled sunlight filters through the canopy, creating patterns on the forest floor.",
+                                "The sound of rustling leaves suggests small creatures moving nearby.",
+                            ]
+                            self.ui.echo(random.choice(flavor_options) + "\n")
+                    else:
+                        # Normal behavior for deeper/mid forest
+                        self.ui.echo("The woods are quiet.\n")
                 else:
                     summary = self.events.apply(self.state, event)
                     if event.event_type == "encounter":
@@ -3589,16 +4449,38 @@ class Engine:
             self.ui.echo(f"You can't eat {item_name_lower}.\n")
             return False
         
-        # Remove from inventory
+        # Check if it's safe to eat raw BEFORE removing from inventory
+        food_type = food_data.get("type", "snack")
+        food_name = food_data.get("name", item_name_lower.replace("_", " ").title())
+        safe_raw = food_data.get("safe_raw", True)
+        
+        # Special handling for raw items
+        # If vore is enabled, raw items are considered safe to eat
+        from .vore import is_vore_enabled
+        vore_enabled = is_vore_enabled(self.state)
+        
+        # Check if item is unsafe to eat raw (unless vore is enabled)
+        if not safe_raw and not vore_enabled:
+            # Check for raw fish/creatures that need cooking
+            if item_name_lower == "stoneback_trout_raw" or "raw" in item_name_lower or "raw" in food_name.lower():
+                self.ui.echo(
+                    f"You look at the raw {food_name.lower()}. It's cold, tough, and definitely not ready to eat. "
+                    "You probably should cook that first.\n"
+                )
+            else:
+                # Generic raw item warning
+                self.ui.echo(
+                    f"You look at the {food_name.lower()}. It's raw and probably should be cooked first.\n"
+                )
+            # Don't remove from inventory - item stays
+            return False
+        
+        # Remove from inventory (only if we're actually going to eat it)
         try:
             self.state.inventory.remove(item_name_lower)
         except ValueError:
             self.ui.echo(f"You don't have any {item_name_lower}.\n")
             return False
-        
-        # Handle based on food type
-        food_type = food_data.get("type", "snack")
-        food_name = food_data.get("name", item_name_lower.replace("_", " ").title())
         
         if food_type == "meal":
             # Proper meal resets hunger

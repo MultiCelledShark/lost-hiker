@@ -86,3 +86,36 @@ def is_player_sheltered(state: "GameState") -> bool:
     """
     return getattr(state, "is_sheltered", False)
 
+
+def is_time_at_least(state: "GameState", target: TimeOfDay) -> bool:
+    """
+    Check if current time of day is at least the target time.
+    
+    Time progression: Dawn -> Day -> Dusk -> Night -> Dawn
+    
+    Args:
+        state: Current game state
+        target: Target time of day to check against
+        
+    Returns:
+        True if current time is at or past the target, False otherwise
+    """
+    current = get_time_of_day(state)
+    time_order = [TimeOfDay.DAWN, TimeOfDay.DAY, TimeOfDay.DUSK, TimeOfDay.NIGHT]
+    
+    current_idx = time_order.index(current) if current in time_order else 0
+    target_idx = time_order.index(target) if target in time_order else 0
+    
+    return current_idx >= target_idx
+
+
+def set_time_of_day(state: "GameState", target: TimeOfDay) -> None:
+    """
+    Set time of day to a specific value.
+    
+    Args:
+        state: Current game state
+        target: Target time of day to set
+    """
+    state.time_of_day = target.value
+

@@ -416,6 +416,16 @@ def check_condition(
             required_archetypes = [required_archetypes]
         return state.character.archetype in required_archetypes
 
+    elif condition_key == "require_vore_enabled":
+        # Check if vore is enabled
+        from .vore import is_vore_enabled
+        return is_vore_enabled(state)
+
+    elif condition_key == "require_vore_disabled":
+        # Check if vore is disabled
+        from .vore import is_vore_enabled
+        return not is_vore_enabled(state)
+
     return False
 
 
@@ -482,6 +492,11 @@ def apply_option_effects(
     # Handle Astrin rescue - move her to Glade
     if npc_id == "astrin" and option.set_flags.get("astrin_status") == "found":
         state.npc_state["astrin_status"] = "at_glade"
+    
+    # Handle Rhew Na charm gift
+    if npc_id == "rhew_na" and option.set_flags.get("rhew_na_charm_given"):
+        if "glitch_marked_charm" not in state.inventory:
+            state.inventory.append("glitch_marked_charm")
     
     # Apply rapport change
     if option.rapport_delta != 0:
