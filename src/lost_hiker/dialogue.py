@@ -1,4 +1,87 @@
-"""Dialogue system for NPC conversations in Lost Hiker."""
+"""
+Dialogue system for NPC conversations in Lost Hiker.
+
+This module implements a node-based dialogue tree system with conditional
+branching, rapport tracking, and quest flag integration.
+
+## Key Concepts:
+
+### Dialogue Nodes:
+Each node represents a moment in conversation:
+- **NPC text**: What the NPC says
+- **Player options**: Choices the player can make
+- **Conditions**: When this node is available (rapport, flags, items, etc.)
+- **Effects**: What happens when option is chosen (rapport change, set flags)
+
+### Dialogue Flow:
+1. Start at entry node (usually "{npc_id}_start")
+2. Show NPC text and player options
+3. Player chooses option
+4. Apply effects (rapport delta, set flags)
+5. Navigate to next_node_id
+6. Repeat until "END" node
+
+### Conditional System:
+Nodes and options can have conditions that must be met:
+- **min_rapport_tier**: "hostile", "neutral", "friendly", "close"
+- **required_flags**: Flags that must be true
+- **forbidden_flags**: Flags that must be false
+- **required_items**: Items player must have
+- **required_season**: Current season must match
+- **min_day/max_day**: Day number range
+
+### Race-Aware Dialogue:
+Some NPCs have race-specific responses. System checks for:
+1. Race-specific variant: "{node_id}_{race_id}"
+2. Tag family variant: "{node_id}_{tag_family}" (e.g., "canine", "feline")
+3. Body type variant: "{node_id}_{body_type}" (e.g., "taur", "naga")
+4. Default node: "{node_id}"
+
+## Dialogue Structure (JSON):
+
+```json
+{
+  "nodes": [
+    {
+      "id": "echo_start",              // Unique node ID
+      "npc_id": "echo",                // Which NPC speaks
+      "text": "[RADIO] Warm… curious…", // What they say
+      "conditions": {                   // When this appears
+        "min_rapport_tier": "neutral"
+      },
+      "options": [                      // Player choices
+        {
+          "text": "Hello, Echo.",      // Choice text
+          "next_node_id": "echo_greeting", // Where to go next
+          "rapport_delta": 1,          // Rapport change (+1)
+          "set_flags": {               // Flags to set
+            "echo_met": true
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+## For Content Editors:
+- Dialogue files: `data/dialogue_*.json`
+- Each NPC has their own file (dialogue_echo.json, dialogue_naiad.json, etc.)
+- Entry node: Use "{npc_id}_start" or first node in file
+- Exit: Set next_node_id to "END" to end conversation
+- Rapport tiers: hostile (<0), neutral (0-4), friendly (5-9), close (10+)
+
+## Related Systems:
+- rapport.py: Relationship tracking and tiers
+- npcs.py: NPC definitions and spawn logic
+- state.py: Quest flags and game state
+
+## Special Features:
+- **Echo Radio**: Echo's dialogue uses [RADIO] prefix for radio transmissions
+- **Race Reactions**: NPCs can respond differently to different races
+- **Quest Integration**: Dialogue sets flags that drive quest progression
+- **Dynamic Conditions**: Nodes can check complex game state
+"""
 
 from __future__ import annotations
 

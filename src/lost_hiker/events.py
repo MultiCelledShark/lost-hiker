@@ -1,4 +1,50 @@
-"""Event loading and execution for the Lost Hiker prototype."""
+"""
+Event loading and execution for the Lost Hiker prototype.
+
+This module handles random events that occur during forest exploration.
+Events include foraging opportunities, flavor text, hazards, and encounters.
+
+## Key Concepts:
+- Event: A single occurrence (finding berries, stream crossing, wolf howl)
+- EventPool: Collection of events loaded from JSON
+- Weighting: Events have base_weight + depth_weight to control frequency
+- Categories: "forage", "flavor", "hazard", "encounter"
+
+## Event Selection:
+Events are weighted by:
+- base_weight: Base probability (higher = more common)
+- depth_weight: Change per depth level (+ = more common deeper, - = less common)
+- min_depth/max_depth: Depth range where event can occur
+- season_weights: Seasonal modifiers (some events only in winter, etc.)
+
+## Event Effects:
+Events can modify game state through effects:
+- inventory_add: Add items to inventory
+- stamina_delta: Change stamina
+- rapport_delta: Change NPC relationships
+- timed_modifiers: Add temporary buffs/debuffs
+
+## For Content Editors:
+Events are defined in data/events_forest.json. Each event has:
+- id: Unique identifier (use descriptive names like "berry_bush_patch")
+- text: Description shown to player (flavor text, what they see)
+- category: "forage", "flavor", "hazard", "encounter"
+- effects: What happens (inventory_add, stamina changes, etc.)
+- Weighting: base_weight, depth_weight, min_depth, max_depth
+- season_weights: Optional seasonal modifiers (1.0 = normal, 2.0 = twice as likely)
+
+## Example Event (from events_forest.json):
+{
+  "id": "berry_bush_patch",
+  "category": "forage",
+  "text": "Wild berry bushes cluster along the trail's edge...",
+  "effects": { "inventory_add": ["forest_berries"], "inventory_add_count": [[2, 5]] },
+  "base_weight": 1.4,
+  "depth_weight": -0.12,  (Less common deeper in forest)
+  "min_depth": 0,
+  "max_depth": 15
+}
+"""
 
 from __future__ import annotations
 
@@ -97,34 +143,77 @@ def _get_exploration_race_flavor(
 
 @dataclass
 class Event:
-    """Serializable event definition."""
+    """
+    Definition for a random event during exploration.
+    
+    Events are loaded from JSON files (e.g., events_forest.json) and triggered
+    during forest exploration based on weight calculations.
+    
+    ## Attributes:
+    - event_id: Unique identifier (e.g., "berry_bush_patch")
+    - text: Flavor text shown to player (what they see/experience)
+    - event_type: Legacy field (usually matches category)
+    - category: "forage", "flavor", "hazard", "encounter"
+    - effects: Dict of effects to apply (inventory_add, stamina_delta, etc.)
+    - checks: Dict of required conditions (currently unused)
+    - base_weight: Base probability weight (1.0 = average, 2.0 = twice as likely)
+    - depth_weight: Weight change per depth level (+ = more common deeper)
+    - min_depth: Minimum depth for this event
+    - max_depth: Maximum depth (None = no limit)
+    - season_weights: Seasonal modifiers {"spring": 1.0, "winter": 0.5, ...}
+    - preferred_seasons: Legacy field for seasonal preferences
+    
+    ## Weight Calculation:
+    Final weight = base_weight + (depth * depth_weight) * season_multiplier
+    
+    ## Example:
+    Berry bushes (base=1.4, depth=-0.12) are:
+    - Common at depth 0 (weight = 1.4)
+    - Less common at depth 5 (weight = 1.4 - 0.6 = 0.8)
+    - Rare at depth 10 (weight = 1.4 - 1.2 = 0.2)
+    """
 
-    event_id: str
-    text: str
-    event_type: str
-    effects: Dict[str, object]
-    checks: Dict[str, float]
-    base_weight: float
-    depth_weight: float
-    min_depth: int
-    max_depth: Optional[int]
-    category: str
-    season_weights: Optional[Dict[str, float]] = None
-    preferred_seasons: Optional[List[str]] = None
+    event_id: str  # Unique identifier for this event
+    text: str  # Description shown to player
+    event_type: str  # Legacy type field (usually matches category)
+    effects: Dict[str, object]  # Effects dict (inventory_add, stamina_delta, rapport_delta, etc.)
+    checks: Dict[str, float]  # Conditional checks (currently unused, for future conditions)
+    base_weight: float  # Base probability weight (1.0 = normal, higher = more common)
+    depth_weight: float  # Weight modifier per depth level (+ favors deeper, - favors shallower)
+    min_depth: int  # Minimum depth where this event can occur
+    max_depth: Optional[int]  # Maximum depth (None = unlimited)
+    category: str  # Event category: "forage", "flavor", "hazard", "encounter"
+    season_weights: Optional[Dict[str, float]] = None  # Seasonal modifiers per season
+    preferred_seasons: Optional[List[str]] = None  # Legacy seasonal preferences
 
     @classmethod
     def from_dict(cls, payload: Dict[str, object]) -> "Event":
+        """
+        Create Event from JSON dictionary.
+        
+        Args:
+            payload: Event data from JSON file
+            
+        Returns:
+            Event instance
+        """
+        # Parse optional max_depth
         max_depth = payload.get("max_depth")
+        
+        # Parse optional season_weights dict
         season_weights = payload.get("season_weights")
         if isinstance(season_weights, dict):
             season_weights = {k: float(v) for k, v in season_weights.items()}
         else:
             season_weights = None
+        
+        # Parse optional preferred_seasons list (legacy)
         preferred_seasons = payload.get("preferred_seasons")
         if isinstance(preferred_seasons, list):
             preferred_seasons = [str(s) for s in preferred_seasons]
         else:
             preferred_seasons = None
+        
         return cls(
             event_id=payload["id"],
             text=payload["text"],
@@ -141,6 +230,15 @@ class Event:
         )
 
     def is_available_at_depth(self, depth: int) -> bool:
+        """
+        Check if event can occur at given depth.
+        
+        Args:
+            depth: Current exploration depth
+            
+        Returns:
+            True if event is available at this depth
+        """
         if depth < self.min_depth:
             return False
         if self.max_depth is not None and depth > int(self.max_depth):
@@ -148,23 +246,68 @@ class Event:
         return True
 
     def weight_at_depth(self, depth: int, band_multiplier: float = 1.0) -> float:
+        """
+        Calculate event weight at specific depth.
+        
+        Weight determines probability of selection. Higher weight = more likely.
+        Formula: (base_weight + depth_weight * depth_delta) * band_multiplier
+        
+        Events past max_depth have weight reduced by 75% (×0.25).
+        
+        Args:
+            depth: Current exploration depth
+            band_multiplier: Additional multiplier (from depth band or category weighting)
+            
+        Returns:
+            Final weight (minimum 0.1)
+        """
+        # Calculate depth delta from minimum depth
         if depth < self.min_depth:
             depth_delta = 0
         else:
             depth_delta = depth - self.min_depth
+        
+        # Base weight + depth scaling
         weight = (self.base_weight + self.depth_weight * depth_delta) * band_multiplier
+        
+        # Penalize events past max_depth (reduce to 25% weight)
         if self.max_depth is not None and depth > int(self.max_depth):
             weight *= 0.25
-        return max(0.1, weight)
+        
+        return max(0.1, weight)  # Never drop below 0.1
 
 
 class EventPool:
-    """Manages selecting events while respecting recent history."""
+    """
+    Manages event selection with anti-repetition and depth weighting.
+    
+    Loads events from JSON and selects them based on:
+    - Depth (shallow vs deep forest)
+    - Category weights (forage vs flavor vs hazard at different depths)
+    - Recent history (prevents same event repeating too often)
+    - Seasonal modifiers
+    
+    ## Depth Bands:
+    - edge (0-2): Safer, more forage, fewer hazards
+    - mid (3-6): Balanced mix
+    - deep (7-14): More hazards, fewer resources
+    - depths (15+): Extreme danger zone
+    
+    ## Category Weights by Depth:
+    Category weights change with depth to create atmosphere:
+    - "forage": More common near edge, rare in depths
+    - "flavor": Atmospheric text, consistent throughout
+    - "hazard": Rare at edge, common in depths
+    - "encounter": Predator encounters, scale with depth
+    """
 
+    # Category weights per depth band
+    # Format: {depth_band: {category: weight_multiplier}}
+    # Higher multiplier = category is more likely in that band
     DEFAULT_CATEGORY_WEIGHTS: Dict[str, Dict[str, float]] = {
-        "edge": {
-            "forage": 0.8,  # Reduced: less frequent auto-gather, player can use forage command
-            "flavor": 1.3,
+        "edge": {  # Depth 0-2: Forest edge, relatively safe
+            "forage": 0.8,  # Moderate foraging (player can also use forage command)
+            "flavor": 1.3,  # Common atmospheric flavor
             "encounter": 0.5,  # Reduced: fewer predators in shallow
             "hazard": 0.5,  # Reduced: fewer hazards in shallow
             "boon": 1.2,

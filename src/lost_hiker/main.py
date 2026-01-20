@@ -1,4 +1,80 @@
-"""Entry point and UI plumbing for the Lost Hiker prototype."""
+"""
+Entry point and UI plumbing for the Lost Hiker prototype.
+
+This module handles:
+- Game initialization and main menu
+- Character creation flow
+- UI setup (curses or console fallback)
+- Loading all game data (events, scenes, NPCs, dialogue, etc.)
+- Save/load management
+
+## Game Flow:
+
+1. **Startup (main())**:
+   - Load all data files (JSON) from src/lost_hiker/data/
+   - Initialize UI (CursesUI if available, else ConsoleUI)
+   - Show main menu (New Game, Continue, Settings, Quit)
+
+2. **Character Creation**:
+   - Choose race (preset or custom)
+   - Choose body type, size, archetype
+   - Choose flavor tags (or use tag pack)
+   - Set vore preferences (optional content toggle)
+
+3. **Game Start**:
+   - Create new GameState with character
+   - Start in Charred Hollow (intro sequence)
+   - Pass control to Engine for main game loop
+
+4. **Load Game**:
+   - Load existing save.json
+   - Migrate old saves to current version
+   - Resume from where player left off
+
+## UI System:
+
+Two UI implementations:
+- **CursesUI**: Full-screen terminal UI with windows, menus, status bar
+  - Used by default on Unix systems
+  - Prettier, more immersive
+  - Requires curses library
+  
+- **ConsoleUI**: Simple stdin/stdout fallback
+  - Used if curses unavailable or disabled (LOST_HIKER_NO_CURSES=1)
+  - Text-based, basic but functional
+  - Works everywhere
+
+Both implement UI Protocol:
+- heading(text): Display section header
+- echo(text): Output text to player
+- menu(prompt, options): Show menu, return choice
+- prompt(prompt): Get text input
+
+## Data Loading:
+
+All game content is loaded from JSON files:
+- `events_forest.json`: Random exploration events
+- `scenes.json`: Location descriptions
+- `creatures.json`: Creature definitions
+- `teas.json`: Tea/potion recipes
+- `races.json`: Playable race definitions
+- `seasons.json`: Season cycle configuration
+- `landmarks_forest.json`: Discoverable locations
+- `cooking_recipes.json`: Cooking recipes
+- `items_food.json`: Food item definitions
+- `runestones_forest.json`: Quest runestones
+- `encounters_forest.json`: Creature encounters
+- `npcs_forest.json`: NPC definitions
+- `dialogue_*.json`: NPC dialogue trees
+
+See `data/README.md` for content editing guide.
+
+## For Developers:
+- Add new data loaders here (follow pattern: load_*_catalog())
+- Initialize new systems in main() before creating Engine
+- Character creation customization: modify create_character()
+- UI customization: edit CursesUI or ConsoleUI classes
+"""
 
 from __future__ import annotations
 

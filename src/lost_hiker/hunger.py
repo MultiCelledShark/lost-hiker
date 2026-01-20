@@ -1,4 +1,61 @@
-"""Hunger system and stamina cap management for Lost Hiker."""
+"""
+Hunger system and stamina cap management for Lost Hiker.
+
+This module implements the survival mechanics: hunger tracking, stamina penalties,
+and starvation game over. Players must eat proper meals regularly or face
+increasingly severe stamina penalties.
+
+## Hunger System:
+
+### Meal Types:
+- **Snacks** (berries, nuts): Delay hunger, don't count as proper meals
+- **Meals** (stew, cooked fish): Reset hunger counter to 0
+
+### Hunger Progression:
+- **Day 0**: Well-fed (no penalties)
+- **Day 1**: Slightly hungry (20% stamina reduction)
+- **Day 2**: Hungry (45% stamina reduction)
+- **Day 3**: Starving (70% stamina reduction)
+- **Day 4+**: Game Over (starvation death)
+
+### Stamina Cap System:
+Stamina is capped by WORST of:
+1. **Hunger cap** (days without meal)
+2. **Rest cap** (collapse vs camp)
+3. **Condition cap** (injuries/strain)
+
+Final stamina = base_stamina_max * min(hunger_cap, rest_cap, condition_cap)
+
+### Mechanics:
+- Eating a **meal** resets days_without_meal to 0
+- Eating a **snack** prevents hunger from increasing that day
+- Not eating anything increases days_without_meal by 1
+- Collapsing gives 50% stamina cap instead of camping (100%)
+
+## Design Philosophy:
+Hunger should feel pressing but not unfair. Players get:
+- 5 starting food items
+- Abundant forage opportunities
+- Clear warnings (status messages, stamina cap display)
+- 4-day window to find food before game over
+
+## For Content Editors:
+- Hunger messages: get_hunger_status_message() (hardcoded)
+- Game over message: get_starvation_game_over_message() (hardcoded)
+- Food item definitions: data/items_food.json
+- Recipes: data/cooking_recipes.json
+
+## Tuning Variables:
+All stamina cap percentages are in get_stamina_cap_multiplier().
+To make hunger more/less forgiving, adjust these multipliers.
+
+Current balance (tuned for fairness):
+- Day 0: 100% stamina (no penalty)
+- Day 1: 80% stamina (slight penalty, was 75%)
+- Day 2: 55% stamina (moderate penalty, was 50%)
+- Day 3: 30% stamina (severe penalty, was 25%)
+- Day 4+: Game over
+"""
 
 from __future__ import annotations
 

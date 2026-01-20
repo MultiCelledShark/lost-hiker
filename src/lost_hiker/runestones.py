@@ -1,4 +1,54 @@
-"""Runestone repair system for Lost Hiker."""
+"""
+Runestone repair system for Lost Hiker.
+
+This module implements the Act I main quest: "Breath of the Forest"
+Players repair fractured runestones to stabilize the forest's ley-line network.
+
+## Quest Overview:
+The wizard's failed portal experiment fractured runestones throughout the forest.
+These stones regulate magical flow and natural cycles. Repairing them stabilizes
+the region and is required to progress the main story.
+
+## Repair Process (3 Stages):
+1. **Physical Repair**: Apply primitive mortar to seal cracks
+   - Requires: primitive_mortar (crafted from clay, sand, ash)
+   - Effect: Glyph tracks align, stone structure restored
+   
+2. **Resonance Tuning**: Use HT radio to tune harmonic frequency
+   - Requires: HT radio (always available)
+   - Mechanic: Mini-game adjusting frequency until stable
+   - Effect: Stone begins humming correctly, mortar magically sets
+   
+3. **Pulse Realignment**: Drink tea and meditate to restore heartbeat
+   - Requires: Dream Fern tea or similar
+   - Mechanic: Vision/meditation sequence
+   - Effect: Stone pulses in sync with forest, full restoration
+
+## Race-Specific Bonuses:
+Different races have different advantages during repair:
+- Elves: Sense correct alignment, hear harmonics
+- Dwarves: Feel bass vibrations, stabilize edges
+- Wolf-kin: Smell fresh vs stale clay, react to emotional tones
+- Lizard-kin: Spot micro-fissures, notice flickering lights
+- Cow-kin: Enhanced Echo hints, sense comfort/discomfort
+- Humans: Rely entirely on Echo's guidance (no special bonuses)
+
+## Completion Rewards:
+Each repaired runestone:
+- Reduces environmental hazards in local area
+- Improves event safety weighting
+- Lowers stamina costs in region
+- Increases Echo rapport
+- Improves radio signal clarity
+- Attracts Kirin's interest
+- Stabilizes herb growth cycles
+
+## For Content Editors:
+- Runestone definitions: data/runestones_forest.json
+- Repair dialogue: Hardcoded in this file (consider extracting to JSON)
+- Echo hints: get_echo_hint_for_runestone() function
+- Completion effects: forest_act1.py
+"""
 
 from __future__ import annotations
 

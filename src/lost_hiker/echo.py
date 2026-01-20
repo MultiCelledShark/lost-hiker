@@ -1,4 +1,51 @@
-"""Echo-specific helper functions for camp interactions and presence tracking."""
+"""
+Echo interactions - petting, hugging, booping the forest serpent.
+
+Echo is the player's primary companion - an ancient forest serpent whose
+biology evolved to sense ley-line currents. She communicates through the
+player's HT radio, translating her emotional broadcasts into comprehensible text.
+
+## Key Mechanics:
+
+### Radio Communication:
+- **Radio v1** (default): Fragmentary, emotional, impressionistic
+  - Example: "[RADIO] Warm… curious… testing your scent."
+- **Radio v2** (after attunement): Coherent sentences, warm and personal
+  - Example: "[RADIO] Your presence crackles like dry leaves. Controlled… mostly."
+  - Unlocked when Echo swallows and attunes the radio (requires rapport ≥ 5)
+
+### Physical Interactions:
+- **Pet**: Gentle touch, builds rapport (+1/day max)
+- **Boop**: Playful nose-boop, builds rapport (+1/day max)
+- **Hug**: Full embrace, stronger rapport gain (+1-2/day)
+
+### Rapport Scaling:
+Interactions have different flavor text based on rapport tier:
+- Low (< 0): Wary, cautious responses
+- Medium (0-4): Neutral, curious
+- High (5-9): Warm, friendly
+- Very High (10+): Deeply affectionate, bonded
+
+### Daily Limits:
+Each interaction type can grant rapport bonus once per day.
+Subsequent interactions same day still show flavor text but no rapport gain.
+
+### Variant Rotation:
+Flavor text rotates through variants to avoid repetition.
+State tracks last variant used for each interaction type.
+
+## For Content Editors:
+- Interaction flavor text: Hardcoded in this file (pet_echo, hug_echo, boop_echo)
+- Radio dialogue: data/dialogue_echo.json
+- Race-specific reactions: Uses race_flavor.py
+- Vore interactions: echo_vore.py (if enabled)
+
+## Related Systems:
+- rapport.py: Relationship tracking
+- dialogue.py: Radio conversations
+- echo_vore.py: Belly shelter mechanics (optional)
+- race_flavor.py: Race-specific flavor text
+"""
 
 from __future__ import annotations
 
@@ -12,6 +59,7 @@ from .vore import is_vore_enabled
 if TYPE_CHECKING:
     from .echo_vore import BASE_BOOP_VORE_CHANCE, BASE_HUG_VORE_CHANCE
 
+# Echo's NPC identifier (used in rapport tracking, dialogue, etc.)
 ECHO_ID = "echo"
 
 

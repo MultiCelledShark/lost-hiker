@@ -1,4 +1,34 @@
-"""Cooking system for camp meals in Lost Hiker."""
+"""
+Cooking system for camp meals in Lost Hiker.
+
+This module handles recipe management and cooking mechanics at camp.
+Players can combine foraged ingredients into meals and teas.
+
+## Key Concepts:
+- CookingRecipe: A recipe with ingredients → output
+- CookingCatalog: Collection of all recipes
+- Recipes require camp (can't cook while exploring)
+- Ingredients are consumed, output is added to inventory
+
+## Recipe System:
+Recipes are defined in data/cooking_recipes.json:
+{
+  "forest_stew": {
+    "name": "Forest Stew",
+    "requires": {"edible_mushroom": 1, "forest_berries": 1},
+    "output": "forest_stew",
+    "description": "A hearty stew...",
+    "requires_camp": true
+  }
+}
+
+## For Content Editors:
+- Add new recipes to data/cooking_recipes.json
+- Define ingredient requirements (item ID: count)
+- Set output item (must match item in items_food.json)
+- Write description (shown when cooking)
+- Most recipes should require_camp: true
+"""
 
 from __future__ import annotations
 
@@ -11,7 +41,20 @@ from .state import GameState
 
 
 class CookingRecipe:
-    """Represents a cooking recipe."""
+    """
+    A recipe for cooking items at camp.
+    
+    Recipes consume ingredients from inventory and produce an output item.
+    Most recipes require being at camp (can't cook while exploring).
+    
+    Attributes:
+        recipe_id: Unique identifier (e.g., "forest_stew")
+        name: Display name (e.g., "Forest Stew")
+        requires: Dict of ingredient item_id → quantity needed
+        output: Item ID produced by cooking
+        description: Flavor text shown when cooking
+        requires_camp: Whether recipe needs camp (usually True)
+    """
 
     def __init__(
         self,
@@ -22,12 +65,12 @@ class CookingRecipe:
         description: str,
         requires_camp: bool = True,
     ):
-        self.recipe_id = recipe_id
-        self.name = name
-        self.requires = requires
-        self.output = output
-        self.description = description
-        self.requires_camp = requires_camp
+        self.recipe_id = recipe_id  # Unique ID (e.g., "forest_stew")
+        self.name = name  # Display name (e.g., "Forest Stew")
+        self.requires = requires  # Ingredients: {item_id: quantity}
+        self.output = output  # Output item ID
+        self.description = description  # Flavor text
+        self.requires_camp = requires_camp  # Needs camp? (usually True)
 
 
 class CookingCatalog:
